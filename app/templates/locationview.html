@@ -1,0 +1,49 @@
+{% include 'header.tpl' %}
+<!--<meta http-equiv="Cache-Control" content="no-cache">-->
+
+{% if devices|length > 0 %}
+<meta http-equiv="refresh" content="600">
+{% else %}
+<meta http-equiv="refresh" content="10">
+{% endif %}
+
+<script type="text/javascript"
+    src="http://code.jquery.com/jquery-1.10.1.min.js">
+</script>
+    
+
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">{{_('Devices seen by Beacon')}}</h1>
+    <p class="lead">{{_('..')}}</p>
+</div>
+
+<div class="container">
+    <div class="grid-container card-deck grid-container--fill text-center">
+<!--    <div class="grid-container grid-container-fill card-deck mb-2 text-center ">-->
+
+        <!--    <div class="card-deck mb-3 text-center">-->
+        {% for i in devices %}
+        
+        <script type="text/javascript">
+
+            var elementURL{{loop.index0}} = '/element/' + {{loop.index0}}
+            $(document).ready(
+                              function() {
+                              var randomnumber = Math.floor((Math.random()-0.5) * 1000);
+                              setInterval(function() {
+                                          $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn();
+                                          }, 5000 + randomnumber);
+                              });
+            </script>
+        
+        
+        <div id="show{{loop.index0}}" align="center"></div>
+
+        
+      
+        {% endfor %}
+</div>
+</div>
+</div>
+
+{% include 'footer.tpl' %}

@@ -1,0 +1,21 @@
+
+body {
+
+    }
+
+    .grid-container {
+            display: grid;
+        }
+
+    .grid-container--fill {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .grid-container--fit {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .device-img {
+        width:100%;
+        minmax-width:300px;
+    }

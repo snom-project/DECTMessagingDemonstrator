@@ -1,0 +1,56 @@
+<!-- i represents a full device profile -->
+{% if i['device_loggedin'] == "1" %}
+
+{% if i['proximity'] == "1" %}
+{% set prox_color = "text-white bg-success" %}
+{% set prox_back = "rgba(0, 200, 100, 0.4);" %}
+{% set prox_txt ="Inside" %}
+{% set prox_badge ="badge-success" %}
+
+{% else %}
+{% set prox_color = "text-white bg-secondary" %}
+{% set prox_back = "rgba(100, 100, 100, 0.4);" %}
+{% set prox_txt ="Outside" %}
+{% set prox_badge ="badge-danger" %} {% endif %}
+
+{% if i['device_type'] == "SnomM9BTX" %}
+{% set prox_back = "rgba(20, 20, 200, 0.4);" %}
+{% elif i['device_type'] == "SnomM9BRX" %}
+{% set prox_back = "rgba(50, 50, 230, 0.4);" %}
+{% endif %}
+
+{{i['device_type']}}
+<div class="card {{prox_color}} ">
+    
+    <!--        <div class="card mb-4 shadow-sm">-->
+    <div class="card-header px-2 py-2">
+        <p class="h4 my-0 font-weight-normal">{{ i['name'] }}</p>
+    </div>
+    
+    
+    <div class="card-body px-0 py-0" style="background-image: url(/images/locpin.jpg);">
+        
+        
+        <div class="card-transparent px-0 py-0">
+            <div class="card-block special-card px-0 py-0" style="background-color: {{prox_back}}">
+                
+                
+                <ul class="list-unstyled" style="margin-block-end:0px; margin-block-start: 0px">
+                    <li>
+                        <a href="{{ i['link'] }}"> <img class="rounded-circle px-2 py-2" width="90%" src="{{ i['user_image'] }}"></a>
+                        <p class="h4 my-0 font-weight-normal">{{ i['account'] }}</p>
+                    </li>
+                    <li>{{ i['bt_mac'] }}</li>
+                    <li><p class="h4 mb-0"><a class="badge {{prox_badge}} mb-2"> {{ prox_txt }} {{ i['beacon_gateway'] }}</a></p></li>
+                    <li><p class="h4 mb-0"><a class="badge badge-info mb-2"> l.Beacon: {{ i['last_beacon'] }}</a></p></li>
+                    <li><p class="h4 mb-0"><a class="badge badge-info mb-2"> Base: {{ i['base_location'] }}</a></p></li>
+                    
+                </ul>
+                
+            </div>
+        </div></div>
+    
+</div>
+
+{% endif %}
+

@@ -1,0 +1,328 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-05-13 10:25+0200\n"
+"PO-Revision-Date: 2019-05-13 12:52+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.9\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:9
+msgid "Enterprise"
+msgstr "Enterprise"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:10
+msgid "Enterprisecommon"
+msgstr "Enterprisecommon"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:13
+msgid "Group"
+msgstr "Group"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:14
+msgid "Groupcommon"
+msgstr "Groupcommon"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:17
+msgid "Personal"
+msgstr "Personal"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:22
+msgid "Parall. Ring"
+msgstr "Parall. Ring"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:32
+msgid "Call Forward"
+msgstr "Call Forward"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:36
+#: snom-templates/DLANCloudPBX/account_data.tpl:42
+msgid "Call Pickup"
+msgstr "Call Pickup"
+
+#: templates/device.html:4 templates/device.html.old:3
+msgid "Choose your device"
+msgstr "Choose your device"
+
+#: templates/device.html:5 templates/device.html.old:4
+msgid "You use %s"
+msgstr "You use %s"
+
+#: templates/device.html:20
+msgid "$0.99"
+msgstr "$0.99"
+
+#: templates/device.html:20
+msgid "/deal"
+msgstr "/deal"
+
+#: templates/device.html:24
+msgid "Help Center"
+msgstr "Help Center"
+
+#: templates/device.html:26 templates/device.html.old:26
+#: templates/provider.html:29
+msgid "Start Now"
+msgstr "Start Now"
+
+#: templates/main.html.obsolete:11
+msgid "XSI Server address"
+msgstr "XSI Server address"
+
+#: templates/main.html.obsolete:13 views/main.tpl.tmp:14
+msgid ""
+"Please enter the XSI Server address. Please ask your provider for more "
+"information"
+msgstr ""
+"Please enter the XSI Server address. Please ask your provider for more "
+"information"
+
+#: templates/main.html.obsolete:16 templates/mainC520.html:39
+#: templates/mainPhone.html:39
+msgid "Phone MAC address"
+msgstr "Phone MAC address"
+
+#: templates/main.html.obsolete:17 views/main.tpl.tmp:18
+msgid "Please enter the phone MAC address"
+msgstr "Please enter the phone MAC address"
+
+#: templates/main.html.obsolete:19 templates/mainC520.html:51
+#: templates/mainPhone.html:51
+msgid ""
+"Please enter the phone MAC address in uppercase without the \":\" separator"
+msgstr ""
+"Please enter the phone MAC address in uppercase without the \":\" separator"
+
+#: templates/main.html.obsolete:22 templates/mainM700master.html:41
+msgid "DECT Master MAC address"
+msgstr "DECT Master MAC address"
+
+#: templates/main.html.obsolete:24 templates/mainM700master.html:53
+msgid ""
+"Please enter the DECT master MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610000"
+msgstr ""
+"Please enter the DECT master MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610000"
+
+#: templates/main.html.obsolete:32 templates/mainC520.html:16
+#: templates/mainM700master.html:18 templates/mainPhone.html:16
+msgid "Number of extensions"
+msgstr "Number of extensions"
+
+#: templates/main.html.obsolete:35 templates/main.html.obsolete:57
+#: templates/mainC520.html:150 templates/mainM700master.html:159
+#: templates/mainM700slave.html:11 templates/mainPhone.html:150
+msgid "Submit"
+msgstr "Submit"
+
+#: templates/main.html.obsolete:44 templates/mainC520.html:134
+#: templates/mainM700master.html:139 templates/mainPhone.html:134
+msgid "Username "
+msgstr "Username "
+
+#: templates/main.html.obsolete:48 templates/mainC520.html:138
+#: templates/mainM700master.html:143 templates/mainPhone.html:138
+msgid "Password "
+msgstr "Password "
+
+#: templates/main.html.obsolete:52 templates/mainM700master.html:147
+msgid "Handset IPEI "
+msgstr "Handset IPEI "
+
+#: templates/mainC520.html:20 templates/mainM700master.html:22
+#: templates/mainPhone.html:20
+msgid "Update"
+msgstr "Update"
+
+#: templates/mainC520.html:77 templates/mainM700master.html:78
+#: templates/mainPhone.html:77
+msgid "Device Id "
+msgstr "Device Id "
+
+#: templates/mainC520.html:90 templates/mainM700master.html:91
+#: templates/mainPhone.html:90
+msgid ""
+"Please enter the device ID from your Vodafone Portal registration. E.g. "
+"181309665141524444"
+msgstr ""
+"Please enter the device ID from your Vodafone Portal registration. E.g. "
+"181309665141524444"
+
+#: templates/mainC520.html:116 templates/mainM700master.html:117
+#: templates/mainPhone.html:116
+msgid "Extension"
+msgstr "Extension"
+
+#: templates/mainC520.html:156 templates/mainM700master.html:165
+#: templates/mainPhone.html:156
+msgid "This may take a while, please be patient"
+msgstr "This may take a while, please be patient"
+
+#: templates/mainM700slave.html:7
+msgid "DECT Slave MAC address"
+msgstr "DECT Slave MAC address"
+
+#: templates/mainM700slave.html:9
+msgid ""
+"Please enter the DECT slave MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610001"
+msgstr ""
+"Please enter the DECT slave MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610001"
+
+#: templates/now.html:3
+msgid "Viel Spass"
+msgstr "change me, please."
+
+#: templates/provider.html:3
+msgid "Choose your provider"
+msgstr "Choose your provider"
+
+#: templates/provider.html:4
+msgid "Now it is time to choose your provider."
+msgstr "Now it is time to choose your provider."
+
+#: templates/provider.html:24
+msgid "New deal"
+msgstr "New deal"
+
+#: templates/provider.html:27
+msgid "Learn more about us"
+msgstr "Learn more about us"
+
+#: templates/redirection_manage.html:7
+msgid "Provisioning Finished"
+msgstr "Provisioning Finished"
+
+#: templates/redirection_manage.html:8
+msgid "Please factory reset or reboot the device."
+msgstr "Please factory reset or reboot the device."
+
+#: templates/redirection_manage.html:8
+msgid "The device with MAC"
+msgstr "The device with MAC"
+
+#: templates/redirection_manage.html:8
+msgid "is ready to be provisioned."
+msgstr "is ready to be provisioned."
+
+#: templates/redirection_manage.html:10
+msgid "Current redirection target:"
+msgstr "Current redirection target:"
+
+#: templates/redirection_manage.html:17
+msgid "After the device is provisioned you can remove the redirection on SRAPS"
+msgstr ""
+"After the device is provisioned you can remove the redirection on SRAPS"
+
+#: templates/redirection_manage.html:18
+msgid "Remove redirection on SRAPS"
+msgstr "Remove redirection on SRAPS"
+
+#: templates/redirection_manage.html:23
+msgid "Provision another device"
+msgstr "Provision another device"
+
+#: templates/redirection_manage.html:24
+msgid "Show me Headsets and Accessories"
+msgstr "Show me Headsets and Accessories"
+
+#: views/main.tpl.tmp:12
+msgid "Please enter the XSI server URL"
+msgstr "Please enter the XSI server URL"
+
+#: web.py:339 web.py:416
+msgid "Error Extension {0}"
+msgstr "Error Extension {0}"
+
+#: web.py:339 web.py:416
+msgid "Extension {0}"
+msgstr "Extension {0}"
+
+#: web.py:355 web.py:496 web.py:677
+msgid "Account data not found"
+msgstr "Account data not found"
+
+#: web.py:373 web.py:529 web.py:621 web.py:637 web.py:677 web.py:723
+msgid "Error"
+msgstr "Error"
+
+#: web.py:373 web.py:529 web.py:723
+msgid "Unable to store account data"
+msgstr "Unable to store account data"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "Error Provider %s"
+msgstr "Error Provider %s"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "Provider %s"
+msgstr "Provider %s"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "provider unknown"
+msgstr "provider unknown"
+
+#: web.py:484 web.py:486 web.py:596 web.py:598 web.py:663 web.py:968 web.py:970
+msgid "User Data"
+msgstr "User Data"
+
+#: web.py:621
+msgid "Unable to store slave data"
+msgstr "Unable to store slave data"
+
+#: web.py:637
+msgid "Unable to store firmware data"
+msgstr "Unable to store firmware data"
+
+#: web.py:830 web.py:851 web.py:883
+msgid "Complete"
+msgstr "Complete"
+
+#: web.py:835 web.py:856 web.py:873
+msgid "Please fill all fields"
+msgstr "Please fill all fields"
+
+#: web.py:844 web.py:890
+msgid "Malformed MAC"
+msgstr "Malformed MAC"
+
+#: web.py:861
+msgid "Malformed device ID"
+msgstr "Malformed device ID"
+
+#: web.py:895 web.py:900
+msgid "Service Down"
+msgstr "Service Down"
+
+#: web.py:904
+msgid "Invalid Username or Password"
+msgstr "Invalid Username or Password"
+
+#: web.py:982
+msgid "Devices"
+msgstr "Devices"
+
+#: web.py:987
+msgid "Providers"
+msgstr "Providers"
+
+#~ msgid "Update Number of accounts"
+#~ msgstr "Update Number of accounts"
+
+#~ msgid "Add new Slave"
+#~ msgstr "Add new Slave"
+
+#~ msgid "Login"
+#~ msgstr "Login"

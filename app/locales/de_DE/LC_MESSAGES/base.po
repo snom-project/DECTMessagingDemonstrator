@@ -1,0 +1,369 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-05-13 12:31+0200\n"
+"PO-Revision-Date: 2019-10-02 12:05+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.9\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:9
+msgid "Enterprise"
+msgstr "Unternehmen"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:10
+msgid "Enterprisecommon"
+msgstr "Unternehmen Gemeinsam"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:13
+msgid "Group"
+msgstr "Standort"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:14
+msgid "Groupcommon"
+msgstr "Standort Gemeinsam"
+
+#: snom-templates/DLANCloudPBX/M700master_data.tpl:17
+msgid "Personal"
+msgstr "Privat"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:22
+msgid "Parall. Ring"
+msgstr "Parall Klingeln"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:32
+msgid "Call Forward"
+msgstr "Rufweiterleitung"
+
+#: snom-templates/DLANCloudPBX/account_data.tpl:36
+#: snom-templates/DLANCloudPBX/account_data.tpl:42
+msgid "Call Pickup"
+msgstr "Anruf heranholen"
+
+#: templates/device.html:4
+msgid "Choose your device"
+msgstr "Gerät wählen"
+
+#: templates/device.html:5
+msgid "You use %s"
+msgstr "Sie verwenden %s"
+
+#: templates/device.html:20
+msgid "$0.99"
+msgstr "€ 0,99"
+
+#: templates/device.html:20
+msgid "/deal"
+msgstr "/Trans."
+
+#: templates/device.html:24
+msgid "Help Center"
+msgstr "Hilfe Portal"
+
+#: templates/device.html:26 templates/provider.html:29
+msgid "Start Now"
+msgstr "Jetzt starten"
+
+#: templates/mainC520.html:16 templates/mainM700master.html:18
+#: templates/mainPhone.html:16
+msgid "Number of extensions"
+msgstr "Anzahl der Nutzerkonten"
+
+#: templates/mainC520.html:20 templates/mainM700master.html:25
+#: templates/mainPhone.html:20
+msgid "Update"
+msgstr "Aktualisieren"
+
+#: templates/mainC520.html:39 templates/mainPhone.html:39
+msgid "Phone MAC address"
+msgstr "Telefon-MAC-Adresse"
+
+#: templates/mainC520.html:51 templates/mainPhone.html:51 views/main.tpl.tmp:18
+msgid "Please enter the phone MAC address"
+msgstr "Bitte geben Sie die MAC-Adresse des Telefons ein"
+
+#: templates/mainC520.html:54 templates/mainPhone.html:54
+msgid ""
+"Please enter the phone MAC address in uppercase without the \":\" separator"
+msgstr ""
+"Bitte geben Sie die MAC-Adresse des Telefons in Großbuchstaben ohne das "
+"Trennzeichen \":\" ein"
+
+#: templates/mainC520.html:80 templates/mainM700master.html:84
+#: templates/mainPhone.html:80
+msgid "Device Id"
+msgstr "Benutzer-ID"
+
+#: templates/mainC520.html:92 templates/mainM700master.html:96
+#: templates/mainPhone.html:92
+msgid "Please enter your device Id "
+msgstr "Bitte geben Sie Ihre Benutzer-ID ein"
+
+#: templates/mainC520.html:96 templates/mainM700master.html:100
+#: templates/mainPhone.html:96
+msgid ""
+"Please enter the device ID from your Vodafone Portal registration. E.g. "
+"181309665141524444"
+msgstr ""
+"Bitte geben Sie die Benutzer-ID aus Ihrer Vodafone Portal-Registrierung ein. "
+"ZB 181309665141524444"
+
+#: templates/mainC520.html:122 templates/mainM700master.html:126
+#: templates/mainPhone.html:122
+msgid "Extension"
+msgstr "Nutzerkonto"
+
+#: templates/mainC520.html:140 templates/mainM700master.html:148
+#: templates/mainPhone.html:140
+msgid "Username"
+msgstr "Benutzername"
+
+#: templates/mainC520.html:142 templates/mainM700master.html:149
+#: templates/mainPhone.html:141
+msgid "Please enter your username"
+msgstr "Bitte geben Sie Ihren Benutzernamen ein"
+
+#: templates/mainC520.html:146 templates/mainC520.html:148
+#: templates/mainM700master.html:154 templates/mainM700master.html:156
+#: templates/mainPhone.html:146 templates/mainPhone.html:148
+msgid "Password"
+msgstr "Kennwort"
+
+#: templates/mainC520.html:161 templates/mainM700master.html:176
+#: templates/mainM700slave.html:14 templates/mainPhone.html:161
+msgid "Submit"
+msgstr "Absenden"
+
+#: templates/mainC520.html:167 templates/mainM700master.html:182
+#: templates/mainPhone.html:167
+msgid "This may take a while, please be patient"
+msgstr "Dies kann eine Weile dauern, bitte haben Sie etwas Geduld"
+
+#: templates/mainM700master.html:20
+msgid "Enter number of Extensions"
+msgstr "Anzahl der Nutzerkonten eingeben"
+
+#: templates/mainM700master.html:44
+msgid "DECT Master MAC address"
+msgstr "DECT-Master-MAC-Adresse"
+
+#: templates/mainM700master.html:56
+msgid "Please enter the DECT master MAC address"
+msgstr "Bitte geben Sie die DECT-Master-MAC-Adresse ein."
+
+#: templates/mainM700master.html:59
+msgid ""
+"Please enter the DECT master MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610000"
+msgstr ""
+"Bitte geben Sie die DECT-Master-MAC-Adresse ohne das Trennzeichen \":\" in "
+"Großbuchstaben ein. Z.B. 000413610000"
+
+#: templates/mainM700master.html:161
+msgid "Handset IPEI"
+msgstr "Mobilteil IPEI "
+
+#: templates/mainM700master.html:163
+msgid "Please enter your handset IPEI"
+msgstr "Bitte geben Sie Ihre Mobilteil-IPEI ein"
+
+#: templates/mainM700slave.html:7
+msgid "DECT Slave MAC address"
+msgstr "DECT-Slave-MAC-Adresse"
+
+#: templates/mainM700slave.html:9
+msgid "Please enter the DECT slave MAC address"
+msgstr "Bitte geben Sie die DECT-Slave-MAC-Adresse ein."
+
+#: templates/mainM700slave.html:12
+msgid ""
+"Please enter the DECT slave MAC address  in uppercase without the \":\" "
+"separator. E.g. 000413610001"
+msgstr ""
+"Bitte geben Sie die DECT-Slave-MAC-Adresse ohne das Trennzeichen \":\" in "
+"Großbuchstaben ein. zB. 000413610001"
+
+#: templates/now.html:3
+msgid "Viel Spass"
+msgstr "ersetz mich bitte.."
+
+#: templates/provider.html:3
+msgid "Choose your provider"
+msgstr "Wählen Sie Ihren Anbieter"
+
+#: templates/provider.html:4
+msgid "Now it is time to choose your provider."
+msgstr "Nun ist es an der Zeit, Ihren Anbieter auszuwählen."
+
+#: templates/provider.html:24
+msgid "New deal"
+msgstr "Neues Angebot"
+
+#: templates/provider.html:27
+msgid "Learn more about us"
+msgstr "Erfahren Sie mehr über uns"
+
+#: templates/redirection_manage.html:7
+msgid "Provisioning Finished"
+msgstr "Bereitstellung abgeschlossen"
+
+#: templates/redirection_manage.html:8
+msgid "Please factory reset or reboot the device."
+msgstr ""
+"Bitte setzen Sie das Gerät auf die Werkseinstellungen zurück oder starten "
+"Sie es neu."
+
+#: templates/redirection_manage.html:8
+msgid "The device with MAC"
+msgstr "Das Gerät mit der MAC-Adresse"
+
+#: templates/redirection_manage.html:8
+msgid "is ready to be provisioned."
+msgstr "ist bereit provisioniert zu werden."
+
+#: templates/redirection_manage.html:10
+msgid "Current redirection target:"
+msgstr "Aktuelles Weiterleitungsziel"
+
+#: templates/redirection_manage.html:17
+msgid "After the device is provisioned you can remove the redirection on SRAPS"
+msgstr ""
+"Nach dem das Gerät provisioniert wurde, können Sie die Weiterleitung auf "
+"SRAPS löschen."
+
+#: templates/redirection_manage.html:18
+msgid "Remove redirection on SRAPS"
+msgstr "Entfernen Sie die Weiterleitung auf SRAPS"
+
+#: templates/redirection_manage.html:23
+msgid "Provision another device"
+msgstr "Anderes Gerät provisionieren"
+
+#: templates/redirection_manage.html:24
+msgid "Show me Headsets and Accessories"
+msgstr "Zu den Kopfhörern and Zubehör"
+
+#: views/main.tpl.tmp:12
+msgid "Please enter the XSI server URL"
+msgstr "Bitte geben Sie die XSI-Server-URL ein"
+
+#: views/main.tpl.tmp:14
+msgid ""
+"Please enter the XSI Server address. Please ask your provider for more "
+"information"
+msgstr ""
+"Bitte geben Sie die Adresse des XSI-Servers ein. Bitte fragen Sie Ihren "
+"Provider nach weiteren Informationen"
+
+#: web.py:339 web.py:416
+msgid "Error Extension {0}"
+msgstr "Fehler in der Nebenstelle"
+
+#: web.py:339 web.py:416
+msgid "Extension {0}"
+msgstr "Nebenstelle"
+
+#: web.py:355 web.py:496 web.py:677
+msgid "Account data not found"
+msgstr "Kontodaten für Gerät nicht gefunden"
+
+#: web.py:373 web.py:529 web.py:621 web.py:637 web.py:677 web.py:723
+msgid "Error"
+msgstr "Fehler"
+
+#: web.py:373 web.py:529 web.py:723
+msgid "Unable to store account data"
+msgstr "Übertragung von Kontodaten nicht möglich"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "Error Provider %s"
+msgstr "Fehlerhafter Anbieters %s"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "Provider %s"
+msgstr "Anbieter %s"
+
+#: web.py:446 web.py:563 web.py:661 web.py:930 web.py:980
+msgid "provider unknown"
+msgstr "Dienstleister Unbekannt"
+
+#: web.py:484 web.py:486 web.py:596 web.py:598 web.py:663 web.py:968 web.py:970
+msgid "User Data"
+msgstr "Nutzerdaten"
+
+#: web.py:621
+msgid "Unable to store slave data"
+msgstr "Sekundärbasis-Daten können nicht gespeichert werden"
+
+#: web.py:637
+msgid "Unable to store firmware data"
+msgstr "Firmware-Daten können nicht gespeichert werden"
+
+#: web.py:830 web.py:851 web.py:883
+msgid "Complete"
+msgstr "Abgeschlossen"
+
+#: web.py:835 web.py:856 web.py:873
+msgid "Please fill all fields"
+msgstr "Bitte füllen Sie alle Felder aus"
+
+#: web.py:844 web.py:890
+msgid "Malformed MAC"
+msgstr "Ungültige MAC"
+
+#: web.py:861
+msgid "Malformed device ID"
+msgstr "Fehlerhafte Geräte-ID"
+
+#: web.py:895 web.py:900
+msgid "Service Down"
+msgstr "Service down"
+
+#: web.py:904
+msgid "Invalid Username or Password"
+msgstr "Benutzername und/oder Passwort ungültig"
+
+#: web.py:982
+msgid "Devices"
+msgstr "Geräte"
+
+#: web.py:987
+msgid "Providers"
+msgstr "Service-Dienstleister"
+
+#~ msgid "XSI Server address"
+#~ msgstr "XSI Server Adresse"
+
+#~ msgid "Username "
+#~ msgstr "Benutzername "
+
+#~ msgid "Password "
+#~ msgstr "Passwort "
+
+#~ msgid "Handset IPEI "
+#~ msgstr "Mobilteil IPEI "
+
+#~ msgid "Device Id "
+#~ msgstr "Geräte-ID"
+
+#~ msgid "Update Number of accounts"
+#~ msgstr "Anzahl der Nutzerkonten aktualisieren"
+
+#~ msgid "Add new Slave"
+#~ msgstr "Weitere Basis/Antenne hinzufügen"
+
+#~ msgid "Login"
+#~ msgstr "Einloggen"
+
+#~ msgid "You use {0}"
+#~ msgstr "Sie verwenden"
