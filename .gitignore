@@ -88,7 +88,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-DTAG-env/
+Demonstrator-env/
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -106,3 +106,4 @@ dmypy.json
 opengl\.py
 
 readmeDTAG\.txt
+readmeDemonstrator.txt
