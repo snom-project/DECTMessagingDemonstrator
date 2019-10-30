@@ -1,4 +1,4 @@
-# DectMessagingDomanstrator
+# DectMessagingDemonstrator
 Simple message server for snom Multicell DECT M700, M900
 
 1. start the viewer
