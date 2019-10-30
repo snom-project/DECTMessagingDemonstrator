@@ -6,16 +6,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-10-30 19:25+0100\n"
-"PO-Revision-Date: 2019-10-30 19:27+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2019-10-30 18:32+0000\n"
+"Last-Translator: Oliver Wittig <oliver.wittig@snom.com>\n"
+"Language-Team: German <https://translate.snom.com/projects/"
+"dectmessagingdemonstrator/main-site/de/>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.6.1\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.9\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: DECTMessagingViewer.py:188
 msgid "Element View"
@@ -31,7 +32,7 @@ msgstr "Geräte und Lokationen"
 
 #: templates/locationview.html:17
 msgid ".."
-msgstr ""
+msgstr ".."
 
 #: templates/now.html:3
 msgid "Viel Spass"
