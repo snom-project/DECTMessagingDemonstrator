@@ -1,0 +1,37 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2019-10-30 14:56+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: DECTMessagingViewer.py:188
+msgid "Element View"
+msgstr ""
+
+#: DECTMessagingViewer.py:213
+msgid "Location View"
+msgstr ""
+
+#: templates/locationview.html:16
+msgid "Devices seen by Beacon"
+msgstr ""
+
+#: templates/locationview.html:17
+msgid ".."
+msgstr ""
+
+#: templates/now.html:3
+msgid "Viel Spass"
+msgstr ""
+
