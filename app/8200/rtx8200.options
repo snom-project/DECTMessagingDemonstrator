@@ -1,0 +1,53 @@
+# This file defines the nanopb-specific options for the messages defined
+# in fileproto.proto.
+#
+# If you come from high-level programming background, the hardcoded
+# maximum lengths may disgust you. However, if your microcontroller only
+# has a few kB of ram to begin with, setting reasonable limits for
+# filenames is ok.
+#
+# On the other hand, using the callback interface, it is not necessary
+# to set a limit on the number of files in the response.
+
+rtx8200.IBeaconId.uuid                           max_size:16
+rtx8200.IBeaconId.major                          max_size:2
+rtx8200.IBeaconId.minor                          max_size:2
+rtx8200.AltBeaconId.id                           max_size:20
+rtx8200.EddystoneUidId.namesp                    max_size:10
+rtx8200.EddystoneUidId.instance                  max_size:6
+
+rtx8200.TxModeSettings.beaconId                  max_count:2
+rtx8200.TxModeSettings.txInterval                type:FT_POINTER
+
+rtx8200.ConfigSettings.telemetrySettings         type:FT_POINTER
+rtx8200.ConfigSettings.generalSettings           type:FT_POINTER
+rtx8200.ConfigSettings.rfSettings                type:FT_POINTER
+rtx8200.ConfigSettings.txModeSettings            type:FT_POINTER
+rtx8200.ConfigSettings.DectSettings              type:FT_POINTER
+
+rtx8200.GeneralSettings.name                     type:FT_POINTER
+rtx8200.GeneralSettings.alarmServerAddress       type:FT_POINTER
+rtx8200.GeneralSettings.beaconServerAddress      type:FT_POINTER
+rtx8200.GeneralSettings.configurationMode        type:FT_POINTER
+rtx8200.GeneralSettings.surveyMode               type:FT_POINTER
+rtx8200.GeneralSettings.alarmSettings            type:FT_POINTER
+  
+rtx8200.TelemetrySettings.battCheckInterval      type:FT_POINTER
+rtx8200.TelemetrySettings.battLowTreshold        type:FT_POINTER
+
+rtx8200.RxModeFilter.filterId                    max_size:20
+
+rtx8200.RxModeSettings.rxModeFilter              type:FT_POINTER
+rtx8200.RxModeSettings.statusUpdateInterval      type:FT_POINTER
+rtx8200.RxModeSettings.statusUpdateRssiDiff      type:FT_POINTER
+rtx8200.RxModeSettings.cutoffThreshold           type:FT_POINTER
+rtx8200.RxModeSettings.enterMessageDelayMs       type:FT_POINTER
+rtx8200.RxModeSettings.leaveMessageDelayMs       type:FT_POINTER
+rtx8200.RxModeSettings.maxNumberTxDevices        type:FT_POINTER
+
+rtx8200.DectSettings.credentials                 type:FT_POINTER
+rtx8200.DectSettings.deviceNumber                type:FT_POINTER
+
+rtx8200.DectCredentials.park                     max_size:4
+rtx8200.DectCredentials.uak                      max_size:16
+rtx8200.DectCredentials.ipui                     max_size:13
