@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+package rtx8200;
+
+import "wrappers.proto";
+
+
+//////////////////////////////////////////////////////////////////
+//  Common
+//////////////////////////////////////////////////////////////////
+
+//
+//  Common enums
+//
+
+enum BeaconOperationMode {
+  UNCHANGED_BOM = 0;
+  TXMODE        = 1;
+  RXMODE        = 2;
+}
+
+//
+//  Common "structs"
+//
+
+message SettingsVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+message IBeaconId {
+  bytes uuid   = 1;
+  bytes major  = 2;
+  bytes minor  = 3;
+}
+
+message AltBeaconId {
+  bytes  id  = 1;
+  uint32 mfg = 2;
+}
+message EddystoneUidId {
+  bytes namesp   = 1;
+  bytes instance = 2;
+}
+
+//////////////////////////////////////////////////////////////////
+//  General
+//////////////////////////////////////////////////////////////////
+
+//  General enums
+
+enum AntennaArray {
+  UNCHANGED_AA = 0;
+  LEFT         = 2;
+  RIGHT        = 3;
+  ACROSS       = 4;
+}
+enum ExternalAntenna {
+  UNCHANGED_EA  = 0;
+  MONOPOL1      = 2;
+  MONOPOL2      = 3;
+  BOTH          = 4;
+}
+enum RXAttenuation {
+  UNCHANGED_RXA = 0;
+  RXATTOFF      = 1;
+  RXATTZERO     = 2;
+  RXATTM8       = 3;
+  RXATTM16      = 4;
+}
+enum TXAttenuation {
+  UNCHANGED_TXA = 0;
+  TXATTZERO     = 1;
+  TXATTM8       = 2;
+  TXATTM16      = 3;
+  TXATTM30      = 4;
+  TXATTM38      = 5;
+  TXATTM46      = 6;
+  TXATTP2       = 7;
+}
+
+enum AlarmFlags {
+  ALL_ALARMS_OFF                  = 0x00;
+  POWER_BATTERY_LOW               = 0x01;
+  POWER_SWITCH_SUPPLY_TO_EXTERNAL = 0x02;
+  POWER_SWITCH_SUPPLY_TO_BATTERY  = 0x04;
+  TAMPER_LID_ON                   = 0x08;
+  TAMPER_LID_OFF                  = 0x10;
+  ALL_ALARMS_ON                   = 0xFF;
+}
+
+//
+//  General "structs"
+//
+
+message RFSettings {
+  AntennaArray        antennaArraySelection       = 1;
+  ExternalAntenna     externalAntennaSelection    = 2;
+  BeaconOperationMode beaconOperationMode         = 3;
+  TXAttenuation       txAttenuationSelection      = 4;
+  RXAttenuation       rxAttenuationSelection      = 5;
+}
+
+message TelemetrySettings {
+  google.protobuf.UInt32Value battCheckInterval   = 1;
+  google.protobuf.UInt32Value battLowTreshold     = 2;
+  //TODO ??? uint32 beaconStatusInterval          = 3;
+}
+
+message GeneralSettings {
+  string                      name                = 1;
+  string                      alarmServerAddress  = 2;
+  string                      beaconServerAddress = 3;
+  google.protobuf.BoolValue   configurationMode   = 4;
+  google.protobuf.BoolValue   surveyMode          = 5;
+  AlarmFlags                  alarmSettings       = 6;
+}
+
+//////////////////////////////////////////////////////////////////
+//  TX Mode
+//////////////////////////////////////////////////////////////////
+
+//  TX Mode "structs"
+
+enum TxBeaconType {
+  UNCHANGED_TBT                                   = 0;
+  BTLE_TX_BEACON_TPYE_IBEACON                     = 1;
+  BTLE_TX_BEACON_TYPE_ALTBEACON                   = 2;
+  BTLE_TX_BEACON_TYPE_IBEACON_ALTBEACON           = 3;
+  BTLE_TX_BEACON_TYPE_EDDYSTONE_UID               = 4;
+  BTLE_TX_BEACON_TYPE_IBEACON_EDDYSTONE_UID       = 5;
+  BTLE_TX_BEACON_TYPE_ALTBEACON_EDDYSTONE_UID     = 6;
+  BTLE_TX_BEACON_TYPE_IBEACON_IBEACON             = 7;
+  BTLE_TX_BEACON_TYPE_ALTBEACON_ALTBEACON         = 8;
+  BTLE_TX_BEACON_TYPE_EDDYSTONE_UID_EDDYSTONE_UID = 9;
+}
+
+
+message BeaconId {
+  oneof oneof {
+    IBeaconId      iBeaconSettings      = 1;
+    AltBeaconId    altbeaconSettings    = 2;
+    EddystoneUidId eddystoneUIDSettings = 3;
+  }
+}
+
+message TxModeSettings {
+  repeated BeaconId           beaconId   = 1;
+  google.protobuf.UInt32Value txInterval = 2;
+}
+
+
+//////////////////////////////////////////////////////////////////
+//  RX Mode
+//////////////////////////////////////////////////////////////////
+
+//  RX Mode enums
+
+enum FilterBeaconType {
+  UNCHANGED_FBT                  = 0;
+  NONE                           = 1;
+  IBEACON                        = 2;
+  ALTBEACON                      = 3;
+  EDDYSTONEUID                   = 4;
+  IBEACON_ALTBEACON              = 5;
+  IBEACON_EDDYSTONEUID           = 6;
+  ALTBEACON_EDDYSTONEUID         = 7;
+  IBEACON_ALTBEACON_EDDYSTONEUID = 8;
+}
+
+enum ProximityMode {
+  UNCHANGED_PM        = 0;
+  NOTIFY_WHEN_ENTER   = 1;
+  NOTIFY_WHEN_LEAVING = 2;
+  NOTIFY_WHEN_EITHER  = 3;  
+}
+
+enum ProximityAlgorithm {
+  UNCHANGED_PA        = 0;
+  ALGORITHM2          = 2;
+  ALGORITHM4          = 4;
+}
+
+enum SensitivitySetting {
+  UNCHANGED_SS        = 0;
+  SENSITIVITY_MAXIMUM = 1;
+  SENSITIVITY_MEDIUM  = 2;
+  SENSITIVITY_MINIMUM = 3;
+}
+
+//  RX Mode "structs"
+
+message RxModeFilter {
+  FilterBeaconType            filterBeaconType = 1;
+  google.protobuf.UInt32Value filterLength     = 2;                // TODO More advanced to create mask
+  bytes                       filterId         = 3;
+}
+
+message RxModeSettings {
+  ProximityMode               proximityMode        =  1;
+  SensitivitySetting          sensitivitySetting   =  2;
+  RxModeFilter                rxModeFilter         =  3;
+  google.protobuf.UInt32Value statusUpdateInterval =  4;
+  google.protobuf.UInt32Value statusUpdateRssiDiff =  5;
+  ProximityAlgorithm          proximityAlgorithm   =  6;
+  google.protobuf.Int32Value  cutoffThreshold      =  7;
+  google.protobuf.UInt32Value enterMessageDelayMs  =  8;
+  google.protobuf.UInt32Value leaveMessageDelayMs  =  9;
+  google.protobuf.UInt32Value maxNumberTxDevices   = 10;
+}
+
+//////////////////////////////////////////////////////////////////
+//  DECT
+//////////////////////////////////////////////////////////////////
+
+//  Dect "structs"
+
+message DectSettings {
+  DectCredentials credentials = 1;
+  string deviceNumber = 2;
+}
+
+message DectCredentials {
+  google.protobuf.UInt32Value pli = 1;
+  bytes park = 2;
+  bytes uak = 3;
+  google.protobuf.UInt32Value ipuiLength = 4;
+  bytes ipui = 5;
+}
+
+//////////////////////////////////////////////////////////////////
+//  ConfigSettings
+//     The type of the message being sent
+//////////////////////////////////////////////////////////////////
+
+message ConfigSettings {
+   SettingsVersion   settingsVersion   = 1;
+   GeneralSettings   generalSettings   = 2;
+   TelemetrySettings telemetrySettings = 3;
+   RFSettings        rfSettings        = 4;
+   TxModeSettings    txModeSettings    = 5;
+   RxModeSettings    rxModeSettings    = 6;
+   DectSettings      dectSettings      = 8;
+}
