@@ -14,11 +14,21 @@
 
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
     <h1 class="display-4">{{_('Devices seen by Beacon')}}</h1>
-    <p class="lead">{{_('..')}}</p>
+    <p class="lead">{{_('search and filter devices')}}</p>
 </div>
 
+
 <div class="container">
-    <div class="grid-container card-deck grid-container--fill text-center">
+
+
+    <form class="form-horizontal" action="/en_US/locationview" autocomplete="on" method="POST">
+        <div class="form-group">
+            <label for="myDeviceSearch">{{_('Search and filter devices')}}</label>
+            <input class="form-control input-lg" id="myDeviceSearch" type="text" placeholder="Search..">
+        </div>
+    </form>
+
+        <div class="grid-container card-deck grid-container--fill text-center" id="myGrids">
 <!--    <div class="grid-container grid-container-fill card-deck mb-2 text-center ">-->
 
         <!--    <div class="card-deck mb-3 text-center">-->
@@ -39,11 +49,26 @@
         
         <div id="show{{loop.index0}}" align="center"></div>
 
-        
-      
         {% endfor %}
 </div>
 </div>
 </div>
+
+<script>
+$(document).ready(function(){
+  $("#myDeviceSearch").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#myGrids div div p").filter(function() {
+      var hiderow = false
+                                   <!--   alert($(this).toString().toLowerCase())-->
+                                   if ($(this).text().toLowerCase().indexOf(value) > -1) {
+        hiderow=true
+      }
+    $(this).parent().parent().parent().toggle(hiderow);
+                               
+    });
+  });
+});
+</script>
 
 {% include 'footer.tpl' %}

@@ -25,7 +25,7 @@
 
 
   <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
-<h5 class="my-0 mr-md-auto font-weight-normal">..<a href="/provider"><img height="40px" src="/images/snom_logo_gray_60.png"></a></h5>
+<h5 class="my-0 mr-md-auto font-weight-normal">..<a href="/"><img height="40px" src="/images/snom_logo_gray_60.png"></a></h5>
 <nav class="my-2 my-md-0 mr-md-3">
 <a class="p-2 text-dark" href="#">Features</a>
 <a class="p-2 text-dark" href="#"> </a>
@@ -37,8 +37,8 @@
 </button>&nbsp;
 
 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-  <a class="dropdown-item" href="/de_DE/provider"><img src="http://i63.tinypic.com/10zmzyb.png"/> Deutsch</a>
-  <a class="dropdown-item" href="/en_US/provider"><img src="http://i64.tinypic.com/fd60km.png"/> English</a>
+  <a class="dropdown-item" href="/de_DE/provider"><img width="13%" src="/images/de_de.png"/> Deutsch</a>
+  <a class="dropdown-item" href="/en_US/provider"><img width="13%" src="/images/en_us.png"/> English</a>
 </div>
 
 
