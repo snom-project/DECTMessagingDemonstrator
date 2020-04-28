@@ -7,6 +7,12 @@
 {% set prox_txt ="Inside" %}
 {% set prox_badge ="badge-success" %}
 
+{% elif i['proximity'] == "2" %}
+{% set prox_color = "text-white bg-success" %}
+{% set prox_back = "rgba(0, 100, 100, 0.4);" %}
+{% set prox_txt ="Inside" %}
+{% set prox_badge ="badge-success" %}
+
 {% else %}
 {% set prox_color = "text-white bg-secondary" %}
 {% set prox_back = "rgba(100, 100, 100, 0.4);" %}
@@ -19,7 +25,6 @@
 {% set prox_back = "rgba(50, 50, 230, 0.4);" %}
 {% endif %}
 
-{{i['device_type']}}
 <div class="card {{prox_color}} ">
     
     <!--        <div class="card mb-4 shadow-sm">-->
@@ -43,7 +48,8 @@
                     <li>{{ i['bt_mac'] }}</li>
                     <li><p class="h4 mb-0"><a class="badge {{prox_badge}} mb-2"> {{ prox_txt }} {{ i['beacon_gateway'] }}</a></p></li>
                     <li><p class="h4 mb-0"><a class="badge badge-info mb-2"> l.Beacon: {{ i['last_beacon'] }}</a></p></li>
-                    <li><p class="h4 mb-0"><a class="badge badge-info mb-2"> Base: {{ i['base_location'] }}</a></p></li>
+                    <li><p class="h5 mb-0><a class="badge badge-info mb-2"> Base: {{ i['base_location'] }}</a> <h6>{{ i['base_connection'] }}</h6></p></li>
+                    <li><p class="h6 mb-0><a class="badge badge-info mb-2"> Time: {{ i['time_stamp'] }}</a></li>
                     
                 </ul>
                 

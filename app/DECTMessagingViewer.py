@@ -75,7 +75,7 @@ session_opts = {
 bottle.debug(True)
 # used for templates with multiple urls to download images etc.
 
-bottle.TEMPLATE_PATH=("./views", "./snom-templates","./snom-templates/DLANCloudPBX", "./templates")
+bottle.TEMPLATE_PATH=("./views", "./templates")
 css_root="/css/"
 css_root_path = ".%s" % css_root
 images_root="/images/"
@@ -157,11 +157,75 @@ def send_static(filepath):
     return static_file(filepath, root=config_root_path)
 
 
+import socket
+import json
+import sys
+from time import sleep
+
+@route('/devicessync')
+def devicessync():
+    global devices
+
+    return dict(data=devices)
+    
+@bottle.route('/btmactable', method=['GET','POST'])
+def btmactable():
+    global devices
+    
+    if bottle.request.method == 'POST':
+        # update all bt_macs.
+        if len(bottle.request.forms):
+            for idx, btmac in enumerate(bottle.request.forms):
+                print(btmac)
+                print(idx, bottle.request.forms.get(btmac))
+                devices[idx]['bt_mac'] = bottle.request.forms.get(btmac)
+        
+    return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=devices)
+
+
+
+@bottle.route('/sms', method=['GET','POST'])
+def sms():
+    global devices
+   
+    if bottle.request.method == 'POST':
+        IP = '127.0.0.1'
+        PORT = 10300
+
+        print('init socket...')
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect((IP, PORT))
+            s.settimeout(500)
+        except socket.error as exc:
+            print('Caught exception socket.error: {0}'.format(exc))
+            sys.exit(0)
+        print("init socket successfull")
+        
+       
+        d = json.dumps(request.json).encode("ascii")
+        print('data:', d)
+       
+        # prepare XML data request
+        xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
+        print(xml_message)
+
+        s.send(bytes(xml_message, 'utf-8'))
+        print('data sent')
+
+        s.close()
+    else:
+        print('GET request of the page, do nothing')
+    
+    return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
+
 
 # the content of the element triggered by AJAX reload
 @bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
 def run_element(deviceIdx):
     global devices
+    
 #    global lastNumOfDevices
 #    
 #    if not devices:
@@ -189,7 +253,7 @@ def run_element(deviceIdx):
 
 
 # receives full list of devices in json format devices
-@bottle.route('/location', name='location', method=['GET','POST'])
+@bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
 def run_location():
     global devices
     updated_devices = request.json
@@ -217,9 +281,11 @@ def run_main():
 #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
 #host = "10.245.0.28"
 host = "0.0.0.0"
+#host = "10.110.11.132"
+
 #host = "10.110.16.75"
 #host = "192.168.188.21"
-#host = "10.110.23.69"
+#host = "192.168.55.23"
 
 
-bottle.run(app=app, host=host, port=8080, reloader=True, debug=True)
+bottle.run(app=app, host=host, port=8081, reloader=True, debug=True)

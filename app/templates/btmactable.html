@@ -1,0 +1,107 @@
+{% include 'header.tpl' %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ 
+</head>
+<body>
+
+<div class="container">
+  <h2>BT-Mac Table</h2>
+  <p>search the table for first names, last names or emails:</p>
+  <input class="form-control" id="myTableInput" type="text" placeholder="Search..">
+  <br>
+     <form action="/en_US/btmactable" autocomplete="on" method="POST" >
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Account, Name</th>
+        <th>BT-MAC</th>
+        <th>BT_MAC list</th>
+      </tr>
+    </thead>
+    <tbody id="myTable">
+      {% for i in devices %}
+      <tr id="tr1">
+        <td id="td1">{{i['account']}}, {{i['name']}}</td>
+        <td id="td1">
+            <div class="form-group">
+                <input type="text" class="form-control" name="btmac{{loop.index}}" id="btmac{{loop.index}}" value="{{i['bt_mac']}}" placeholder="btmac{{loop.index}}">
+            </div>
+        </td>
+        <td id="tdDropdown">
+            <div class="dropdown" id="myDropdown{{loop.index}}">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dpbutton{{loop.index}}" data-toggle="dropdown">BT-Macs
+                        <span class="caret"></span></button>
+                    <div class="dropdown-menu" id="dropdown-menu{{loop.index}}">
+                        <input class="form-control" id="myInput{{loop.index}}" type="text" placeholder="Search..">
+                        {% for ii in devices %}
+                          {% if ii['bt_mac'] != 'None' %}
+                            <a class="dropdown-item" href="#">{{ii['bt_mac']}}</a>
+                          {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+        </td>
+      </tr>
+
+      <script type="text/javascript">
+
+      $(function(){
+
+      var mytextbox{{loop.index}} = document.getElementById('btmac{{loop.index}}');
+          $("#dropdown-menu{{loop.index}}").on('click', 'a', function(){
+                mytextbox{{loop.index}}.value = $(this).text()
+         });
+      });
+      
+      </script>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <button type="submit" formaction="/en_US/btmactable" class="btn btn-primary" >Submit</button>
+  </form>
+
+</div>
+
+
+<script>
+$(document).ready(function(){
+  $("#myTableInput").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#myTable tr").filter(function() {
+      var hiderow = false
+      const td1childs = $(this).children( "#td1" );
+      if (td1childs.eq(0).text().toLowerCase().indexOf(value) > -1) {
+        hiderow=true
+      }
+<!--                          alert(td1childs.eq(1).find("input").val().toLowerCase())-->
+      if (td1childs.eq(1).find("input").val().toLowerCase().indexOf(value) > -1) {
+        hiderow=true
+      }
+      $(this).toggle(hiderow);
+                               
+    });
+  });
+});
+</script>
+
+<script>
+      $(document).ready(function(){
+        $("#myInput").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $(".dropdown-menu .dropdown-item").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          });
+        });
+      });
+</script>
+
+
+</body>
+</html>
