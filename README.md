@@ -10,7 +10,7 @@ http://localhost:8080/
 
 
 2. start the messaging server
-python DECTMessagingServer.py  1300:0.0.0.0:1300
+python DECTMessagingServer.py 10300
 
 Messaging server is listening on port 1300 from all incomning Base IPs. 
 
