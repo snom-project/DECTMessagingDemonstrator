@@ -1,6 +1,13 @@
 # DectMessagingDemonstrator
 Simple message server for snom Multicell DECT M700, M900
 
+build with:
+docker build -t snommd .
+
+run with:
+sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 snommd 
+
+
 1. start the viewer
 python DECTMessagingViewer.py 
 
