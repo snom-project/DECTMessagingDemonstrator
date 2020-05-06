@@ -319,6 +319,10 @@ class MSSeriesMessageHandler:
 
 
     def update_rssi(self, name, address, rfpi, rssi):
+        for element in rfpi:
+            print("rfpi=", element)
+        for element in rssi:
+            print("rssi=", element)
         print(name, address, rfpi, rssi)
 
 
@@ -358,7 +362,7 @@ class MSSeriesMessageHandler:
 
             
     def update_login(self, device_type, login_name, login_address, login, base_location, ip_connection = None):
-        print(device_type, login_name, login_address, login, base_location)
+        print('update_login:',device_type, login_name, login_address, login, base_location)
         # default is current connection
         if ip_connection == None:
             ip_connection = self.m900_connection
@@ -390,7 +394,6 @@ class MSSeriesMessageHandler:
         addresses = xml_root.xpath("//senderdata/address")
         
         # not only addin but also removing unknown handsets should be done as long as IP address of base matches.
-                  
         for address in addresses:
             # XPATH uses index 1..
             element_idx = addresses.index(address) + 1
@@ -437,7 +440,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUSINFO("System running")
                                                  ),
                                  self.JOBDATA(
-                                              self.ALARMNUMBER("5"),
+                                              self.ALARMNUMBER("2"),
 #                                              self.REFERENCENUMBER("5"),
                                               self.PRIORITY("1"),
                                               self.FLASH("0"),
@@ -618,6 +621,28 @@ class MSSeriesMessageHandler:
     def response_keepalive(self, externalid, status, statusinfo):
         self.response_systeminfo(externalid, status, statusinfo)
     
+    def clear_old_devices(self):
+        logger.debug("clear_old_devices: running")
+
+        current_timestamp = datetime.datetime.now()
+        # remove all devices older than 60min
+        # use [:] to use a copy of the list to modify
+        for d in self.devices[:]:
+            old_timestamp = datetime.datetime.strptime(d['time_stamp'], "%Y-%m-%d %H:%M:%S.%f")
+            delta = current_timestamp - old_timestamp
+                #print(d, 'delta', delta)
+            #if delta.total_seconds() > 3600:
+            if delta.total_seconds() > 70:
+                print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                logger.debug("clear_old_devices: found d:", d)
+
+                # delete record.
+                self.devices.remove(d)
+                
+        return True
+
+
+
     
     # login: MS confirm response to FP:
     def response_login(self, externalid, status, statusinfo):
@@ -656,7 +681,6 @@ class MSSeriesMessageHandler:
 
     def get_base_connection(self, account):
         matched_device = next((item for item in self.devices if item['account'] == account), False)
-#        print(matched_device)
         if matched_device:
             return matched_device['base_connection']
         else:
@@ -749,7 +773,7 @@ class MSSeriesMessageHandler:
             response_type = response_type[0]
             print('Response:', response_type)
             
-            #print(ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode"))
+            print(ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode"))
 
             # check if we got a response on our keepalive
             if response_type == 'systeminfo':
@@ -1118,6 +1142,8 @@ amsg.send_to_location_viewer()
 
 logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
+logger.debug("main: schedule.every(1).minutes.do(amsg.clear_old_devices)")
+schedule.every(1).minutes.do(amsg.clear_old_devices)
 #schedule.every(5).minutes.do(amsg.request_alarm)
 
 while True:
