@@ -1,13 +1,18 @@
-FROM python:3.7.2-alpine
-RUN apk add --no-cache python3-dev libstdc++ && \
-    apk add --no-cache g++ && \
-    ln -s /usr/include/locale.h /usr/include/xlocale.h && \
-    pip3 install cython && \
-    pip3 install numpy && \
-    pip3 install pandas
+FROM python:3.7.2-slim
+RUN pip3 install pandas
+RUN pip3 install cython && \
+    pip3 install numpy
+    
+RUN apt-get update
+RUN apt-get install -y protobuf-compiler
+RUN apt-get install -y rsyslog 
+
+
 WORKDIR /usr/src/app
 COPY requirements.txt ./
-RUN apk add --update --no-cache g++ gcc libxslt-dev
+COPY start.sh start.sh 
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ .
-CMD [ "python", "./web.py"]
+#CMD bash 
+CMD ./start.sh  
+
