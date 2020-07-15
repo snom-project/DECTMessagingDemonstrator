@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python
 
 import pyproxy as pp
 from lxml import etree as ET
@@ -10,13 +10,15 @@ import requests
 import json
 import logging
 
+from mqtt.snomM900MqttClient import *
+
 
 devices = [
 #           {'device_type': 'SnomM9BTX', 'bt_mac': '00087B18BAB3', 'name': 'Snom M9B TX', 'account': '0328D3C8FC', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/xray.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
 #           {'device_type': 'some', 'bt_mac': '00087B18E51B', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
           {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'handset', 'bt_mac': '0004136323B9', 'name': 'M85', 'account': '200', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B18E51C', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
 #           {'device_type': 'None', 'bt_mac': '000413B3008C', 'name': 'M70 Alarm Message', 'account': '7003', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : '0815', 'user_image': '/images/Michelle_Simmons_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'},
 #           {'device_type': 'None', 'bt_mac': '000413B40034', 'name': 'M80 Alarm Call', 'account': '7004', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/Steve_Fuller_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
 #           {'device_type': 'None', 'bt_mac': '00087B177B4A', 'name': 'M70', 'account': '7001', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
@@ -177,9 +179,16 @@ class MSSeriesMessageHandler:
 
     def update_beacon(self, messageuui, senderaddress, personaddress):
         print(messageuui)
+        
+        # this is the sender of the beacon
+        beacon_gateway = senderaddress
 
         if messageuui.split(';',1)[0] == '!BT':
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
+
+            print("take only the first 2 characters form d_type", d_type)
+            d_type = d_type[:2]
+            print("resulting d_type:", d_type)
         else:
             print('not a BT message')
             return False
@@ -187,11 +196,12 @@ class MSSeriesMessageHandler:
         # rssi worse than 75 we discard radically
         if int(proximity) == 1 and int(rssi) < -75:
             print('disregarding Beacon Info with rssi=', rssi)
-            self.logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
+            logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
 
             return False
         
         # Update device data
+        print("--------:", self.devices, bt_mac)
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
         # we record updat timestamps to identify stale devices
         current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -200,14 +210,14 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if d_type == "-4":
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
-                self.logger.debug("update_beacon: added Tag ", bt_mac, uuid)
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
+                logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
 
 
             else:
                 device_type_new = 'beacon'
                 # add a new bt_mac
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': 'received Beacon', 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': 'received Beacon', 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
                 self.btmacaddresses.append({'bt_mac': bt_mac})
                 print(self.btmacaddresses)
                 
@@ -237,7 +247,7 @@ class MSSeriesMessageHandler:
 #            if beacon_gateway == "300":
 #                beacon_gateway = "QA"
             # take the IPEI as location of the beacon
-            beacon_gateway = senderaddress
+            #beacon_gateway = senderaddress
 
             # check if address has changed. In this case do not Overwrite with Outside on old location
             print('################', matched_bt_mac['beacon_gateway'], beacon_gateway, proximity)
@@ -266,7 +276,11 @@ class MSSeriesMessageHandler:
                 #schedule.every().day.do(greet, 'Derek').tag('daily-tasks', 'guest')
                 #schedule.clear('daily-tasks')
 
-            
+        # at this point we have appended new device. matched_bt_mac must always work
+        matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
+        mqttc.publish_beacon(matched_bt_mac["bt_mac"], beacon_type, uuid, d_type, matched_bt_mac["proximity"], rssi, matched_bt_mac["name"], matched_bt_mac["beacon_gateway"])
+        
+        
         for item in self.devices:
             print(item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ' ', item['device_loggedin'])
 
@@ -289,6 +303,8 @@ class MSSeriesMessageHandler:
                         d['proximity'] = '2'
                     d['account'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
                     #print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                    mqttc.publish_beacon(d["bt_mac"], "", "", "", d["proximity"], -0, d["name"], d["beacon_gateway"])
+                       
                      
         # the job has been called via schedule and needs to run only once.
         return schedule.CancelJob
@@ -319,11 +335,20 @@ class MSSeriesMessageHandler:
 
 
     def update_rssi(self, name, address, rfpi, rssi):
-        for element in rfpi:
-            print("rfpi=", element)
-        for element in rssi:
-            print("rssi=", element)
-        print(name, address, rfpi, rssi)
+        if len(rfpi) > 1:
+            for element in rfpi:
+                print("rfpi=", element)
+        else:
+           print("rfpi=", rfpi[0])
+
+        if len(rssi) > 1:
+            for element in rssi:
+                print("rssi=", element)
+        else:
+            print("rssi=", rssi[0])
+
+
+        #print(name, address, rfpi, rssi)
 
 
     def update_image(self, login_address, image):
@@ -387,6 +412,8 @@ class MSSeriesMessageHandler:
             matched_address['base_connection'] = ip_connection
             matched_address['name']            = login_name
             matched_address['time_stamp']      = current_datetime
+            
+        mqttc.publish_login(device_type, login_name, login_address, login, base_location)
 
 
     def add_senderdata(self, xml_root):
@@ -425,8 +452,8 @@ class MSSeriesMessageHandler:
   
         xml_with_header = (bytes('<?xml version="1.0" encoding="UTF-8"?>\n', encoding='utf-8') + ET.tostring(xml_data))
 
-#        print(self.m900_connection)
-#        print(ET.tostring(xml_data, pretty_print=True, encoding="unicode"))
+        #print(self.m900_connection)
+        #print(ET.tostring(xml_data, pretty_print=True, encoding="unicode"))
         s.sendto(xml_with_header, self.m900_connection)
     
 
@@ -491,7 +518,7 @@ class MSSeriesMessageHandler:
                                               self.STATUSINFO("")
                                               ),
                                  self.PERSONDATA(
-                                                 self.ADDRESS("+4925518638088002"),
+                                                 self.ADDRESS("200"),
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
@@ -801,11 +828,11 @@ class MSSeriesMessageHandler:
                     if alarm_job_status == "1":
                         print("message received")
                     if alarm_job_status == "4":
-                        print("message OKed")
+                        print("message OKed / Confirmed")
                     if alarm_job_status == "5":
                         print("message rejected")
-                    if alarm_job_status == "5":
-                        print("message deleted")
+                    if alarm_job_status == "10":
+                        print("message canceled")
 
                 if alarm_job_status == '1':
                     self.response_forward_sms(alarm_profile_root)
@@ -897,10 +924,9 @@ class MSSeriesMessageHandler:
                 rssidata = alarm_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
                 if rssidata:
                     # beacon last position info
-                    rfpi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RFPI_XPATH'])[0]
-                    rssi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RSSI_XPATH'])[0]
+                    rfpi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RFPI_XPATH'])
+                    rssi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RSSI_XPATH'])
 
-                    print("rssi info", rfpi, rssi)
                     # update handset rssi data
                     self.update_rssi(name, address, rfpi, rssi)
                 
@@ -1035,7 +1061,10 @@ class MSSeriesMessageHandler:
                     self.response_beacon(self.externalid, status, statusinfo)
                     
                 else:
-                    self.logger.debug('FATAL, we expected beacondata', data)
+                    logger.debug('FATAL, we expected beacondata', data)
+                    
+                mqttc.publish_beacon(bdaddr, "BTLE", broadcastdata, beacontype, eventtype, "-00", "000413444444", "HS-Base:%s" % base_location)
+
                            
             #### LOGIN of handsets (address) and BEACON Gateways (IPEI)
             if request_type == 'login':
@@ -1142,9 +1171,13 @@ amsg.send_to_location_viewer()
 
 logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
-logger.debug("main: schedule.every(1).minutes.do(amsg.clear_old_devices)")
-schedule.every(1).minutes.do(amsg.clear_old_devices)
-#schedule.every(5).minutes.do(amsg.request_alarm)
+logger.debug("main: schedule.every(1).hours.do(amsg.clear_old_devices)")
+schedule.every(1).hours.do(amsg.clear_old_devices)
+#schedule.every(1).minutes.do(amsg.request_alarm)
+
+# MQTT Interface / False to disable temporarily..
+mqttc = snomM900MqttClient(False)
+rc = mqttc.connect_and_subscribe()
 
 while True:
     # check and execute scheduled task
@@ -1156,15 +1189,22 @@ while True:
     print(addr)
     # addr is (ip, port) tuple
     amsg.m900_connection = addr
-
-    
+  
     #    print(data)
-    try:
-        xmldata = data.decode('utf-8')
-            # process message
-        amsg.msg_process(xmldata)
-    except:
-        logger.debug("main: Message could not be understoood or unexpected error ", data)
+    #try:
+    xmldata = data.decode('utf-8')
+        # process message
+    amsg.msg_process(xmldata)
+    
+    # mqtt publish needs to be sent as well
+    #mqttc.publish_login("M85 %s" % time.time())
+    rc = mqttc.run()
+    if rc != 0:
+        logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+        rc = mqttc.connect_and_subscribe()
 
-        print('Encode to utf-8 failed', data)
-        
+#except:
+#    logger.debug("main: Message could not be understoood or unexpected error ", data)
+
+#    print('Encode to utf-8 failed', data)
+    
