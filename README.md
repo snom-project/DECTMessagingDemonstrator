@@ -19,7 +19,7 @@ http://localhost:8080/
 2. start the messaging server
 python DECTMessagingServer.py 10300
 
-Messaging server is listening on port 10300 from all incomning Base IPs. 
+Messaging server is listening on port 10300 from all incoming Base IPs. 
 
 Multicell Base configuration 
 
