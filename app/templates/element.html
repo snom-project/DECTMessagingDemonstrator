@@ -13,6 +13,18 @@
 {% set prox_txt ="Inside" %}
 {% set prox_badge ="badge-success" %}
 
+{% elif i['proximity'] == "3" %}
+{% set prox_color = "text-white bg-success" %}
+{% set prox_back = "rgba(100, 150, 0, 0.4);" %}
+{% set prox_txt ="Report" %}
+{% set prox_badge ="badge-success" %}
+
+{% elif i['proximity'] == "alarm" %}
+{% set prox_color = "text-white bg-danger" %}
+{% set prox_back = "rgba(250, 10, 10, 0.4);" %}
+{% set prox_txt ="Alarm" %}
+{% set prox_badge ="badge-danger" %}
+
 {% else %}
 {% set prox_color = "text-white bg-secondary" %}
 {% set prox_back = "rgba(100, 100, 100, 0.4);" %}
