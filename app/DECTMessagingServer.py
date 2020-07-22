@@ -62,9 +62,9 @@ class MSSeriesMessageHandler:
         'LOGIN_REQUEST_LOGINDATA_STATUS_XPATH': "//request[@type='login']//logindata//status/text()",
         
         'ALARM_REQUEST_ALARMDATA_TYPE_XPATH':          "/request[@type='alarm']/alarmdata/type/text()",
-        'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH':    "/request[@type='alarm']/alarmdata/beacontype/text()",
-        'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH': "/request[@type='alarm']/alarmdata/broadcastdata/text()",
-        'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH':        "/request[@type='alarm']/alarmdata/bdaddr/text()",
+        'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH':    "/request[@type='alarm']/beacondata/beacontype/text()",
+        'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH': "/request[@type='alarm']/beacondata/broadcastdata/text()",
+        'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH':        "/request[@type='alarm']/beacondata/bdaddr/text()",
 
         'ALARM_REQUEST_RSSIDATA_RFPI_XPATH':        "/request[@type='alarm']/rssidata/rfpi/text()",
         'ALARM_REQUEST_RSSIDATA_RSSI_XPATH':        "/request[@type='alarm']/rssidata/rssi/text()",
@@ -193,15 +193,14 @@ class MSSeriesMessageHandler:
             print('not a BT message')
             return False
 
-        # rssi worse than 75 we discard radically
-        if int(proximity) == 1 and int(rssi) < -75:
+        # rssi worse than 75 we discard radically, proximity can be 1 or 3 (state report)
+        if int(proximity) != 0 and int(rssi) < -75:
             print('disregarding Beacon Info with rssi=', rssi)
             logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
 
             return False
         
         # Update device data
-        print("--------:", self.devices, bt_mac)
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
         # we record updat timestamps to identify stale devices
         current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -277,12 +276,17 @@ class MSSeriesMessageHandler:
                 #schedule.clear('daily-tasks')
 
         # at this point we have appended new device. matched_bt_mac must always work
+        print("--new bt_mac must be included------:", self.devices, bt_mac)
+
+
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
+        print("--final matched_bt_mac------:", matched_bt_mac)
+
         mqttc.publish_beacon(matched_bt_mac["bt_mac"], beacon_type, uuid, d_type, matched_bt_mac["proximity"], rssi, matched_bt_mac["name"], matched_bt_mac["beacon_gateway"])
         
         
         for item in self.devices:
-            print(item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ' ', item['device_loggedin'])
+            print(item['bt_mac'], ' ', item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ' ', item['device_loggedin'])
 
         return True
 
@@ -380,10 +384,14 @@ class MSSeriesMessageHandler:
         
         else:
             matched_address['last_beacon'] = last_beacon
-            matched_address['beacon_gateway'] = last_beacon
+            matched_address['beacon_gateway'] = 'Handset Rcv'
             # in case of an alarm, we get the last known position, we cannot assume that we are still in the proximity
             if eventtype != "unchanged":
                 matched_address['proximity'] = eventtype
+            # we got a beacon in an alarm message
+            # would be best to hold this info for a while
+            if eventtype == "alatm":
+                matched_address['proximity'] = 'alarm'
 
             
     def update_login(self, device_type, login_name, login_address, login, base_location, ip_connection = None):
@@ -431,8 +439,12 @@ class MSSeriesMessageHandler:
                 name_txt = xml_root.xpath("//senderdata/name[{0}]/text()".format(element_idx))[0]
             except:
                 name_txt = 'no name'
-                
-            address_txt = xml_root.xpath("//senderdata/address[{0}]/text()".format(element_idx))[0]
+            #  address should never been empty.. In this case continue in loop
+            try:
+                address_txt = xml_root.xpath("//senderdata/address[{0}]/text()".format(element_idx))[0]
+            except:
+                logger.debug("add_senderdata: empty address found, likely an unused account - skip")
+                continue
             # get current base ip
             #print('current connection:', self.m900_connection)
             ip_connection = self.m900_connection
@@ -909,15 +921,14 @@ class MSSeriesMessageHandler:
                 if alarmdata:
                     # beacon last position info
                     type = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_TYPE_XPATH')
-                    beacontype = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH'])
+                    beacontype = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
                     broadcastdata = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
                     bdaadr = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
-                    
                     if beacontype:
                         print("alarm beacon info", type, beacontype, broadcastdata, bdaadr)
                         # update the last beacon location
                         # we assume proximity = "1" since this was the last known location
-                        self.update_last_beacon(name, address, bdaadr, base_location, "unchanged")
+                        self.update_last_beacon(name, address, bdaadr, base_location, "alarm")
                     else:
                         print('Alarmtype:', type)
                 
@@ -1055,7 +1066,6 @@ class MSSeriesMessageHandler:
                     
 #                    The eventtype can be:
 #                    0: entering proximity of the beacon 1: leaving proximity of the beacon
-#
                     self.update_last_beacon(name, address, bdaddr, base_location, eventtype)
 
                     self.response_beacon(self.externalid, status, statusinfo)
@@ -1063,7 +1073,10 @@ class MSSeriesMessageHandler:
                 else:
                     logger.debug('FATAL, we expected beacondata', data)
                     
-                mqttc.publish_beacon(bdaddr, "BTLE", broadcastdata, beacontype, eventtype, "-00", "000413444444", "HS-Base:%s" % base_location)
+                # alarm is impotant, we update the viewer
+                self.send_to_location_viewer()
+
+                mqttc.publish_beacon(bdaddr, "BTLE", broadcastdata, beacontype, eventtype, "-00", address, "HS-Base:%s" % base_location)
 
                            
             #### LOGIN of handsets (address) and BEACON Gateways (IPEI)
