@@ -16,9 +16,9 @@ from mqtt.snomM900MqttClient import *
 devices = [
 #           {'device_type': 'SnomM9BTX', 'bt_mac': '00087B18BAB3', 'name': 'Snom M9B TX', 'account': '0328D3C8FC', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/xray.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
 #           {'device_type': 'some', 'bt_mac': '00087B18E51B', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
-          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'handset', 'bt_mac': '0004136323B9', 'name': 'M85', 'account': '200', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
+          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '1', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
 #           {'device_type': 'None', 'bt_mac': '000413B3008C', 'name': 'M70 Alarm Message', 'account': '7003', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : '0815', 'user_image': '/images/Michelle_Simmons_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'},
 #           {'device_type': 'None', 'bt_mac': '000413B40034', 'name': 'M80 Alarm Call', 'account': '7004', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/Steve_Fuller_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
 #           {'device_type': 'None', 'bt_mac': '00087B177B4A', 'name': 'M70', 'account': '7001', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
@@ -193,7 +193,7 @@ class MSSeriesMessageHandler:
             print('not a BT message')
             return False
 
-        # rssi worse than 75 we discard radically, proximity can be 1 or 3 (state report)
+        # rssi worse than 75 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
         if int(proximity) != 0 and int(rssi) < -75:
             print('disregarding Beacon Info with rssi=', rssi)
             logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
@@ -209,14 +209,14 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if d_type == "-4":
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
                 logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
 
 
             else:
                 device_type_new = 'beacon'
                 # add a new bt_mac
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': 'received Beacon', 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': 'received Beacon', 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
                 self.btmacaddresses.append({'bt_mac': bt_mac})
                 print(self.btmacaddresses)
                 
@@ -276,8 +276,13 @@ class MSSeriesMessageHandler:
                 #schedule.clear('daily-tasks')
 
         # at this point we have appended new device. matched_bt_mac must always work
-        print("--new bt_mac must be included------:", self.devices, bt_mac)
+        print("--new bt_mac must be included------:", self.devices, bt_mac, matched_bt_mac)
 
+        # rssi change ??????
+        if int(proximity) == 2 and matched_bt_mac:
+            print('RSSI change', rssi)
+            matched_bt_mac["rssi"] = rssi
+            
 
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
         print("--final matched_bt_mac------:", matched_bt_mac)
@@ -304,7 +309,7 @@ class MSSeriesMessageHandler:
                 if delta.total_seconds() > 20 and current_state == 'moving':
                     d['name'] = 'holding_still'
                     if d['proximity'] == '1':
-                        d['proximity'] = '2'
+                        d['proximity'] = 'holding'
                     d['account'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
                     #print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
                     mqttc.publish_beacon(d["bt_mac"], "", "", "", d["proximity"], -0, d["name"], d["beacon_gateway"])
