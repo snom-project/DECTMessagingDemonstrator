@@ -37,8 +37,8 @@
 </button>&nbsp;
 
 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-  <a class="dropdown-item" href="/de_DE/provider"><img width="13%" src="/images/de_de.png"/> Deutsch</a>
-  <a class="dropdown-item" href="/en_US/provider"><img width="13%" src="/images/en_us.png"/> English</a>
+  <a class="dropdown-item" href="/de_DE/"><img width="13%" src="/images/de_de.png"/> Deutsch</a>
+  <a class="dropdown-item" href="/en_US/"><img width="13%" src="/images/en_us.png"/> English</a>
 </div>
 
 
