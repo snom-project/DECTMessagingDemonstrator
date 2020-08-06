@@ -72,7 +72,7 @@ session_opts = {
 }
 
 
-bottle.debug(True)
+bottle.debug(False)
 # used for templates with multiple urls to download images etc.
 
 bottle.TEMPLATE_PATH=("./views", "./templates")
@@ -287,5 +287,5 @@ host = "0.0.0.0"
 #host = "192.168.188.21"
 #host = "192.168.55.23"
 
-
-bottle.run(app=app, host=host, port=8081, reloader=True, debug=True)
+# quiet=False adds http logs
+bottle.run(app=app, host=host, port=8081, reloader=True, debug=True, quiet=True)

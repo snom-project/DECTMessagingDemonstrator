@@ -13,15 +13,32 @@ import logging
 from mqtt.snomM900MqttClient import *
 
 
+'''
+Michael Telekom
+    000413B50214 M90
+    000413B40E18 M80
+    0004136323B9 M85
+'''
+
 devices = [
-#           {'device_type': 'SnomM9BTX', 'bt_mac': '00087B18BAB3', 'name': 'Snom M9B TX', 'account': '0328D3C8FC', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/xray.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
-#           {'device_type': 'some', 'bt_mac': '00087B18E51B', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None'},
-          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '1', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+
+#snom
+        {'device_type': 'handset', 'bt_mac': '000413B50056', 'name': 'M90 Snom Medical', 'account': '1000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+         {'device_type': 'handset', 'bt_mac': '000413632153', 'name': 'M85 Snom', 'account': 'catalina.oancea.9121', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+
+# Michael Telekom
+#    000413B50214 M90
+#    000413B40E18 M80
+#    0004136323B9 M85
+        {'device_type': 'handset', 'bt_mac': '000413B50214', 'name': 'M90 MT Medical', 'account': '1000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40E18', 'name': 'M80 MT', 'account': '2000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '0004136323B9', 'name': 'M85 MT', 'account': '3000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+
+# home
+          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
-#           {'device_type': 'None', 'bt_mac': '000413B3008C', 'name': 'M70 Alarm Message', 'account': '7003', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : '0815', 'user_image': '/images/Michelle_Simmons_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'},
-#           {'device_type': 'None', 'bt_mac': '000413B40034', 'name': 'M80 Alarm Call', 'account': '7004', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/Steve_Fuller_small.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
-#           {'device_type': 'None', 'bt_mac': '00087B177B4A', 'name': 'M70', 'account': '7001', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None'}
            
            ]
 
@@ -193,11 +210,10 @@ class MSSeriesMessageHandler:
             print('not a BT message')
             return False
 
-        # rssi worse than 75 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
-        if int(proximity) != 0 and int(rssi) < -75:
+        # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
+        if int(proximity) != 0 and int(rssi) < -100:
             print('disregarding Beacon Info with rssi=', rssi)
             logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
-
             return False
         
         # Update device data
@@ -211,7 +227,6 @@ class MSSeriesMessageHandler:
                 device_type_new = 'BTLETag'
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
                 logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
-
 
             else:
                 device_type_new = 'beacon'
@@ -232,6 +247,7 @@ class MSSeriesMessageHandler:
 
 #            print('old   :', matched_bt_mac)
             matched_bt_mac['uuid'] = uuid
+            matched_bt_mac['rssi'] = rssi
             matched_bt_mac['beacon_type'] = beacon_type
             # timestamp
             matched_bt_mac['time_stamp'] = current_datetime
@@ -285,7 +301,7 @@ class MSSeriesMessageHandler:
             
 
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
-        print("--final matched_bt_mac------:", matched_bt_mac)
+        #print("--final matched_bt_mac------:", matched_bt_mac)
 
         mqttc.publish_beacon(matched_bt_mac["bt_mac"], beacon_type, uuid, d_type, matched_bt_mac["proximity"], rssi, matched_bt_mac["name"], matched_bt_mac["beacon_gateway"])
         
@@ -331,7 +347,7 @@ class MSSeriesMessageHandler:
         tag_device['account'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
         
         delta = current_timestamp - old_timestamp
-        print(current_timestamp, old_timestamp, delta)
+        #print(current_timestamp, old_timestamp, delta)
 
         if delta.total_seconds() > 20 and current_state != 'moving':
             tag_device['name'] = 'moving'
@@ -457,7 +473,6 @@ class MSSeriesMessageHandler:
             old_m900_connection = self.get_base_connection(address_txt)
             if (old_m900_connection != self.m900_connection):
                 print('update base IP. DECT reg moved:', old_m900_connection, ip_connection)
-                connection = ip_connection
                 
             base_location = xml_root.xpath("//systemdata/name/text()")[0]
                 
@@ -879,7 +894,7 @@ class MSSeriesMessageHandler:
                 # check if we have a login request, including a logindata section
                 
                 json_data = self.get_value(alarm_profile_root, 'SNOM_REQUEST_JSONDATA')
-                print('json_data:', json_data)
+                #print('json_data:', json_data)
 
                 data = json.loads(json_data)
                 
