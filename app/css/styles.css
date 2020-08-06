@@ -8,11 +8,11 @@ body {
         }
 
     .grid-container--fill {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     }
 
     .grid-container--fit {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     }
 
     .device-img {
