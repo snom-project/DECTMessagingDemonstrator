@@ -11,9 +11,9 @@ sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 sn
 1. start the viewer
 python DECTMessagingViewer.py 
 
-DECTMessagingViewer listens on port 8080 on localhost 
+DECTMessagingViewer listens on port 8081 on localhost 
 check if Viewer is running
-http://localhost:8080/
+http://localhost:8081/
 
 
 2. start the messaging server
