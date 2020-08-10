@@ -132,21 +132,21 @@ def setup_request():
     # check if the session is still valid / check login status
 
 # absolute css path
-@bottle.get('/css/<filename>')
+@bottle.get('/css/<filename>', no_i18n = True)
 def load_css(filename):
     return static_file(filename, root="%s" % (css_root_path))
 
-@bottle.get('/<filepath:path>/css/<filename>')
+@bottle.get('/<filepath:path>/css/<filename>', no_i18n = True)
 def load_css(filepath, filename):
     #    print("%s..%s." % (images_root_path, filepath))
     return static_file(filename, root="%s" % (css_root_path))
 
-@bottle.get('/images/<filename>')
+@bottle.get('/images/<filename>', no_i18n = True)
 def load_image(filename):
     print("########################0")
     return static_file(filename, root="%s" % (images_root_path))
 
-@bottle.get('/<filepath:path>/images/<filename>')
+@bottle.get('/<filepath:path>/images/<filename>', no_i18n = True)
 def load_image(filepath, filename):
     print("########################1")
     return static_file(filename, root="%s" % (images_root_path))
@@ -162,7 +162,7 @@ import json
 import sys
 from time import sleep
 
-@route('/devicessync')
+@route('/devicessync', no_i18n = True)
 def devicessync():
     global devices
 

@@ -12,6 +12,11 @@ import logging
 
 from mqtt.snomM900MqttClient import *
 
+from colorama import init
+init()
+from colorama import Fore
+from colorama import Style
+
 
 '''
 Michael Telekom
@@ -36,8 +41,8 @@ devices = [
         {'device_type': 'handset', 'bt_mac': '0004136323B9', 'name': 'M85 MT', 'account': '3000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
 
 # home
-          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413B50038a', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413630B9Ca', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
            
            ]
@@ -195,8 +200,6 @@ class MSSeriesMessageHandler:
     #   self.update_beacon(messageuui, senderaddress_ipei[0], personaddress)
 
     def update_beacon(self, messageuui, senderaddress, personaddress):
-        print(messageuui)
-        
         # this is the sender of the beacon
         beacon_gateway = senderaddress
 
@@ -231,11 +234,15 @@ class MSSeriesMessageHandler:
             else:
                 device_type_new = 'beacon'
                 # add a new bt_mac
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': 'received Beacon', 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
-                self.btmacaddresses.append({'bt_mac': bt_mac})
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
+                self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
                 print(self.btmacaddresses)
                 
                 print('added: beacon?M9B ', personaddress, bt_mac, ' ', uuid)
+            # we have added a new device, now match it to process further
+            matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
+            if not matched_bt_mac:
+                print('FATAL: We have added a new device and cant match it.')
 
         else:
         
@@ -265,7 +272,7 @@ class MSSeriesMessageHandler:
             #beacon_gateway = senderaddress
 
             # check if address has changed. In this case do not Overwrite with Outside on old location
-            print('################', matched_bt_mac['beacon_gateway'], beacon_gateway, proximity)
+            #print('################', matched_bt_mac['beacon_gateway'], beacon_gateway, proximity)
             if (matched_bt_mac['beacon_gateway'] != beacon_gateway) and  proximity == '0':
                 # we have a new address already, this message is leave message from an old address
                 # do nothing
@@ -288,24 +295,17 @@ class MSSeriesMessageHandler:
                 schedule.clear('TAGHold')
                 schedule.every(30).seconds.do(self.update_all_tags).tag('TAGHold')
                 
-                #schedule.every().day.do(greet, 'Derek').tag('daily-tasks', 'guest')
-                #schedule.clear('daily-tasks')
 
-        # at this point we have appended new device. matched_bt_mac must always work
-        print("--new bt_mac must be included------:", self.devices, bt_mac, matched_bt_mac)
+        # at this point we have appended new device and have a matched_bt_mac
 
         # rssi change ??????
         if int(proximity) == 2 and matched_bt_mac:
             print('RSSI change', rssi)
             matched_bt_mac["rssi"] = rssi
             
-
-        matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
-        #print("--final matched_bt_mac------:", matched_bt_mac)
-
         mqttc.publish_beacon(matched_bt_mac["bt_mac"], beacon_type, uuid, d_type, matched_bt_mac["proximity"], rssi, matched_bt_mac["name"], matched_bt_mac["beacon_gateway"])
         
-        
+            
         for item in self.devices:
             print(item['bt_mac'], ' ', item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ' ', item['device_loggedin'])
 
@@ -390,14 +390,15 @@ class MSSeriesMessageHandler:
             
 
     def update_last_beacon(self, login_name, login_address, last_beacon, base_location, eventtype):
-        print(login_name, login_address, last_beacon, eventtype)
+        print("update_last_beacon:", login_name, login_address, last_beacon, eventtype)
         
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
-        matched_name = next((item for item in self.devices if item['name'] == login_name), False)
+        #matched_name = next((item for item in self.devices if item['name'] == login_name), False)
         
         # add new device address or update
         if not matched_address:
+            print('FATAL??, alarm address of handset should always exist')
             # add a new bt_mac
             self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'last_beacon': last_beacon} )
             
@@ -411,7 +412,7 @@ class MSSeriesMessageHandler:
                 matched_address['proximity'] = eventtype
             # we got a beacon in an alarm message
             # would be best to hold this info for a while
-            if eventtype == "alatm":
+            if eventtype == "alarm":
                 matched_address['proximity'] = 'alarm'
 
             
@@ -423,7 +424,7 @@ class MSSeriesMessageHandler:
             
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
-        matched_name = next((item for item in self.devices if item['name'] == login_name), False)
+        #matched_name = next((item for item in self.devices if item['name'] == login_name), False)
         # update timstamp
         current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
 
@@ -760,23 +761,29 @@ class MSSeriesMessageHandler:
                 # request goes directly to any Mx00 base, we need to enquire for one..
                 self.m900_connection = ('10.110.30.109', 1300)
                 self.m900_connection = self.get_base_connection(element['account'])
-                print('set connect', self.get_base_connection(element['account']))
+                #print('set connect', self.get_base_connection(element['account']))
                 self.request_sms(element['account'], sms_message_item['account'])
             
 
     def send_to_location_viewer(self):
         # first try to get an update of bt_macs.
+        # this overrides the bt_mac, since at the same time we might have added another device..
+        # enumerate cannot work..
         response = requests.get('http://127.0.0.1:8081/en_US/devicessync')
         if (response):
             json_data = json.loads(response.text)
             if json_data is not None:
                 #print(json_data)
                 for idx, item in enumerate(json_data['data']):
-                    try:
-                        self.devices[idx]['bt_mac'] = item['bt_mac']
-                    except:
+                    # search for a matching bt_mac. Doubles should not be there!
+                    #print("item:", item)
+                    matched_bt_mac = next((localitem for localitem in self.devices if localitem['account'] == item['account']), False)
+                    if not matched_bt_mac:
                         print(idx, 'not existing, viewer has async data')
-            
+                    else:
+                        # the user has changed a btmac via btmactable page.
+                        matched_bt_mac['bt_mac'] = item['bt_mac']
+                        
         # send btmacs updated data back to viewer.
         r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
         return True
@@ -832,8 +839,7 @@ class MSSeriesMessageHandler:
             response_type = response_type[0]
             print('Response:', response_type)
             
-            print(ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode"))
-
+            print(f'{Fore.YELLOW}{ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
             # check if we got a response on our keepalive
             if response_type == 'systeminfo':
                 # add all existing logged-in devices
@@ -880,7 +886,7 @@ class MSSeriesMessageHandler:
         if request_type:
             request_type = request_type[0]
             print('Request:', request_type)
-            print(ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode"))
+            print(f'{Fore.GREEN}{ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
 
             
             # common systeminfo data for all request types
@@ -1010,7 +1016,6 @@ class MSSeriesMessageHandler:
                     #     </senderdata>
                     senderaddress_ipei = alarm_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
                     #print("We have a GW sending device proximity identified by its BT mac ", senderaddress_ipei, messageuui)
-                    print(datetime.datetime.now(), messageuui)
                     if senderaddress_ipei:
                         print("personaddress could be empty, the GW IPEI is always there")
 
@@ -1065,7 +1070,8 @@ class MSSeriesMessageHandler:
                     
                     
             if request_type == 'beacon':
-                print("data:", data)
+            
+                print(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
                 # we have received a proximity beacon info from a handset
                 # name/account and location of the device
                 name = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
@@ -1206,6 +1212,7 @@ logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
 logger.debug("main: schedule.every(1).hours.do(amsg.clear_old_devices)")
 schedule.every(1).hours.do(amsg.clear_old_devices)
+schedule.every(5).minutes.do(amsg.clear_old_devices)
 #schedule.every(1).minutes.do(amsg.request_alarm)
 
 # MQTT Interface / False to disable temporarily..
@@ -1219,7 +1226,7 @@ while True:
     data, addr = s.recvfrom(32768)
 
     # data can come from multiple Mx00
-    print(addr)
+    #print(addr)
     # addr is (ip, port) tuple
     amsg.m900_connection = addr
   
