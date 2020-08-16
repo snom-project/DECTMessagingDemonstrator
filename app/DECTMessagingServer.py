@@ -202,6 +202,10 @@ class MSSeriesMessageHandler:
     def update_beacon(self, messageuui, senderaddress, personaddress):
         # this is the sender of the beacon
         beacon_gateway = senderaddress
+        
+        print('update_beacon')
+        logger.debug('messageuui:%s' % messageuui)
+
 
         if messageuui.split(';',1)[0] == '!BT':
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
@@ -483,7 +487,7 @@ class MSSeriesMessageHandler:
     def send_xml(self, xml_data):
         global s
   
-        xml_with_header = (bytes('<?xml version="1.0" encoding="UTF-8"?>\n', encoding='utf-8') + ET.tostring(xml_data))
+        xml_with_header = (bytes('<?xml version="1.0" encoding="UTF-8"?>\n', encoding='utf-8') + ET.tostring(xml_data, pretty_print=True))
 
         #print(self.m900_connection)
         #print(ET.tostring(xml_data, pretty_print=True, encoding="unicode"))
@@ -576,7 +580,8 @@ class MSSeriesMessageHandler:
                                   , version="1.0", type="beacon")
             
         self.send_xml(final_doc)
-
+     
+ 
     # sms: MS forwards sms via request to to FP:
     def request_forward_sms(self, externalid, fromaddress, fromname, fromlocation, toaddress, priority, message1, message2, uuid):
         final_doc = self.REQUEST(
@@ -610,32 +615,114 @@ class MSSeriesMessageHandler:
         self.send_xml(final_doc)
 
 
-    # sms: MS forwards sms via response to FP:
-    def response_sms(self, externalid, fromaddress, fromname, fromlocation, toaddress, priority, message1, message2):
+    '''
+    Response (part 4) - FP acknowledges message is received:
+    <?xml version="1.0" encoding="UTF-8"?>
+    <response version="20.6.12.1308" type="job">
+        <externalid>2953653356</externalid>
+        <systemdata>
+            <name>sme-voip-echoserver-0.0.1</name>
+            <datetime>2020-08-14 12:44:51</datetime>
+            <timestamp>5f366b23</timestamp>
+            <status>1</status>
+            <statusinfo>Accepted by sme-voip-echoserver-0.0.1</statusinfo>
+        </systemdata>
+        <senderdata>
+            <address>666</address>
+        </senderdata>
+        <persondata>
+            <address type="IPEI">0328D3C918</address>
+            <location>M900</location>
+        </persondata>
+    </response>
+    '''
+    # sms: Response (part 4):
+    def response_beacon_sms4(self, externalid, fromaddress, fromlocation, toaddress):
         final_doc = self.RESPONSE(
                                   self.EXTERNALID(externalid),
-                                  self.STATUS("1"),
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
-                                              self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                               self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                   self.STATUS(priority),
-                                                   self.STATUSINFO("System running")
+                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
+                                                  self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  self.STATUS("1"),
+                                                  self.STATUSINFO("Accepted by SnomProxy")
                                                   ),
                                     self.SENDERDATA(
                                                     self.ADDRESS(toaddress),
-                                                    self.NAME(toname),
-                                                    self.LOCATION(tolocation)
                                                     ),
                                     self.PERSONDATA(
-                                                    self.ADDRESS(fromaddress),
-                                                    self.NAME(fromname),
+                                                    #<address type="IPEI">0328D3C918</address>
+                                                    # difference to SMS recv response<
+                                                    self.ADDRESS(fromaddress, type="IPEI"),
                                                     self.LOCATION(fromlocation)
                                                     )
                                     , version="1.0", type="job")
                   
         self.send_xml(final_doc)
         
+        
+    '''
+    Response (part 6) - PP acknowledges message is received
+    <?xml version="1.0" encoding="UTF-8"?>
+    <response version="20.6.12.1308" type="job">
+        <externalid>2953653356</externalid>
+        <systemdata>
+            <name>sme-voip-echoserver-0.0.1</name>
+            <datetime>2020-08-14 12:44:51</datetime>
+            <timestamp>5f366b23</timestamp>
+            <status>1</status>
+            <statusinfo>Accepted by sme-voip-echoserver-0.0.1</statusinfo>
+        </systemdata>
+        <jobdata>
+            <priority>0</priority>
+            <messages>
+                <message1></message1>
+                <message2></message2>
+                <messageuui></messageuui>
+            </messages>
+            <status>1</status>
+            <statusinfo></statusinfo>
+        </jobdata>
+        <senderdata>
+            <address>666</address>
+        </senderdata>
+        <persondata>
+            <address type="IPEI">0328D3C918</address>
+            <location>M900</location>
+        </persondata>
+    </response>
+    '''
+    # sms: Response (part 6):
+    def response_beacon_sms6(self, externalid, fromaddress, toaddress, tolocation):
+        final_doc = self.RESPONSE(
+                                      self.EXTERNALID(externalid),
+                                      self.SYSTEMDATA(
+                                                      self.NAME("SnomProxy"),
+                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
+                                                   self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                       self.STATUS("1"),
+                                                       self.STATUSINFO("Accepted by SnomProxy")
+                                                      ),
+                                        self.JOBDATA(
+                                                     self.PRIORITY("0"),
+                                                     self.MESSAGES(
+                                                                   self.MESSAGE1(),
+                                                                   self.MESSAGE2(),
+                                                                   self.MESSAGEUUID()
+                                                                   ),
+                                                     self.STATUS("1"),
+                                                     self.STATUSINFO()
+                                                     ),
+                                        self.SENDERDATA(
+                                                        self.ADDRESS(fromaddress),
+                                                        ),
+                                        self.PERSONDATA(
+                                                        self.ADDRESS(toaddress, type="IPEI"),
+                                                        self.LOCATION(tolocation)
+                                                        )
+                                        , version="1.0", type="job")
+        self.send_xml(final_doc)
+
 
     # SMS response from FP gets forwarded to receiving handset untouched
     # double XML header?
@@ -875,7 +962,10 @@ class MSSeriesMessageHandler:
                 if alarm_job_status == '1':
                     self.response_forward_sms(alarm_profile_root)
                 else:
-                    print("Job Response Status NOK:", alarm_job_status)
+                    if alarm_job_status == []:
+                        print("Beacon Received")
+                    else:
+                        print("Job Response Status NOK:", alarm_job_status)
 
                 return True
 
@@ -1002,11 +1092,21 @@ class MSSeriesMessageHandler:
 
      
             if request_type == 'job':
-                print('Job: ', data)
+            
+                print("We assume a SMS request")
+                priority = self.get_value(alarm_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
+                message1 = message2 = '' # not used today
+                toaddress = self.get_value(alarm_profile_root, 'JOB_REQUEST_PERSONDATA_ADDRESS_XPATH')
+                fromname = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                fromaddress = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                fromlocation = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                                
                 uuid = self.get_value(alarm_profile_root, 'JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH')
                 
                 if '!BT' in uuid:
                     print('Beacon')
+                    print(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
+
                     messageuui = alarm_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH'])[0]
                     personaddress= alarm_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_PERSONDATA_ADDRESS_XPATH'])[0]
                 
@@ -1021,6 +1121,16 @@ class MSSeriesMessageHandler:
 
                     # update the devices DB
                     self.update_beacon(messageuui, senderaddress_ipei[0], personaddress)
+                    
+                    # send response on job with beacon
+                    # here we consider dialog SMS from FP to MS,
+                    # resulting in Response (4) and Response (6)
+                    print('response_beacon_sms (4)', self.externalid, fromaddress, fromlocation, toaddress)
+                    self.response_beacon_sms4(self.externalid, fromaddress, fromlocation, toaddress)
+                    print('response_beacon_sms (6)', self.externalid, fromaddress, fromlocation, toaddress)
+                    self.response_beacon_sms6(self.externalid, toaddress, fromaddress, fromlocation)
+
+
                     # send to location viewer
                     self.send_to_location_viewer()
                 else:
@@ -1054,7 +1164,7 @@ class MSSeriesMessageHandler:
 #                <address>999</address>
 #                </persondata>
 #                </request>
-
+                    print('Job SMS: ', data)
 
                     print("We assume a SMS request")
                     priority = self.get_value(alarm_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
@@ -1064,7 +1174,7 @@ class MSSeriesMessageHandler:
                     fromaddress = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
                     fromlocation = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
                      
-                    print(uuid)
+                    #print(uuid)
                     # forward to receiver
                     self.request_forward_sms(self.externalid, fromaddress, fromname, fromlocation, toaddress, priority, message1, message2, uuid)
                     
@@ -1166,7 +1276,10 @@ print(amsg.devices)
 logger = logging.getLogger('SnomMMessagingService')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s %(message)s')
+ch.setFormatter(formatter)
 logger.addHandler(ch)
+
 
 
 #######
