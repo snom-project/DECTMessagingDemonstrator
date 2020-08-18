@@ -490,7 +490,7 @@ class MSSeriesMessageHandler:
         xml_with_header = (bytes('<?xml version="1.0" encoding="UTF-8"?>\n', encoding='utf-8') + ET.tostring(xml_data, pretty_print=True))
 
         #print(self.m900_connection)
-        #print(ET.tostring(xml_data, pretty_print=True, encoding="unicode"))
+        print(f'{Fore.BLUE}{ET.tostring(xml_data, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}')
         s.sendto(xml_with_header, self.m900_connection)
     
 
@@ -530,7 +530,7 @@ class MSSeriesMessageHandler:
         
         
     # test alarm
-    def request_alarm(self):
+    def request_alarm(self, account, alarm_txt):
         final_doc = self.REQUEST(
                                  self.SYSTEMDATA(
                                                  self.NAME("SnomProxy"),
@@ -549,13 +549,13 @@ class MSSeriesMessageHandler:
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
-                                                            self.MESSAGEUUID("Alarm1 text")
+                                                            self.MESSAGEUUID(alarm_txt)
                                                             ),
                                               self.STATUS("0"),
                                               self.STATUSINFO("")
                                               ),
                                  self.PERSONDATA(
-                                                 self.ADDRESS("200"),
+                                                 self.ADDRESS(account),
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
@@ -852,6 +852,22 @@ class MSSeriesMessageHandler:
                 self.request_sms(element['account'], sms_message_item['account'])
             
 
+    def alarms_MS_send_FP(self, data):
+           # get the message text
+           # message is added to the name,account data, name=FormControlTextarea1 equals the form element of sms.html
+           if not data:
+               return
+           
+           sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
+
+           for element in data:
+               if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
+                   # request goes directly to any Mx00 base, we need to enquire for one..
+                   self.m900_connection = ('10.110.30.109', 1300)
+                   self.m900_connection = self.get_base_connection(element['account'])
+                   #print('set connect', self.get_base_connection(element['account']))
+                   self.request_alarm(element['account'], sms_message_item['account'])
+       
     def send_to_location_viewer(self):
         # first try to get an update of bt_macs.
         # this overrides the bt_mac, since at the same time we might have added another device..
