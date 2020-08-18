@@ -1,0 +1,102 @@
+{% include 'header.tpl' %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery transfer</title>
+    <link rel="stylesheet" type="text/css" href="/css/icon_font.css" />
+    <link rel="stylesheet" type="text/css" href="css/jquery.transfer.css?v=0.0.2" />
+    <style>
+        .transfer-demo {
+            width: 640px;
+            height: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div id="transfer1" class="transfer-demo"></div>
+    </div>
+
+    <form id="myform" action="/alarm" method="post">
+      <div class="form-group">
+        <label for="FormControlTextarea1">Example textarea</label>
+        <textarea class="form-control" id="FormControlTextarea1" cols="70" rows="1" wrap="hard"></textarea>
+      </div>
+      <button id="submitbutton" type="submit" class="btn btn-primary mb-2">Send</button>
+    </form>
+
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="css/jquery.transfer.js?v=0.0.2"></script>
+<script type="text/javascript">
+    var dataArray1 = [
+                      
+        {% for i in devices %}
+        {
+            "name": "{{i['name']}}",
+            "value": "{{i['account']}}"
+        }
+        {% if not loop.last %}
+        ,
+        {% endif %}
+
+        {% endfor %}
+       
+    ];
+    var settings1 = {
+        "dataArray": dataArray1,
+        "itemName": "name",
+        "valueName": "value",
+        "callable": function (items) {
+            // form fields
+            var values = {};
+            var fields = $('#myform :input');
+            $.each(fields, function(i, field) {
+                var dom = $(field),
+                    name = dom.attr('id'),
+                    value = dom.val();
+                   items.push({
+                   "name": name,
+                    "value": value
+                              })
+            });
+
+            // add array
+            values.items = {};
+            json_items = [];
+
+            $.each(items, function(i, field) {
+                values.items[field.name] = field.value;
+                json_items.push( {
+                                  "name": field.name,
+                                  "account": field.value
+                                });
+            });
+
+            console.dir(values.items)
+            console.dir(json_items)
+
+            var myJson = JSON.stringify(json_items);
+            console.dir(myJson)
+
+        
+            var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+            var theUrl = "/en_US/alarm";
+            xmlhttp.open("POST", theUrl);
+            xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xmlhttp.send(myJson);
+
+            // post data
+<!--            $.post('/en_US/alarm', items);-->
+
+<!--            console.dir(items)-->
+        }
+    };
+    $("#transfer1").transfer(settings1);
+</script>
+
+
+{% include 'footer.tpl' %}
