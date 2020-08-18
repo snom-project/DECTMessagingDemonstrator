@@ -220,6 +220,78 @@ def sms():
     
     return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
 
+@bottle.route('/alarm', method=['GET','POST'])
+def sms():
+    global devices
+   
+    if bottle.request.method == 'POST':
+        IP = '127.0.0.1'
+        PORT = 10300
+
+        print('init socket...')
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect((IP, PORT))
+            s.settimeout(500)
+        except socket.error as exc:
+            print('Caught exception socket.error: {0}'.format(exc))
+            sys.exit(0)
+        print("init socket successfull")
+        
+       
+        d = json.dumps(request.json).encode("ascii")
+        print('data:', d)
+       
+        # prepare XML data request
+        xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
+        print(xml_message)
+
+        s.send(bytes(xml_message, 'utf-8'))
+        print('data sent')
+        @bottle.route('/sms', method=['GET','POST'])
+        def sms():
+            global devices
+           
+            if bottle.request.method == 'POST':
+                IP = '127.0.0.1'
+                PORT = 10300
+
+                print('init socket...')
+
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s.connect((IP, PORT))
+                    s.settimeout(500)
+                except socket.error as exc:
+                    print('Caught exception socket.error: {0}'.format(exc))
+                    sys.exit(0)
+                print("init socket successfull")
+                
+               
+                d = json.dumps(request.json).encode("ascii")
+                print('data:', d)
+               
+                # prepare XML data request
+                xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
+                print(xml_message)
+
+                s.send(bytes(xml_message, 'utf-8'))
+                print('data sent')
+
+                s.close()
+            else:
+                print('GET request of the page, do nothing')
+            
+            return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
+
+
+        s.close()
+    else:
+        print('GET request of the page, do nothing')
+    
+    return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=devices)
+
 
 # the content of the element triggered by AJAX reload
 @bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
