@@ -9,6 +9,7 @@ import time
 import requests
 import json
 import logging
+import random
 
 from mqtt.snomM900MqttClient import *
 
@@ -28,9 +29,12 @@ Michael Telekom
 devices = [
 
 #snom
-        {'device_type': 'handset', 'bt_mac': '000413B50056', 'name': 'M90 Snom Medical', 'account': '1000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40021', 'name': 'M90 Snom Medical', 'account': 'rom.hennes.m700.9097', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
          {'device_type': 'handset', 'bt_mac': '000413632153', 'name': 'M85 Snom', 'account': 'catalina.oancea.9121', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
         {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40F91', 'name': 'M90 Norman Snom', 'account': 'mari.sche.m700.9070', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+
+
 
 # Michael Telekom
 #    000413B50214 M90
@@ -59,6 +63,7 @@ class MSSeriesMessageHandler:
         
         # snom message with json-data
         'SNOM_REQUEST_JSONDATA':          "/request[@type='json-data']/json-data/text()",
+        'SNOM_REQUEST_JSONDATA_JOBTYPE':  "/request[@type='json-data']/jobtype/text()",
 
         
         'JOB_RESPONSE_STATUS_XPATH':     "/response[@type='job']/status/text()",
@@ -559,7 +564,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID('001121100')
+                                 self.EXTERNALID(str(random.randint(10000, 29999)))
                                  , version="1.0", type="job")
             
         self.send_xml(final_doc)
@@ -781,7 +786,7 @@ class MSSeriesMessageHandler:
             #if delta.total_seconds() > 3600:
             if delta.total_seconds() > 70:
                 print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
-                logger.debug("clear_old_devices: found d:", d)
+                logger.debug("clear_old_devices: found device to clear: %s", d)
 
                 # delete record.
                 self.devices.remove(d)
@@ -833,9 +838,9 @@ class MSSeriesMessageHandler:
         else:
             return ('127.0.0.1', 4711)
 
-        
 
     def SMSs_MS_send_FP(self, data):
+        print('SMSs_MS_send_FP:')
         # get the message text
         # message is added to the name,account data, name=FormControlTextarea1 equals the form element of sms.html
         if not data:
@@ -850,24 +855,28 @@ class MSSeriesMessageHandler:
                 self.m900_connection = self.get_base_connection(element['account'])
                 #print('set connect', self.get_base_connection(element['account']))
                 self.request_sms(element['account'], sms_message_item['account'])
-            
+                
 
     def alarms_MS_send_FP(self, data):
-           # get the message text
-           # message is added to the name,account data, name=FormControlTextarea1 equals the form element of sms.html
-           if not data:
-               return
-           
-           sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
-
-           for element in data:
-               if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
-                   # request goes directly to any Mx00 base, we need to enquire for one..
-                   self.m900_connection = ('10.110.30.109', 1300)
-                   self.m900_connection = self.get_base_connection(element['account'])
-                   #print('set connect', self.get_base_connection(element['account']))
-                   self.request_alarm(element['account'], sms_message_item['account'])
+        print('alarms_MS_send_FP:')
+        # get the message text
+        # message is added to the name,account data, name=FormControlTextarea1 equals the form element of sms.html
+        if not data:
+            return
        
+        sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
+
+        for element in data:
+            if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
+            
+                # request goes directly to any Mx00 base, we need to enquire for one..
+                self.m900_connection = self.get_base_connection(element['account'])
+                #print('set connect', self.get_base_connection(element['account']))
+                self.request_alarm(element['account'], sms_message_item['account'])
+                # mark the handset
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
+                matched_account['proximity'] = 'alarm'
+   
     def send_to_location_viewer(self):
         # first try to get an update of bt_macs.
         # this overrides the bt_mac, since at the same time we might have added another device..
@@ -890,8 +899,13 @@ class MSSeriesMessageHandler:
         # send btmacs updated data back to viewer.
         r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
         return True
-
-
+    
+    def update_proximity(self, address, alarm_type):
+        # ?????
+        print(address, alarm_type )
+        matched_address = next((localitem for localitem in self.devices if localitem['account'] == address), False)
+        matched_address['proximity'] = alarm_type
+ 
     def get_value(self, xml_root, xpath):
         # handles empty tags and returns first value in case a list is returned.
         valueList = xml_root.xpath(self.msg_xpath_map[xpath])
@@ -964,16 +978,21 @@ class MSSeriesMessageHandler:
 
                 alarm_job_status = alarm_profile_root.xpath(self.msg_xpath_map['X_REQUEST_JOBDATA_STATUS_XPATH'])
 
+                alarm_job_address = self.get_value(alarm_profile_root,'X_SENDERDATA_ADDRESS_XPATH')
+ 
                 if alarm_job_status:
                     alarm_job_status = alarm_job_status[0]
                     if alarm_job_status == "1":
                         print("message received")
                     if alarm_job_status == "4":
                         print("message OKed / Confirmed")
+                        self.update_proximity(alarm_job_address, "alarm_confirmed")
                     if alarm_job_status == "5":
                         print("message rejected")
+                        self.update_proximity(alarm_job_address, "alarm_rejected")
                     if alarm_job_status == "10":
                         print("message canceled")
+                        self.update_proximity(alarm_job_address, "alarm_canceled")
 
                 if alarm_job_status == '1':
                     self.response_forward_sms(alarm_profile_root)
@@ -981,7 +1000,7 @@ class MSSeriesMessageHandler:
                     if alarm_job_status == []:
                         print("Beacon Received")
                     else:
-                        print("Job Response Status NOK:", alarm_job_status)
+                        print("Job Response Status NOK?:", alarm_job_status)
 
                 return True
 
@@ -1006,13 +1025,20 @@ class MSSeriesMessageHandler:
                 # check if we have a login request, including a logindata section
                 
                 json_data = self.get_value(alarm_profile_root, 'SNOM_REQUEST_JSONDATA')
-                #print('json_data:', json_data)
-
+                # we get sms or alarm handsets
+                jobtype = self.get_value(alarm_profile_root, 'SNOM_REQUEST_JSONDATA_JOBTYPE')
+                # all handset account and text message data
                 data = json.loads(json_data)
                 
-                # send message to all recipients
-                self.SMSs_MS_send_FP(data)
-                
+                # send message to all sms or alarm recipients
+                if jobtype == "alarm":
+                    self.alarms_MS_send_FP(data)
+                else:
+                    self.SMSs_MS_send_FP(data)
+
+                self.send_to_location_viewer()
+
+
                 
                      
             # sync beetween FP and MS
@@ -1340,8 +1366,9 @@ amsg.send_to_location_viewer()
 logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
 logger.debug("main: schedule.every(1).hours.do(amsg.clear_old_devices)")
-schedule.every(1).hours.do(amsg.clear_old_devices)
-schedule.every(5).minutes.do(amsg.clear_old_devices)
+#schedule.every(1).hours.do(amsg.clear_old_devices)
+schedule.every(1).minutes.do(amsg.clear_old_devices)
+
 #schedule.every(1).minutes.do(amsg.request_alarm)
 
 # MQTT Interface / False to disable temporarily..

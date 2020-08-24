@@ -41,7 +41,7 @@
                               function() {
                               var randomnumber = Math.floor((Math.random()-0.5) * 1000);
                               setInterval(function() {
-                                          $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn();
+                                  $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn(50);
                                           }, 5000 + randomnumber);
                               });
             </script>
