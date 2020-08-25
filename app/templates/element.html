@@ -1,6 +1,9 @@
 <!-- i represents a full device profile -->
 {% if i['device_loggedin'] == "1" %}
 
+<!-- default background -->
+{% set prox_backgroundimage = "/images/locpin.jpg" %}
+
 {% if i['proximity'] == "1" %}
 {% set prox_color = "text-white bg-success" %}
 {% set prox_back = "rgba(0, 200, 100, 0.4);" %}
@@ -51,6 +54,43 @@
 {% set prox_back = "rgba(200, 100, 100, 0.4);" %}
 {% set prox_txt ="Cancel" %}
 {% set prox_badge ="badge-danger" %}
+
+<!-- alarm triggered by handset     -->
+<!-- - 0: Man Down                  -->
+<!-- - 1: No Movement               -->
+<!-- - 2: Running                   -->
+<!-- - 3: Pull Cord                 -->
+<!-- - 4: Red Key                   -->
+<!-- - 5-9 Reserved                 -->
+{% elif i['proximity'] == "alarm_handset_4" %}
+{% set prox_color = "text-white bg-danger flashit" %}
+{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
+{% set prox_txt ="Button" %}
+{% set prox_badge ="badge-danger" %}
+{% set prox_backgroundimage = "/images/button.png" %}
+
+
+{% elif i['proximity'] == "alarm_handset_0" %}
+{% set prox_color = "text-white bg-danger flashit" %}
+{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
+{% set prox_txt ="Down" %}
+{% set prox_badge ="badge-danger" %}
+{% set prox_backgroundimage = "/images/mandown.png" %}
+
+{% elif i['proximity'] == "alarm_handset_3" %}
+{% set prox_color = "text-white bg-danger flashit" %}
+{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
+{% set prox_txt ="Cord" %}
+{% set prox_badge ="badge-danger" %}
+{% set prox_backgroundimage = "/images/pullcord.jpeg" %}
+
+
+{% elif i['proximity'] == "alarm_handset_1" %}
+{% set prox_color = "text-white bg-danger flashit" %}
+{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
+{% set prox_txt ="move" %}
+{% set prox_badge ="badge-danger" %}
+{% set prox_backgroundimage = "/images/nomovement.png" %}
 
 {% else %}
 {% set prox_color = "text-white bg-secondary" %}
@@ -119,7 +159,7 @@
     </div>
     
     
-    <div class="card-body px-0 py-0" style="background-image: url(/images/locpin.jpg);">
+    <div class="card-body px-0 py-0" style="background-image: url( {{prox_backgroundimage}} );">
         
         
         <div class="card-transparent px-0 py-0">
@@ -128,7 +168,7 @@
                 
                 <ul class="list-unstyled" style="margin-block-end:0px; margin-block-start: 0px">
                     <li>
-                        <a href="{{ i['link'] }}"> <img class="rounded-circle px-2 py-2" width="90%" src="{{ i['user_image'] }}"></a>
+                        <a href="{{ i['link'] }}"> <img class="rounded-circle px-2 py-2" width="95%" src="{{ i['user_image'] }}"></a>
                         <p class="h4 my-0 font-weight-normal">{{ i['account'] }}</p>
                     </li>
                     <li>{{ i['bt_mac'] }}</li>

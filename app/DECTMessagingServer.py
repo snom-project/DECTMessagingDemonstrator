@@ -29,7 +29,7 @@ Michael Telekom
 devices = [
 
 #snom
-        {'device_type': 'handset', 'bt_mac': '000413B40021', 'name': 'M90 Snom Medical', 'account': 'rom.hennes.m700.9097', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40021', 'name': 'M90 Snom Medical', 'account': 'rom.hennes.m700.9097', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': 'alarm_handset_1', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
          {'device_type': 'handset', 'bt_mac': '000413632153', 'name': 'M85 Snom', 'account': 'catalina.oancea.9121', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
         {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
         {'device_type': 'handset', 'bt_mac': '000413B40F91', 'name': 'M90 Norman Snom', 'account': 'mari.sche.m700.9070', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
@@ -45,8 +45,8 @@ devices = [
         {'device_type': 'handset', 'bt_mac': '0004136323B9', 'name': 'M85 MT', 'account': '3000', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
 
 # home
-          {'device_type': 'handset', 'bt_mac': '000413B50038a', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'handset', 'bt_mac': '000413630B9Ca', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
            
            ]
@@ -299,7 +299,7 @@ class MSSeriesMessageHandler:
                 # udpdate newly beacon and all Tags timstamps and states
                 self.update_tags(matched_bt_mac)
                 # Tags keep sending bursts and a final before they stop. We do not count the bursts
-                # instead we assume that the after last burst in the next 30s nothing will come.
+                # instead we assume that after the last burst in the next 30s nothing will come.
                 # The Tag rests
                 schedule.clear('TAGHold')
                 schedule.every(30).seconds.do(self.update_all_tags).tag('TAGHold')
@@ -794,8 +794,6 @@ class MSSeriesMessageHandler:
         return True
 
 
-
-    
     # login: MS confirm response to FP:
     def response_login(self, externalid, status, statusinfo):
         final_doc = self.RESPONSE(
@@ -1087,8 +1085,12 @@ class MSSeriesMessageHandler:
                         # update the last beacon location
                         # we assume proximity = "1" since this was the last known location
                         self.update_last_beacon(name, address, bdaadr, base_location, "alarm")
-                    else:
-                        print('Alarmtype:', type)
+                    # - 0: Man Down
+                    # - 1: No Movement - 2: Running
+                    # - 3: Pull Cord
+                    # - 4: Red Key
+                    # - 5-9 Reserved
+                    print('Alarmtype:', type)
                 
                 rssidata = alarm_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
                 if rssidata:
@@ -1098,8 +1100,13 @@ class MSSeriesMessageHandler:
 
                     # update handset rssi data
                     self.update_rssi(name, address, rfpi, rssi)
+                    
+                self.update_proximity(address, 'alarm_handset_%s' % type)
                 
                 self.response_alarm(self.externalid, status, statusinfo)
+                
+                self.send_to_location_viewer()
+
 
             #### BEACONS and handsets
      
@@ -1367,7 +1374,7 @@ logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
 logger.debug("main: schedule.every(1).hours.do(amsg.clear_old_devices)")
 #schedule.every(1).hours.do(amsg.clear_old_devices)
-schedule.every(1).minutes.do(amsg.clear_old_devices)
+schedule.every(2).minutes.do(amsg.clear_old_devices)
 
 #schedule.every(1).minutes.do(amsg.request_alarm)
 
