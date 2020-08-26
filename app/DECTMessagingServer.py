@@ -25,6 +25,21 @@ Michael Telekom
     000413B40E18 M80
     0004136323B9 M85
 '''
+m9bIPEI_description ={
+         '0328D7848C': 'Meeting6OG',
+         '0328D78490': 'Kueche6OG',
+         '0328D78488': 'Poststelle6O',
+         '0328D78483': 'Eingang7OG',
+         '0328D783CB': 'Treppe6OG',
+         '0328D78491': 'MeetingG7OG',
+         '0328D78492': 'StandUP6OG',
+         '0328D78493': 'Kueche7OG',
+         '0328D784B4': 'MeetingW7OG',
+         '0328D3C8FC': 'RMA7OG',
+         '0328D783C1': 'Marketing',
+         '0328D783CA': 'Sales'
+        }
+         
 
 devices = [
 
@@ -267,6 +282,9 @@ class MSSeriesMessageHandler:
             matched_bt_mac['beacon_type'] = beacon_type
             # timestamp
             matched_bt_mac['time_stamp'] = current_datetime
+    
+            # translate m9bIPEI into locations..
+            beacon_gateway = m9bIPEI_description.get(beacon_gateway, 'unknown')
 #            if beacon_gateway == "0815":
 #                beacon_gateway = "Show Table"
 #            if beacon_gateway == "007":
