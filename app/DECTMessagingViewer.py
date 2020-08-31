@@ -24,6 +24,14 @@ from bottle_utils.i18n import lazy_ngettext as ngettext, lazy_gettext as _
 
 from bottle import jinja2_view, route
 
+# read from DB
+from DECTMessagingDb import DECTMessagingDb
+
+msgDb = DECTMessagingDb()
+
+#examples
+#msgDb.delete_db(account='1000')
+#msgDb.delete_db()
 
 devices = []
 #devices = [
@@ -272,8 +280,11 @@ def run_element(deviceIdx):
 #    if len(devices) != int(lastNumOfDevices):
 #        lastNumOfDevices = len(devices)
 #        bottle.redirect('/location')
-        
-    device = devices[int(deviceIdx)]
+    try:
+        device = devices[int(deviceIdx)]
+    except:
+        #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
+        return ""
     
 #    if random.randint(0, 1):
 #        device['proximity'] = "1"
@@ -292,14 +303,19 @@ def run_element(deviceIdx):
 @bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
 def run_location():
     global devices
-    updated_devices = request.json
-    tmplist = []
-    tmplist.append(updated_devices)
-    devices = tmplist[0]
+    if msgDb:
+        result = msgDb.read_devices_db()
+        #result = msgDb.read_db(account="depp_acc", name="", rssi="", uuid="", time_stamp="")
+        #print('result:%s' % result)
+        devices = result
+    else:
+        updated_devices = request.json
+        tmplist = []
+        tmplist.append(updated_devices)
+        devices = tmplist[0]
+    
     print(devices)
-
-#    bottle.redirect('/')
-
+    
 
 @bottle.route('/', name='main', method='GET')
 def run_main():
