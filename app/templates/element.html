@@ -55,6 +55,12 @@
 {% set prox_txt ="Cancel" %}
 {% set prox_badge ="badge-danger" %}
 
+{% elif i['proximity'] == "sms" %}
+{% set prox_color = "text-white bg-primary flashit" %}
+{% set prox_back = "rgba(100, 100, 200, 0.4);" %}
+{% set prox_txt ="SMS" %}
+{% set prox_badge ="badge-danger" %}
+
 <!-- alarm triggered by handset     -->
 <!-- - 0: Man Down                  -->
 <!-- - 1: No Movement               -->

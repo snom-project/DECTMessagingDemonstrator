@@ -18,6 +18,10 @@ init()
 from colorama import Fore
 from colorama import Style
 
+from DECTMessagingDb import DECTMessagingDb
+
+msgDb = DECTMessagingDb()
+msgDb.delete_db()
 
 '''
 Michael Telekom
@@ -31,6 +35,7 @@ m9bIPEI_description ={
          '0328D78488': 'Poststelle6O',
          '0328D78483': 'Eingang7OG',
          '0328D783CB': 'Treppe6OG',
+         '0328D7848F': 'Treppe7OG',
          '0328D78491': 'MeetingG7OG',
          '0328D78492': 'StandUP6OG',
          '0328D78493': 'Kueche7OG',
@@ -40,7 +45,7 @@ m9bIPEI_description ={
          '0328D783CA': 'Sales'
         }
          
-
+         
 devices = [
 
 #snom
@@ -49,6 +54,7 @@ devices = [
         {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
         {'device_type': 'handset', 'bt_mac': '000413B40F91', 'name': 'M90 Mario', 'account': 'mari.sche.m700.9070', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
         {'device_type': 'handset', 'bt_mac': '00087B17C68B', 'name': 'M90 Mario', 'account': 'remu.sara.9003', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
+
 
 
 # Michael Telekom
@@ -62,11 +68,15 @@ devices = [
 # home
           {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': '2020-04-03 20:38:07.381885', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'}
            
            ]
 
 #devices = []
+
+for i in range(1):
+    devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000'} )
+         
 
 class MSSeriesMessageHandler:
     
@@ -238,7 +248,7 @@ class MSSeriesMessageHandler:
             return False
 
         # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
-        if int(proximity) != 0 and int(rssi) < -100:
+        if proximity != '0' and int(rssi) < -100:
             print('disregarding Beacon Info with rssi=', rssi)
             logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
             return False
@@ -252,13 +262,14 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if d_type == "-4":
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': current_datetime, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime} )
+                
                 logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
 
             else:
                 device_type_new = 'beacon'
                 # add a new bt_mac
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime} )
                 self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
                 print(self.btmacaddresses)
                 
@@ -284,7 +295,7 @@ class MSSeriesMessageHandler:
             matched_bt_mac['time_stamp'] = current_datetime
     
             # translate m9bIPEI into locations..
-            beacon_gateway = m9bIPEI_description.get(beacon_gateway, 'unknown')
+            beacon_gateway = m9bIPEI_description.get(beacon_gateway, str(beacon_gateway))
 #            if beacon_gateway == "0815":
 #                beacon_gateway = "Show Table"
 #            if beacon_gateway == "007":
@@ -325,8 +336,8 @@ class MSSeriesMessageHandler:
 
         # at this point we have appended new device and have a matched_bt_mac
 
-        # rssi change ??????
-        if int(proximity) == 2 and matched_bt_mac:
+        # rssi change
+        if proximity == '2' and matched_bt_mac:
             print('RSSI change', rssi)
             matched_bt_mac["rssi"] = rssi
             
@@ -346,14 +357,14 @@ class MSSeriesMessageHandler:
         for d in self.devices:
             if d['device_type'] == 'BTLETag':
                 current_state = d['name']
-                old_timestamp = datetime.datetime.strptime(d['account'], "%Y-%m-%d %H:%M:%S.%f")
+                old_timestamp = datetime.datetime.strptime(d['time_stamp'], "%Y-%m-%d %H:%M:%S.%f")
                 delta = current_timestamp - old_timestamp
                 #print(d, 'delta', delta)
                 if delta.total_seconds() > 20 and current_state == 'moving':
                     d['name'] = 'holding_still'
                     if d['proximity'] == '1':
                         d['proximity'] = 'holding'
-                    d['account'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
+                    d['time_stamp'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
                     #print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
                     mqttc.publish_beacon(d["bt_mac"], "", "", "", d["proximity"], -0, d["name"], d["beacon_gateway"])
                        
@@ -368,10 +379,10 @@ class MSSeriesMessageHandler:
         # get current state and timestamp
         current_state = tag_device['name']
         current_timestamp = datetime.datetime.now()
-        old_timestamp = datetime.datetime.strptime(tag_device['account'], "%Y-%m-%d %H:%M:%S.%f")
+        old_timestamp = datetime.datetime.strptime(tag_device['time_stamp'], "%Y-%m-%d %H:%M:%S.%f")
         
-        # updtae timestamp
-        tag_device['account'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
+        # update timestamp
+        tag_device['time_stamp'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
         
         delta = current_timestamp - old_timestamp
         #print(current_timestamp, old_timestamp, delta)
@@ -427,9 +438,9 @@ class MSSeriesMessageHandler:
         if not matched_address:
             print('FATAL??, alarm address of handset should always exist')
             # add a new bt_mac
-            self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'last_beacon': last_beacon} )
+            self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime})
             
-            print('added: ', login_address)
+            print('added unexspected Beacon: ', login_address)
         
         else:
             matched_address['last_beacon'] = last_beacon
@@ -458,7 +469,7 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             # add a new device
-            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'uuid': '', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'base_connection': ip_connection, 'last_beacon': 'None', 'time_stamp': current_datetime})
+            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'base_connection': ip_connection, 'last_beacon': 'None', 'time_stamp': current_datetime})
             
             print('added: ', login_address)
 
@@ -527,7 +538,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUSINFO("System running")
                                                  ),
                                  self.JOBDATA(
-                                              self.ALARMNUMBER("2"),
+                                              #self.ALARMNUMBER("2"),
 #                                              self.REFERENCENUMBER("5"),
                                               self.PRIORITY("1"),
                                               self.FLASH("0"),
@@ -546,7 +557,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID('001121100')
+                                 self.EXTERNALID('sms%s' % str(random.randint(100, 999)))
                                  , version="1.0", type="job")
             
         self.send_xml(final_doc)
@@ -564,6 +575,7 @@ class MSSeriesMessageHandler:
                                                  ),
                                  self.JOBDATA(
                                               self.ALARMNUMBER("5"),
+                                              # repeated alarms with same reference will show only last alarm
                                               self.REFERENCENUMBER("5"),
                                               self.PRIORITY("1"),
                                               self.FLASH("0"),
@@ -582,7 +594,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID(str(random.randint(10000, 29999)))
+                                 self.EXTERNALID('alarm_%s' % str(random.randint(100, 999)))
                                  , version="1.0", type="job")
             
         self.send_xml(final_doc)
@@ -807,7 +819,11 @@ class MSSeriesMessageHandler:
                 logger.debug("clear_old_devices: found device to clear: %s", d)
 
                 # delete record.
-                self.devices.remove(d)
+                if msgDb:
+                    msgDb.delete_db(account=d['account'])
+                    self.devices.remove(d)
+                else:
+                    self.devices.remove(d)
                 
         return True
 
@@ -870,7 +886,12 @@ class MSSeriesMessageHandler:
                 self.m900_connection = ('10.110.30.109', 1300)
                 self.m900_connection = self.get_base_connection(element['account'])
                 #print('set connect', self.get_base_connection(element['account']))
-                self.request_sms(element['account'], sms_message_item['account'])
+                # mark the handset and send
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
+                if matched_account:
+                    matched_account['proximity'] = 'sms'
+                    self.request_sms(element['account'], sms_message_item['account'])
+
                 
 
     def alarms_MS_send_FP(self, data):
@@ -888,33 +909,54 @@ class MSSeriesMessageHandler:
                 # request goes directly to any Mx00 base, we need to enquire for one..
                 self.m900_connection = self.get_base_connection(element['account'])
                 #print('set connect', self.get_base_connection(element['account']))
-                self.request_alarm(element['account'], sms_message_item['account'])
-                # mark the handset
+                # mark the handset and send
                 matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
-                matched_account['proximity'] = 'alarm'
+                if matched_account:
+                    matched_account['proximity'] = 'alarm'
+                    self.request_alarm(element['account'], sms_message_item['account'])
+
    
     def send_to_location_viewer(self):
-        # first try to get an update of bt_macs.
-        # this overrides the bt_mac, since at the same time we might have added another device..
-        # enumerate cannot work..
-        response = requests.get('http://127.0.0.1:8081/en_US/devicessync')
-        if (response):
-            json_data = json.loads(response.text)
-            if json_data is not None:
-                #print(json_data)
-                for idx, item in enumerate(json_data['data']):
-                    # search for a matching bt_mac. Doubles should not be there!
-                    #print("item:", item)
-                    matched_bt_mac = next((localitem for localitem in self.devices if localitem['account'] == item['account']), False)
-                    if not matched_bt_mac:
-                        print(idx, 'not existing, viewer has async data')
-                    else:
-                        # the user has changed a btmac via btmactable page.
-                        matched_bt_mac['bt_mac'] = item['bt_mac']
-                        
-        # send btmacs updated data back to viewer.
-        r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
-        return True
+        if msgDb:
+           success = msgDb.update_devices_db(self.devices)
+           # notify the viewer for now.
+           try:
+               # send btmacs updated data back to viewer.
+               r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
+           except requests.exceptions.Timeout as errt:
+               print ("Timeout Error location:",errt)
+               
+           return success
+            
+        else:
+            # first try to get an update of bt_macs.
+            # this overrides the bt_mac, since at the same time we might have added another device..
+            # enumerate cannot work..
+            try:
+                response = requests.get('http://127.0.0.1:8081/en_US/devicessync', timeout=3)
+                if (response):
+                    json_data = json.loads(response.text)
+                    if json_data is not None:
+                        #print(json_data)
+                        for idx, item in enumerate(json_data['data']):
+                            # search for a matching bt_mac. Doubles should not be there!
+                            #print("item:", item)
+                            matched_bt_mac = next((localitem for localitem in self.devices if localitem['account'] == item['account']), False)
+                            if not matched_bt_mac:
+                                print(idx, 'not existing, viewer has async data')
+                            else:
+                                # the user has changed a btmac via btmactable page.
+                                matched_bt_mac['bt_mac'] = item['bt_mac']
+            except requests.exceptions.Timeout as errt:
+                print ("Timeout Error devicessync:",errt)
+                
+            try:
+                # send btmacs updated data back to viewer.
+                r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
+            except requests.exceptions.Timeout as errt:
+                print ("Timeout Error location:",errt)
+                
+            return True
     
     def update_proximity(self, address, alarm_type):
         # ?????
@@ -995,13 +1037,17 @@ class MSSeriesMessageHandler:
                 alarm_job_status = alarm_profile_root.xpath(self.msg_xpath_map['X_REQUEST_JOBDATA_STATUS_XPATH'])
 
                 alarm_job_address = self.get_value(alarm_profile_root,'X_SENDERDATA_ADDRESS_XPATH')
- 
-                if alarm_job_status:
+
+                # external ID gives us a hint if it is an sms or alarm message
+                # sms: sms_xxx, alarm: alarm_xxx
+                externalid = self.get_value(alarm_profile_root, 'X_REQUEST_EXTERNALID_XPATH')
+
+                if alarm_job_status :
                     alarm_job_status = alarm_job_status[0]
                     if alarm_job_status == "1":
                         print("message received")
                     if alarm_job_status == "4":
-                        print("message OKed / Confirmed")
+                        print("message OKed / Confirmed %s" % externalid)
                         self.update_proximity(alarm_job_address, "alarm_confirmed")
                     if alarm_job_status == "5":
                         print("message rejected")
@@ -1392,7 +1438,7 @@ logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
 schedule.every(1).minutes.do(amsg.request_keepalive)
 logger.debug("main: schedule.every(1).hours.do(amsg.clear_old_devices)")
 #schedule.every(1).hours.do(amsg.clear_old_devices)
-schedule.every(10).minutes.do(amsg.clear_old_devices)
+schedule.every(1).minutes.do(amsg.clear_old_devices)
 
 #schedule.every(1).minutes.do(amsg.request_alarm)
 
