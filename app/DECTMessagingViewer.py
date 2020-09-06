@@ -2,8 +2,6 @@
 # vi:si:et:sw=4:sts=4:ts=4
 # -*- coding: UTF-8 -*-
 # -*- Mode: Python -*-
-
-
 import bottle
 import os
 import multiprocessing
@@ -26,8 +24,6 @@ from bottle import jinja2_view, route
 
 # read from DB
 from DECTMessagingDb import DECTMessagingDb
-
-msgDb = DECTMessagingDb()
 
 #examples
 #msgDb.delete_db(account='1000')
@@ -132,7 +128,6 @@ class PrettyFormsDict(FormsDict):
 ## end helper
 
 
-
 @bottle.hook('before_request')
 def setup_request():
     request.session = request.environ['beaker.session']
@@ -168,7 +163,6 @@ def send_static(filepath):
 import socket
 import json
 import sys
-from time import sleep
 
 @route('/devicessync', no_i18n = True)
 def devicessync():
@@ -187,9 +181,12 @@ def btmactable():
                 print(btmac)
                 print(idx, bottle.request.forms.get(btmac))
                 devices[idx]['bt_mac'] = bottle.request.forms.get(btmac)
+                # save directly in DB
+                # db is changed but not the memory data from Server!?
+                if msgDb:
+                    msgDb.update_db(account=devices[idx]['account'] , bt_mac=devices[idx]['bt_mac'])
         
     return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=devices)
-
 
 
 @bottle.route('/sms', method=['GET','POST'])
@@ -227,6 +224,7 @@ def sms():
         print('GET request of the page, do nothing')
     
     return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
+
 
 @bottle.route('/alarm', method=['GET','POST'])
 def alarm():
@@ -286,16 +284,6 @@ def run_element(deviceIdx):
         #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
         return ""
     
-#    if random.randint(0, 1):
-#        device['proximity'] = "1"
-#    else:
-#        device['proximity'] = "0"
-
-#    if random.randint(0, 1):
-#        device['device_loggedin'] = "1"
-#    else:
-#        device['device_loggedin'] = "0"
-
     return bottle.jinja2_template('element', title=_("Element View"), i=device)
 
 
@@ -305,8 +293,6 @@ def run_location():
     global devices
     if msgDb:
         result = msgDb.read_devices_db()
-        #result = msgDb.read_db(account="depp_acc", name="", rssi="", uuid="", time_stamp="")
-        #print('result:%s' % result)
         devices = result
     else:
         updated_devices = request.json
@@ -327,7 +313,9 @@ def run_main():
     request.session['profile_lastname'] = 'NA'
     
     return bottle.jinja2_template('locationview', title=_("Location View"), devices=devices)
-#    bottle.redirect('/provider')
+
+# connect DB
+msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=True)
 
 # run web server
 #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
