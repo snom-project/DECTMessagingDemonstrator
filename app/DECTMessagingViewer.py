@@ -170,6 +170,25 @@ def devicessync():
 
     return dict(data=devices)
     
+    
+@route('/get_device/<bt_mac_key>', no_i18n = True)
+def get_device(bt_mac_key):
+    global devices
+    if msgDb:
+        result = msgDb.read_db(account=None, device_type='',  bt_mac=bt_mac_key, name='', rssi='', uuid='', beacon_type='', proximity='', beacon_gateway='', device_loggedin='', base_location='', base_connection='')
+        
+    return dict(data=result)
+
+
+@route('/get_beacons/<bt_mac_key>', no_i18n = True)
+def get_beacons(bt_mac_key):
+    global devices
+    if msgDb:
+        result = msgDb.read_db(table='Beacons', account=None, device_type='',  bt_mac=bt_mac_key, name='', rssi='', uuid='', beacon_type='', proximity='', beacon_gateway='', time_stamp='', server_time_stamp='')
+        
+    return dict(data=result)
+
+
 @bottle.route('/btmactable', method=['GET','POST'])
 def btmactable():
     global devices
