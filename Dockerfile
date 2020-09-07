@@ -8,6 +8,11 @@ RUN apt-get update
 RUN apt-get install -y protobuf-compiler
 RUN apt-get install -y rsyslog 
 RUN apt-get install bash
+RUN apt-get install -y unixodbc-dev
+RUN pip install wheel
+RUN python setup.py bdist_wheel 
+RUN apt-get install unixodbc-dev
+sudo apt-get install sqlite3 
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
