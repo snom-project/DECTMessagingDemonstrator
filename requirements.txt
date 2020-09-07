@@ -32,6 +32,7 @@ protobuf==3.10.0
 purerpc==0.5.2
 py==1.8.0
 PyInstaller==3.6
+pyodbc==4.0.30
 pyproxy==0.1.6
 python-dateutil==2.8.0
 python-forge==18.6.0
