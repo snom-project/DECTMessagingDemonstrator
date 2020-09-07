@@ -301,7 +301,10 @@ class DECTMessagingDb:
         if kwargs.get("account"):
             account_key = kwargs.get("account")
         else:
-            return False
+            if kwargs.get("bt_mac"):
+                bt_mac_key = kwargs.get("bt_mac")
+            else:
+                return False
         #print(kwargs)
         """ SELECT ?? FROM Devices
          given the key-value pairs in kwargs
@@ -313,8 +316,15 @@ class DECTMessagingDb:
         sql = list()
         sql.append("SELECT ")
         sql.append(", ".join(keys))
-        sql.append(" FROM %s WHERE account=" % table)
-        sql.append("'%s'" % str(account_key))
+        if kwargs.get("account"):
+            account_key = kwargs.get("account")
+            sql.append(" FROM %s WHERE account=" % table)
+            sql.append("'%s'" % str(account_key))
+        else:
+            if kwargs.get("bt_mac"):
+                bt_mac_key = kwargs.get("bt_mac")
+                sql.append(" FROM %s WHERE bt_mac=" % table)
+                sql.append("'%s'" % str(bt_mac_key))
         sql.append(";")
         sql = "".join(sql)
         #print(sql)
