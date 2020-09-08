@@ -184,7 +184,12 @@ def get_device(bt_mac_key):
 def get_beacons(bt_mac_key):
     global devices
     if msgDb:
-        result = msgDb.read_db(table='Beacons', account=None, device_type='',  bt_mac=bt_mac_key, name='', rssi='', uuid='', beacon_type='', proximity='', beacon_gateway='', time_stamp='', server_time_stamp='')
+        result = msgDb.read_db(table='Beacons',
+                               order_by="time_stamp DESC ",
+                               account=None, device_type='',  bt_mac=bt_mac_key,
+                               name='', rssi='', uuid='', beacon_type='',
+                               proximity='', beacon_gateway='',
+                               time_stamp='', server_time_stamp='')
         
     return dict(data=result)
 

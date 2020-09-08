@@ -296,7 +296,7 @@ class DECTMessagingDb:
             return []
 
  
-    def read_db(self, table="Devices", **kwargs):
+    def read_db(self, table="Devices", order_by=None, **kwargs):
         # account is our key to find the data
         if kwargs.get("account"):
             account_key = kwargs.get("account")
@@ -325,6 +325,8 @@ class DECTMessagingDb:
                 bt_mac_key = kwargs.get("bt_mac")
                 sql.append(" FROM %s WHERE bt_mac=" % table)
                 sql.append("'%s'" % str(bt_mac_key))
+        if order_by:
+            sql.append(" ORDER BY %s" % order_by)
         sql.append(";")
         sql = "".join(sql)
         #print(sql)
