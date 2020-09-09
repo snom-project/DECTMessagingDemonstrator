@@ -338,18 +338,21 @@ def run_main():
     
     return bottle.jinja2_template('locationview', title=_("Location View"), devices=devices)
 
-# connect DB
-msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=True)
 
-# run web server
-#bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
-#host = "10.245.0.28"
-host = "0.0.0.0"
-#host = "10.110.11.132"
+if __name__ == "__main__":
 
-#host = "10.110.16.75"
-#host = "192.168.188.21"
-#host = "192.168.55.23"
+    # connect DB
+    msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=True)
 
-# quiet=False adds http logs
-bottle.run(app=app, host=host, port=8081, reloader=True, debug=True, quiet=True)
+    # run web server
+    #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
+    #host = "10.245.0.28"
+    host = "0.0.0.0"
+    #host = "10.110.11.132"
+
+    #host = "10.110.16.75"
+    #host = "192.168.188.21"
+    #host = "192.168.55.23"
+
+    # quiet=False adds http logs
+    bottle.run(app=app, host=host, port=8081, reloader=False, debug=True, quiet=True)

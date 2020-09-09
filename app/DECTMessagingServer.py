@@ -915,15 +915,26 @@ class MSSeriesMessageHandler:
    
     def send_to_location_viewer(self):
         if msgDb:
-           success = msgDb.update_devices_db(self.devices)
-           # notify the viewer for now.
-           try:
-               # send btmacs updated data back to viewer.
-               r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
-           except requests.exceptions.Timeout as errt:
-               print ("Timeout Error location:",errt)
+            # sync btmacs first
+            record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
+            #print(record_list)
+            for elem in record_list:
+                try:
+                    matched_bt_mac = next((localitem for localitem in self.devices if localitem['bt_mac'] == elem['bt_mac']), False)
+                    #print(matched_bt_mac)
+                    matched_bt_mac['bt_mac'] = elem['bt_mac']
+                except:
+                    logger.debug("bt_mac from db not existing: %s", elem['bt_mac'])
+
+            success = msgDb.update_devices_db(self.devices)
+            # notify the viewer for now.
+            try:
+                # send btmacs updated data back to viewer.
+                r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
+            except requests.exceptions.Timeout as errt:
+                print ("Timeout Error location:",errt)
                
-           return success
+            return success
             
         else:
             # first try to get an update of bt_macs.
