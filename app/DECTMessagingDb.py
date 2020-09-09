@@ -297,14 +297,7 @@ class DECTMessagingDb:
 
  
     def read_db(self, table="Devices", order_by=None, **kwargs):
-        # account is our key to find the data
-        if kwargs.get("account"):
-            account_key = kwargs.get("account")
-        else:
-            if kwargs.get("bt_mac"):
-                bt_mac_key = kwargs.get("bt_mac")
-            else:
-                return False
+        # account or bt_mac is our where key, or no where
         #print(kwargs)
         """ SELECT ?? FROM Devices
          given the key-value pairs in kwargs
@@ -325,6 +318,8 @@ class DECTMessagingDb:
                 bt_mac_key = kwargs.get("bt_mac")
                 sql.append(" FROM %s WHERE bt_mac=" % table)
                 sql.append("'%s'" % str(bt_mac_key))
+            else:
+                sql.append(" FROM %s " % table)
         if order_by:
             sql.append(" ORDER BY %s" % order_by)
         sql.append(";")
