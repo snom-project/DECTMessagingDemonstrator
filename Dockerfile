@@ -5,6 +5,7 @@ RUN pip3 install cython && \
     pip3 install numpy
     
 RUN apt-get update
+RUN apt-get install libxml2-dev libxslt1-dev python-dev
 RUN apt-get install -y protobuf-compiler
 RUN apt-get install -y rsyslog 
 RUN apt-get install bash

@@ -296,7 +296,7 @@ class DECTMessagingDb:
             return []
 
  
-    def read_db(self, table="Devices", order_by=None, **kwargs):
+    def read_db(self, table="Devices", order_by=None, group_by=None, **kwargs):
         # account or bt_mac is our where key, or no where
         #print(kwargs)
         """ SELECT ?? FROM Devices
@@ -320,8 +320,11 @@ class DECTMessagingDb:
                 sql.append("'%s'" % str(bt_mac_key))
             else:
                 sql.append(" FROM %s " % table)
+        if group_by:
+            sql.append(" group BY %s" % group_by)
         if order_by:
             sql.append(" ORDER BY %s" % order_by)
+
         sql.append(";")
         sql = "".join(sql)
         #print(sql)
@@ -346,6 +349,64 @@ class DECTMessagingDb:
         else:
             print('read_db: Connection does not exist, do nothing')
             return []
+
+    # returns max 5 newest locations with proximity > 0
+    def read_last_locations_db(self, table="Devices", order_by=None, group_by=None, **kwargs):
+          # account or bt_mac is our where key, or no where
+          #print(kwargs)
+          """ SELECT ?? FROM Devices
+           given the key-value pairs in kwargs
+          """
+          # prepare the SQL statement
+          keys = ['%s' % k for k in kwargs]
+          #values = ["'%s'" % v for v in kwargs.values()]
+          #print(kwargs)
+          sql = list()
+          sql.append("SELECT ")
+          sql.append(", ".join(keys))
+          if kwargs.get("account"):
+              account_key = kwargs.get("account")
+              sql.append(" FROM %s WHERE account=" % table)
+              sql.append("'%s'" % str(account_key))
+          else:
+              if kwargs.get("bt_mac"):
+                  bt_mac_key = kwargs.get("bt_mac")
+                  sql.append(" FROM %s WHERE bt_mac=" % table)
+                  sql.append("'%s'" % str(bt_mac_key))
+                  sql.append(" AND proximity<>'0' ")
+              else:
+                  sql.append(" FROM %s " % table)
+          if group_by:
+              sql.append(" group BY %s" % group_by)
+          if order_by:
+              sql.append(" ORDER BY %s" % order_by)
+          sql.append(" LIMIT 5")
+
+          sql.append(";")
+          sql = "".join(sql)
+          #print(sql)
+
+          #connection = sqlite3.connect(self.db_filename)
+          # reuse old connection
+          connection = self.connection
+          if connection:
+              with connection as conn:
+                  # format needed to convert to dict
+                  #conn.row_factory = sqlite3.Row
+                  cur = conn.cursor()
+                  cur.execute(sql)
+                  conn.commit()
+                  
+                  # convert to dict / compatible without factory Row
+                  result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
+                              
+                  cur.close()
+                  #print('Result:%s' % result)
+                  return result
+          else:
+              print('read_db: Connection does not exist, do nothing')
+              return []
+
 
     def read_devices_db(self):
         """ SELECT * from Devices
