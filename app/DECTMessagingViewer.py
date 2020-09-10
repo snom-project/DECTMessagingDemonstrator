@@ -25,6 +25,8 @@ from bottle import jinja2_view, route
 # read from DB
 from DECTMessagingDb import DECTMessagingDb
 
+viewer_autonomous = True
+
 #examples
 #msgDb.delete_db(account='1000')
 #msgDb.delete_db()
@@ -130,6 +132,11 @@ class PrettyFormsDict(FormsDict):
 
 @bottle.hook('before_request')
 def setup_request():
+    if viewer_autonomous:
+        # viewer needs to periodically update the database.
+        schedule.run_pending()
+        #schedule.run_continuously()
+
     request.session = request.environ['beaker.session']
     Jinja2Template.defaults['session'] = request.session
     # check if the session is still valid / check login status
@@ -146,12 +153,12 @@ def load_css(filepath, filename):
 
 @bottle.get('/images/<filename>', no_i18n = True)
 def load_image(filename):
-    print("########################0")
+    #print("########################0")
     return static_file(filename, root="%s" % (images_root_path))
 
 @bottle.get('/<filepath:path>/images/<filename>', no_i18n = True)
 def load_image(filepath, filename):
-    print("########################1")
+    #print("########################1")
     return static_file(filename, root="%s" % (images_root_path))
 
 
@@ -202,8 +209,8 @@ def btmactable():
         # update all bt_macs.
         if len(bottle.request.forms):
             for idx, btmac in enumerate(bottle.request.forms):
-                print(btmac)
-                print(idx, bottle.request.forms.get(btmac))
+                #print(btmac)
+                #print(idx, bottle.request.forms.get(btmac))
                 devices[idx]['bt_mac'] = bottle.request.forms.get(btmac)
                 # save directly in DB
                 # db is changed but not the memory data from Server!?
@@ -234,14 +241,14 @@ def sms():
         
        
         d = json.dumps(request.json).encode("ascii")
-        print('data:', d)
+        #print('data:', d)
        
         # prepare XML data request
         xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
-        print(xml_message)
+        #print(xml_message)
 
         s.send(bytes(xml_message, 'utf-8'))
-        print('data sent')
+        #print('data sent')
 
         s.close()
     else:
@@ -271,14 +278,14 @@ def alarm():
         
        
         d = json.dumps(request.json).encode("ascii")
-        print('data:', d)
+        #print('data:', d)
        
         # prepare XML data request
         xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>alarm</jobtype> </request>".format(d.decode('ascii'))
-        print(xml_message)
+        #print(xml_message)
 
         s.send(bytes(xml_message, 'utf-8'))
-        print('data sent')
+        #print('data sent')
         
         s.close()
     else:
@@ -315,6 +322,8 @@ def run_element(deviceIdx):
 @bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
 def run_location():
     global devices
+    logger.debug("run_location: location update triggered.")
+
     if msgDb:
         result = msgDb.read_devices_db()
         devices = result
@@ -324,7 +333,7 @@ def run_location():
         tmplist.append(updated_devices)
         devices = tmplist[0]
     
-    print(devices)
+    logger.debug('Number of devices:%s' % len(devices))
     
 
 @bottle.route('/', name='main', method='GET')
@@ -338,6 +347,7 @@ def run_main():
     
     return bottle.jinja2_template('locationview', title=_("Location View"), devices=devices)
 
+import schedule
 
 if __name__ == "__main__":
 
@@ -354,5 +364,12 @@ if __name__ == "__main__":
     #host = "192.168.188.21"
     #host = "192.168.55.23"
 
+    if viewer_autonomous:
+        # schedule db re_read
+        logger.debug("main: schedule.every(5).seconds.do(run_location)")
+        schedule.every(5).seconds.do(run_location)
+
     # quiet=False adds http logs
     bottle.run(app=app, host=host, port=8081, reloader=False, debug=True, quiet=True)
+    
+   
