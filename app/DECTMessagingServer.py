@@ -22,6 +22,8 @@ from DECTMessagingDb import DECTMessagingDb
 
 msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=False)
 #msgDb.delete_db()
+viewer_autonomous = True
+
 
 m9bIPEI_description ={
          '0328D7848C': 'Meeting6OG',
@@ -915,26 +917,34 @@ class MSSeriesMessageHandler:
    
     def send_to_location_viewer(self):
         if msgDb:
-            # sync btmacs first
-            record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
-            #print(record_list)
-            for elem in record_list:
-                try:
-                    matched_bt_mac = next((localitem for localitem in self.devices if localitem['bt_mac'] == elem['bt_mac']), False)
-                    #print(matched_bt_mac)
-                    matched_bt_mac['bt_mac'] = elem['bt_mac']
-                except:
-                    logger.debug("bt_mac from db not existing: %s", elem['bt_mac'])
+            # autonomous viewer does not need to sync data back or get triggered
+            if not viewer_autonomous:
+                # sync btmacs first
+                record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
+                #print(record_list)
+                for elem in record_list:
+                    try:
+                        matched_bt_mac = next((localitem for localitem in self.devices if localitem['bt_mac'] == elem['bt_mac']), False)
+                        #print(matched_bt_mac)
+                        matched_bt_mac['bt_mac'] = elem['bt_mac']
+                    except:
+                        logger.debug("bt_mac from db not existing: %s", elem['bt_mac'])
 
-            success = msgDb.update_devices_db(self.devices)
-            # notify the viewer for now.
-            try:
-                # send btmacs updated data back to viewer.
-                r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
-            except requests.exceptions.Timeout as errt:
-                print ("Timeout Error location:",errt)
-               
-            return success
+                success = msgDb.update_devices_db(self.devices)
+                
+                # notify the viewer for now.
+                try:
+                    # send btmacs updated data back to viewer.
+                    r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
+                except requests.exceptions.Timeout as errt:
+                    print ("Timeout Error location:",errt)
+
+                return success
+            else:
+                # no sync back to viewer
+                success = msgDb.update_devices_db(self.devices)
+
+                return True
             
         else:
             # first try to get an update of bt_macs.
@@ -1467,20 +1477,20 @@ while True:
     amsg.m900_connection = addr
   
     #    print(data)
-    #try:
-    xmldata = data.decode('utf-8')
-        # process message
-    amsg.msg_process(xmldata)
-    
-    # mqtt publish needs to be sent as well
-    #mqttc.publish_login("M85 %s" % time.time())
-    rc = mqttc.run()
-    if rc != 0:
-        logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
-        rc = mqttc.connect_and_subscribe()
+    try:
+        xmldata = data.decode('utf-8')
+            # process message
+        amsg.msg_process(xmldata)
+        
+        # mqtt publish needs to be sent as well
+        #mqttc.publish_login("M85 %s" % time.time())
+        rc = mqttc.run()
+        if rc != 0:
+            logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+            rc = mqttc.connect_and_subscribe()
 
-#except:
-#    logger.debug("main: Message could not be understoood or unexpected error ", data)
+    except:
+        logger.debug("main: Message could not be understoood or unexpected error %s" % data)
 
-#    print('Encode to utf-8 failed', data)
+        print('Encode to utf-8 failed', data)
     
