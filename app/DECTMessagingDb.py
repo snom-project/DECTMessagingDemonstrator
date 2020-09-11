@@ -151,7 +151,7 @@ class DECTMessagingDb:
         sql.append(", ".join(values))
         sql.append(");")
         sql = "".join(sql)
-        #print(sql)
+        print(sql)
 
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
@@ -373,7 +373,7 @@ class DECTMessagingDb:
                   bt_mac_key = kwargs.get("bt_mac")
                   sql.append(" FROM %s WHERE bt_mac=" % table)
                   sql.append("'%s'" % str(bt_mac_key))
-                  sql.append(" AND proximity<>'0' ")
+                  #sql.append(" AND proximity<>'0' ")
               else:
                   sql.append(" FROM %s " % table)
           if group_by:

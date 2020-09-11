@@ -53,8 +53,21 @@ devices = [
 # home
           {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'}
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
            
+       
+   # stengel
+             {'device_type': 'handset', 'bt_mac': '000413B3007D', 'name': 'M90 Snom Medical', 'account': 'SnomM70', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'handset', 'bt_mac': '000413B40B18', 'name': 'M85', 'account': 'SnomM65', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'handset', 'bt_mac': '000413B40BE4', 'name': 'inactive', 'account': 'snomM80', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+
+   # TAGS stengel
+             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39BD', 'name': 'inactive', 'account': 'TAG_00087B1B39BD', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39F7', 'name': 'inactive', 'account': 'TAG_00087B1B39F7', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/stapler.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E3', 'name': 'inactive', 'account': 'TAG_00087B1B39E3', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'}
+          
            ]
 
 #devices = []
@@ -917,21 +930,21 @@ class MSSeriesMessageHandler:
    
     def send_to_location_viewer(self):
         if msgDb:
+            # sync btmacs first
+            record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
+            #print(record_list)
+            for elem in record_list:
+                try:
+                    matched_account = next((localitem for localitem in self.devices if localitem['account'] == elem['account']), False)
+                    matched_account['bt_mac'] = elem['bt_mac']
+                    print(matched_account)
+
+                except:
+                    logger.debug("account for updated bt_mac from db not existing: a:%s,%s" % (elem['account'], elem['bt_mac']))
+
             # autonomous viewer does not need to sync data back or get triggered
             if not viewer_autonomous:
-                # sync btmacs first
-                record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
-                #print(record_list)
-                for elem in record_list:
-                    try:
-                        matched_bt_mac = next((localitem for localitem in self.devices if localitem['bt_mac'] == elem['bt_mac']), False)
-                        #print(matched_bt_mac)
-                        matched_bt_mac['bt_mac'] = elem['bt_mac']
-                    except:
-                        logger.debug("bt_mac from db not existing: %s", elem['bt_mac'])
-
                 success = msgDb.update_devices_db(self.devices)
-                
                 # notify the viewer for now.
                 try:
                     # send btmacs updated data back to viewer.
