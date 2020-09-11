@@ -20,7 +20,7 @@ from colorama import Style
 
 from DECTMessagingDb import DECTMessagingDb
 
-msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=False)
+msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=False, initdb=False)
 #msgDb.delete_db()
 viewer_autonomous = True
 
@@ -253,7 +253,7 @@ class MSSeriesMessageHandler:
         
         # Update device data
         matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
-        # we record updat timestamps to identify stale devices
+        # we record updated timestamps to identify stale devices
         current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if not matched_bt_mac:

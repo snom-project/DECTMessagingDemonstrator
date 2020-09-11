@@ -204,13 +204,14 @@ def get_beacons(bt_mac_key):
 def get_device_locations(bt_mac_key):
     global devices
     if msgDb:
+        # MAX(time_stamp) is hard coded
         result = msgDb.read_last_locations_db(table='Beacons',
                                order_by="time_stamp DESC ",
                                group_by='beacon_gateway',
                                account=None, device_type='',  bt_mac=bt_mac_key,
                                name='', rssi='', uuid='', beacon_type='',
                                proximity='1', beacon_gateway='',
-                               time_stamp='', server_time_stamp='')
+                               server_time_stamp='')
         
     return dict(data=result)
 
