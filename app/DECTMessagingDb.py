@@ -151,7 +151,7 @@ class DECTMessagingDb:
         sql.append(", ".join(values))
         sql.append(");")
         sql = "".join(sql)
-        print(sql)
+        #print(sql)
 
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
@@ -364,6 +364,7 @@ class DECTMessagingDb:
           sql = list()
           sql.append("SELECT ")
           sql.append(", ".join(keys))
+          sql.append(", MAX(time_stamp) as time_stamp ")
           if kwargs.get("account"):
               account_key = kwargs.get("account")
               sql.append(" FROM %s WHERE account=" % table)
@@ -493,7 +494,7 @@ class DECTMessagingDb:
 
 if __name__ == "__main__":
     #connect to ODBC datasource DNS
-    msgDb = DECTMessagingDb(beacon_queue_size=3, odbc=True, initdb=False)
+    msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=True, initdb=False)
 
     msgDb.update_db(table="Beacons", account="test_beacon", beacon_gateway="FFFFF00000")
     result_dict = msgDb.read_devices_db()
