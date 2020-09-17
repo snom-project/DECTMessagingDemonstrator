@@ -2,6 +2,9 @@
 # vi:si:et:sw=4:sts=4:ts=4
 # -*- coding: UTF-8 -*-
 # -*- Mode: Python -*-
+from gevent import monkey; monkey.patch_all()
+import gevent
+
 import bottle
 import os
 import multiprocessing
@@ -200,18 +203,19 @@ def get_beacons(bt_mac_key):
         
     return dict(data=result)
 
+
 @route('/get_device_locations/<bt_mac_key>', no_i18n = True)
 def get_device_locations(bt_mac_key):
     global devices
     if msgDb:
         # MAX(time_stamp) is hard coded
         result = msgDb.read_last_locations_db(table='Beacons',
-                               order_by="time_stamp DESC ",
+                               order_by="MAX(time_stamp) DESC ",
                                group_by='beacon_gateway',
                                account=None, device_type='',  bt_mac=bt_mac_key,
                                name='', rssi='', uuid='', beacon_type='',
                                proximity='1', beacon_gateway='',
-                               server_time_stamp='')
+                               time_stamp='', server_time_stamp='')
         
     return dict(data=result)
 
@@ -329,7 +333,9 @@ def run_element(deviceIdx):
     except:
         #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
         return ""
-    
+    #print('vorher:', datetime.datetime.today())
+    # yield to greenlet queue
+    #gevent.sleep(1)
     return bottle.jinja2_template('element', title=_("Element View"), i=device)
 
 

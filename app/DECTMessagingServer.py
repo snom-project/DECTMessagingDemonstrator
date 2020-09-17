@@ -1,5 +1,4 @@
 ##!/usr/bin/env python
-
 import pyproxy as pp
 from lxml import etree as ET
 import lxml.builder
@@ -18,9 +17,19 @@ init()
 from colorama import Fore
 from colorama import Style
 
+# ASYNC processing
+import gevent
+#from gevent import monkey; monkey.patch_all()
+import subprocess # it's usable from multiple greenlets now
+
+
 from DECTMessagingDb import DECTMessagingDb
 
+# DB reuse and type
+odbc=False
+initdb=True
 msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=False, initdb=False)
+
 #msgDb.delete_db()
 viewer_autonomous = True
 
@@ -72,7 +81,7 @@ devices = [
 
 #devices = []
 
-for i in range(1):
+for i in range(50):
     devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
          
 
@@ -312,13 +321,15 @@ class MSSeriesMessageHandler:
             if (matched_bt_mac['beacon_gateway'] != beacon_gateway) and  proximity == '0':
                 # we have a new address already, this message is leave message from an old address
                 # do nothing
+                # we do not overide the device info but instead make sure we record the 0 Beacon
+                # in the database by using proximity and gateway directly.
                 print('%%%%%%%%%%%%%old leave message, ignore', matched_bt_mac)
-                return True
-
-            matched_bt_mac['proximity'] = proximity
-            matched_bt_mac['beacon_gateway'] = beacon_gateway
-            print('update:', matched_bt_mac)
-    
+                #return True
+            else:
+                matched_bt_mac['proximity'] = proximity
+                matched_bt_mac['beacon_gateway'] = beacon_gateway
+                #print('update:', matched_bt_mac)
+        
             # fire action on beacon proximity
             #self.fire_beacon_action(beacon_gateway, proximity)
             # Tags have their own state.
@@ -343,6 +354,8 @@ class MSSeriesMessageHandler:
         
         # record the beacon
         if msgDb:
+            # we do not overide the device info but instead make sure we record the 0 Beacon
+            # in the database by using proximity and gateway directly.
             msgDb.record_beacon_db(account=matched_bt_mac["account"],
                                    device_type=matched_bt_mac["device_type"],
                                    bt_mac=matched_bt_mac["bt_mac"],
@@ -350,8 +363,8 @@ class MSSeriesMessageHandler:
                                    rssi=matched_bt_mac["rssi"],
                                    uuid=matched_bt_mac["uuid"],
                                    beacon_type=matched_bt_mac["beacon_type"],
-                                   proximity=matched_bt_mac["proximity"],
-                                   beacon_gateway=matched_bt_mac["beacon_gateway"],
+                                   proximity=proximity,
+                                   beacon_gateway=beacon_gateway,
                                    time_stamp=matched_bt_mac["time_stamp"]
                                    )
                
@@ -1414,8 +1427,10 @@ class MSSeriesMessageHandler:
 
 
 # main
-amsg = MSSeriesMessageHandler(devices)
 
+if msgDb and not initdb:
+    devices = msgDb.read_devices_db()
+amsg = MSSeriesMessageHandler(devices)
 print(amsg.devices)
 
 logger = logging.getLogger('SnomMMessagingService')
@@ -1446,13 +1461,14 @@ try:
     localPort = int(localPort)
 except:
     fail('Invalid port number: ' + str(localPort))
+    exit()
 
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(('', localPort))
 except:
     fail('Failed to bind on port ' + str(localPort))
-    exit
+    exit()
 
 ## check how far you can go without a real alarm server.
 ## connection will be incoming Mx00 address
@@ -1460,7 +1476,6 @@ amsg.m900_connection  = ('192.168.188.21', 1300)
 
 
 knownClient = None
-#knownServer = (remoteHost, remotePort)
 sys.stderr.write('All set.\n')
 
 #### send initial devices data
