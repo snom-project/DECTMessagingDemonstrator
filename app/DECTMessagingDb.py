@@ -251,6 +251,8 @@ class DECTMessagingDb:
                     cur.execute(sql)
                     conn.commit()
                     # conn.close()
+                    
+                return True
         else:
             print('update_db: Connection does not exist, do nothing')
     
@@ -364,7 +366,6 @@ class DECTMessagingDb:
           sql = list()
           sql.append("SELECT ")
           sql.append(", ".join(keys))
-          sql.append(", MAX(time_stamp) as time_stamp ")
           if kwargs.get("account"):
               account_key = kwargs.get("account")
               sql.append(" FROM %s WHERE account=" % table)
@@ -380,12 +381,12 @@ class DECTMessagingDb:
           if group_by:
               sql.append(" group BY %s" % group_by)
           if order_by:
-              sql.append(" ORDER BY %s" % order_by)
+              sql.append(" ORDER BY %s " % order_by)
           sql.append(" LIMIT 5")
 
           sql.append(";")
           sql = "".join(sql)
-          #print(sql)
+          print(sql)
 
           #connection = sqlite3.connect(self.db_filename)
           # reuse old connection
