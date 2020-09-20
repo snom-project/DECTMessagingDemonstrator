@@ -214,7 +214,7 @@ def get_device_locations(bt_mac_key):
                                group_by='beacon_gateway',
                                account=None, device_type='',  bt_mac=bt_mac_key,
                                name='', rssi='', uuid='', beacon_type='',
-                               proximity='1', beacon_gateway='',
+                               proximity='1', beacon_gateway='', beacon_gateway_name='',
                                time_stamp='', server_time_stamp='')
         
     return dict(data=result)

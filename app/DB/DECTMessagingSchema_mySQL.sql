@@ -12,6 +12,7 @@ create table Devices (
     beacon_type		VARCHAR(255) default "None",
     proximity		VARCHAR(255) default "0",
     beacon_gateway	VARCHAR(255) default "FFFFFFFFFF",
+    beacon_gateway_name    VARCHAR(255) default "",
     user_image		VARCHAR(255) default "/images/Heidi_MacMoran_small.jpg",
     device_loggedin	VARCHAR(255) default "0",
     base_location	VARCHAR(255) default "None",
@@ -31,6 +32,14 @@ create table Beacons  (
     beacon_type		VARCHAR(255) default "None",
     proximity		VARCHAR(255) default "0",
     beacon_gateway	VARCHAR(255) default "FFFFFFFFFF",
+    beacon_gateway_name    VARCHAR(255) default "",
     time_stamp		VARCHAR(255) default "2020-04-01 00:00:01.100000",
     server_time_stamp	TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3)
 );
+
+create table m9bIPEI (
+    beacon_gateway_IPEI    VARCHAR(255) default "FFFFFFFFFF",
+    beacon_gateway_name    VARCHAR(255) default "",
+    UNIQUE(beacon_gateway_IPEI)
+);
+
