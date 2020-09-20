@@ -15,6 +15,8 @@ chardet==3.0.4
 colorama==0.4.3
 curio==0.9
 funcsigs==1.0.2
+gevent==20.6.2
+greenlet==0.4.16
 grpcio==1.25.0
 grpcio-tools==1.25.0
 h2==3.1.1
@@ -48,3 +50,5 @@ untangle==1.1.1
 urllib3==1.25.10
 virtualenv==16.4.3
 xlrd==1.2.0
+zope.event==4.4
+zope.interface==5.1.0

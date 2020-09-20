@@ -81,7 +81,7 @@ devices = [
 
 #devices = []
 
-for i in range(50):
+for i in range(0):
     devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
          
 
@@ -1393,6 +1393,7 @@ class MSSeriesMessageHandler:
                     name = "Snom M9B XX"
                     address = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
                     print(address)
+
                     # we cannot know RX or TX
 #                    device_type = 'SnomM9BRX'
                     
@@ -1412,7 +1413,10 @@ class MSSeriesMessageHandler:
                 if senderaddress_ipei:
                     self.update_image(address, '/images/SnomM9B.jpg')
                     device_type = 'SnomM9BRX'
-
+                    
+                    # add, update gateway table
+                    if msgDb:
+                        msgDb.record_gateway_db(beacon_gateway_IPEI=senderaddress_ipei[0], beacon_gateway_name='new%s' % senderaddress_ipei[0])
 
                 # send to location viewer
                 self.send_to_location_viewer()
@@ -1505,20 +1509,20 @@ while True:
     amsg.m900_connection = addr
   
     #    print(data)
-    try:
-        xmldata = data.decode('utf-8')
-            # process message
-        amsg.msg_process(xmldata)
-        
-        # mqtt publish needs to be sent as well
-        #mqttc.publish_login("M85 %s" % time.time())
-        rc = mqttc.run()
-        if rc != 0:
-            logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
-            rc = mqttc.connect_and_subscribe()
+    #try:
+    xmldata = data.decode('utf-8')
+        # process message
+    amsg.msg_process(xmldata)
+    
+    # mqtt publish needs to be sent as well
+    #mqttc.publish_login("M85 %s" % time.time())
+    rc = mqttc.run()
+    if rc != 0:
+        logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+        rc = mqttc.connect_and_subscribe()
 
-    except:
-        logger.debug("main: Message could not be understoood or unexpected error %s" % data)
+    #except:
+    #    logger.debug("main: Message could not be understoood or unexpected error %s" % data)
 
         print('Encode to utf-8 failed', data)
     

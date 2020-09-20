@@ -13,7 +13,8 @@ RUN apt-get install -y unixodbc-dev
 RUN pip install wheel
 RUN python setup.py bdist_wheel 
 RUN apt-get install unixodbc-dev
-sudo apt-get install sqlite3 
+RUN apt-get install sqlite3 
+RUN apt-get install python-gevent
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
