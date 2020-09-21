@@ -28,13 +28,15 @@ from DECTMessagingDb import DECTMessagingDb
 # DB reuse and type
 odbc=False
 initdb=True
-msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=False, initdb=False)
+msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=odbc, initdb=initdb)
 
 #msgDb.delete_db()
 viewer_autonomous = True
 
 
 m9bIPEI_description ={
+         '0328D3C918': 'Schreibtisch',
+         '0328D3C922': 'Computer',
          '0328D7848C': 'Meeting6OG',
          '0328D78490': 'Kueche6OG',
          '0328D78488': 'Poststelle6O',
@@ -49,40 +51,43 @@ m9bIPEI_description ={
          '0328D783C1': 'Marketing',
          '0328D783CA': 'Sales'
         }
+if msgDb:
+    for key in m9bIPEI_description.keys():
+        msgDb.record_gateway_db(beacon_gateway_IPEI=key, beacon_gateway_name=m9bIPEI_description[key])
          
 devices = [
 
 #snom
-        {'device_type': 'handset', 'bt_mac': '000413B40021', 'name': 'M90 Snom Medical', 'account': 'rom.hennes.m700.9097', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-         {'device_type': 'handset', 'bt_mac': '000413632153', 'name': 'M85 Snom', 'account': 'catalina.oancea.9121', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-        {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-        {'device_type': 'handset', 'bt_mac': '000413B40F91', 'name': 'M90 Mario', 'account': 'mari.sche.m700.9070', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-        {'device_type': 'handset', 'bt_mac': '00087B17C68B', 'name': 'M90 Mario', 'account': 'remu.sara.9003', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40021', 'name': 'M90 Snom Medical', 'account': 'rom.hennes.m700.9097', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+         {'device_type': 'handset', 'bt_mac': '000413632153', 'name': 'M85 Snom', 'account': 'catalina.oancea.9121', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B50054', 'name': 'M90 Norman Snom', 'account': 'norm.schwi.9883', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '000413B40F91', 'name': 'M90 Mario', 'account': 'mari.sche.m700.9070', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+        {'device_type': 'handset', 'bt_mac': '00087B17C68B', 'name': 'M90 Mario', 'account': 'remu.sara.9003', 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
 
 # home
-          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
            
        
    # stengel
-             {'device_type': 'handset', 'bt_mac': '000413B3007D', 'name': 'M90 Snom Medical', 'account': 'SnomM70', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-             {'device_type': 'handset', 'bt_mac': '000413B40B18', 'name': 'M85', 'account': 'SnomM65', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-             {'device_type': 'handset', 'bt_mac': '000413B40BE4', 'name': 'inactive', 'account': 'snomM80', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'handset', 'bt_mac': '000413B3007D', 'name': 'M90 Snom Medical', 'account': 'SnomM70', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'handset', 'bt_mac': '000413B40B18', 'name': 'M85', 'account': 'SnomM65', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'handset', 'bt_mac': '000413B40BE4', 'name': 'inactive', 'account': 'snomM80', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
 
    # TAGS stengel
-             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39BD', 'name': 'inactive', 'account': 'TAG_00087B1B39BD', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39F7', 'name': 'inactive', 'account': 'TAG_00087B1B39F7', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/stapler.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E3', 'name': 'inactive', 'account': 'TAG_00087B1B39E3', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'}
+             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+             {'device_type': 'BTLETag', 'bt_mac': '00087B1B39BD', 'name': 'inactive', 'account': 'TAG_00087B1B39BD', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39F7', 'name': 'inactive', 'account': 'TAG_00087B1B39F7', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/stapler.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39CB', 'name': 'inactive', 'account': 'TAG_00087B1B39CB', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+          {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E3', 'name': 'inactive', 'account': 'TAG_00087B1B39E3', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'}
           
            ]
 
 #devices = []
 
 for i in range(0):
-    devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
+    devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
          
 
 class MSSeriesMessageHandler:
@@ -269,14 +274,14 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if d_type == "-4":
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 
                 logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
 
             else:
                 device_type_new = 'beacon'
                 # add a new bt_mac
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
                 print(self.btmacaddresses)
                 
@@ -301,21 +306,6 @@ class MSSeriesMessageHandler:
             # timestamp
             matched_bt_mac['time_stamp'] = current_datetime
     
-            # translate m9bIPEI into locations..
-            beacon_gateway = m9bIPEI_description.get(beacon_gateway, str(beacon_gateway))
-#            if beacon_gateway == "0815":
-#                beacon_gateway = "Show Table"
-#            if beacon_gateway == "007":
-#                beacon_gateway = "Front Tech"
-#            if beacon_gateway == "4711":
-#                beacon_gateway = "Coffe Break"
-#            if beacon_gateway == "911":
-#                beacon_gateway = "Charger"
-#            if beacon_gateway == "300":
-#                beacon_gateway = "QA"
-            # take the IPEI as location of the beacon
-            #beacon_gateway = senderaddress
-
             # check if address has changed. In this case do not Overwrite with Outside on old location
             #print('################', matched_bt_mac['beacon_gateway'], beacon_gateway, proximity)
             if (matched_bt_mac['beacon_gateway'] != beacon_gateway) and  proximity == '0':
@@ -349,7 +339,19 @@ class MSSeriesMessageHandler:
         if proximity == '2' and matched_bt_mac:
             print('RSSI change', rssi)
             matched_bt_mac["rssi"] = rssi
-            
+        
+        # translate IPEI into clear name
+        beacon_gateway_name = beacon_gateway
+        # translate m9bIPEI into locations..
+        if msgDb:
+            result = msgDb.read_gateway_db(beacon_gateway_IPEI=beacon_gateway, beacon_gateway_name='')
+            if result:
+                beacon_gateway_name = result[0]['beacon_gateway_name']
+        else:
+            m9bIPEI_description.get(beacon_gateway, str(beacon_gateway))
+        matched_bt_mac['beacon_gateway_name'] = beacon_gateway_name
+
+        # mqtt
         mqttc.publish_beacon(matched_bt_mac["bt_mac"], beacon_type, uuid, d_type, matched_bt_mac["proximity"], rssi, matched_bt_mac["name"], matched_bt_mac["beacon_gateway"])
         
         # record the beacon
@@ -365,14 +367,16 @@ class MSSeriesMessageHandler:
                                    beacon_type=matched_bt_mac["beacon_type"],
                                    proximity=proximity,
                                    beacon_gateway=beacon_gateway,
+                                   beacon_gateway_name=beacon_gateway_name,
                                    time_stamp=matched_bt_mac["time_stamp"]
                                    )
                
             
         for item in self.devices:
-            print(item['bt_mac'], ' ', item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ' ', item['device_loggedin'])
+            print(item['bt_mac'], ' ', item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ':', item['beacon_gateway'], ' ', item['device_loggedin'])
 
         return True
+
 
     def update_all_tags(self):
         #print('UPDATE ALLLLLLL ALLLLL ALLLLL')
@@ -463,7 +467,7 @@ class MSSeriesMessageHandler:
         if not matched_address:
             print('FATAL??, alarm address of handset should always exist')
             # add a new bt_mac
-            self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
+            self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'beacon_gateway_name' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
             
             print('added unexspected Beacon: ', login_address)
         
@@ -494,7 +498,7 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             # add a new device
-            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'base_connection': ip_connection, 'last_beacon': 'None', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
+            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'base_connection': ip_connection, 'last_beacon': 'None', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
             
             print('added: ', login_address)
 
@@ -1416,7 +1420,7 @@ class MSSeriesMessageHandler:
                     
                     # add, update gateway table
                     if msgDb:
-                        msgDb.record_gateway_db(beacon_gateway_IPEI=senderaddress_ipei[0], beacon_gateway_name='new%s' % senderaddress_ipei[0])
+                        msgDb.record_gateway_db(beacon_gateway_IPEI=senderaddress_ipei[0], beacon_gateway_name=senderaddress_ipei[0])
 
                 # send to location viewer
                 self.send_to_location_viewer()
