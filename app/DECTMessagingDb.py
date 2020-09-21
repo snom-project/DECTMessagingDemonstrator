@@ -258,7 +258,7 @@ class DECTMessagingDb:
                     
                 return True
         else:
-            print('update_db: Connection does not exist, do nothing')
+            print('record_beacon_db: Connection does not exist, do nothing')
     
     
     def record_gateway_db(self, table="m9bIPEI", **kwargs):
@@ -295,6 +295,51 @@ class DECTMessagingDb:
         else:
             print('record_gateway: Connection does not exist, do nothing')
 
+
+    def read_gateway_db(self, table="m9bIPEI", order_by=None, **kwargs):
+        """ SELECT ?? FROM m9bIPEI
+         given the key-value pairs in kwargs
+        """
+        # prepare the SQL statement
+        keys = ['%s' % k for k in kwargs]
+        #values = ["'%s'" % v for v in kwargs.values()]
+        #print(kwargs)
+        sql = list()
+        sql.append("SELECT ")
+        sql.append(", ".join(keys))
+        if kwargs.get("beacon_gateway_IPEI"):
+            account_key = kwargs.get("beacon_gateway_IPEI")
+            sql.append(" FROM %s WHERE beacon_gateway_IPEI=" % table)
+            sql.append("'%s'" % str(account_key))
+        else:
+            sql.append(" FROM %s " % table)
+        if order_by:
+            sql.append(" ORDER BY %s" % order_by)
+
+        sql.append(";")
+        sql = "".join(sql)
+        #print(sql)
+
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # format needed to convert to dict
+                #conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                cur.execute(sql)
+                conn.commit()
+                
+                # convert to dict / compatible without factory Row
+                result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
+                            
+                cur.close()
+                #print('Result:%s' % result)
+                return result
+        else:
+            print('read_gateway_db: Connection does not exist, do nothing')
+            return []
 
 
 
@@ -495,6 +540,7 @@ class DECTMessagingDb:
                             beacon_type = device['beacon_type'],
                             proximity = device['proximity'],
                             beacon_gateway = device['beacon_gateway'],
+                            beacon_gateway_name = device['beacon_gateway_name'],
                             user_image = device['user_image'],
                             device_loggedin = device['device_loggedin'],
                             base_location = device['base_location'],
