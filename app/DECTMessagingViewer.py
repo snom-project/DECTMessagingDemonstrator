@@ -198,7 +198,7 @@ def get_beacons(bt_mac_key):
                                order_by="time_stamp DESC ",
                                account=None, device_type='',  bt_mac=bt_mac_key,
                                name='', rssi='', uuid='', beacon_type='',
-                               proximity='', beacon_gateway='',
+                               proximity='', beacon_gateway='', beacon_gateway_name='',
                                time_stamp='', server_time_stamp='')
         
     return dict(data=result)
@@ -335,7 +335,7 @@ def run_element(deviceIdx):
         return ""
     #print('vorher:', datetime.datetime.today())
     # yield to greenlet queue
-    #gevent.sleep(1)
+    gevent.sleep(0)
     return bottle.jinja2_template('element', title=_("Element View"), i=device)
 
 
@@ -391,6 +391,8 @@ if __name__ == "__main__":
         schedule.every(5).seconds.do(run_location)
 
     # quiet=False adds http logs
-    bottle.run(app=app, host=host, port=8081, reloader=False, debug=True, quiet=True)
+    #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
+    
+    bottle.run(app=app, server='gunicorn', workers=4, host=host, port=8081, reloader=False, debug=True, quiet=True)
     
    
