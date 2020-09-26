@@ -355,6 +355,7 @@ def run_location():
         devices = tmplist[0]
     
     logger.debug('Number of devices:%s' % len(devices))
+    return('done')
     
 
 @bottle.route('/', name='main', method='GET')

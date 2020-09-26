@@ -5,9 +5,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-10-30 19:25+0100\n"
-"PO-Revision-Date: 2019-11-02 14:45+0000\n"
-"Last-Translator: Norman Schwirske <norman.schwirske@snom.com>\n"
+"POT-Creation-Date: 2020-09-25 12:58+0200\n"
+"PO-Revision-Date: 2020-09-25 12:59+0200\n"
+"Last-Translator: Norman Schwirske <norman.schwirske@snom."
+"com>\n"
 "Language-Team: German <https://translate.snom.com/projects/"
 "dectmessagingdemonstrator/main-site/de/>\n"
 "Language: de_DE\n"
@@ -15,14 +16,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.6.1\n"
+"X-Generator: Poedit 1.8.9\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: DECTMessagingViewer.py:188
+#: DECTMessagingViewer.py:239
+msgid "BT-Mac Table"
+msgstr "BT-Mac Tabelle"
+
+#: DECTMessagingViewer.py:276
+msgid "SMS View"
+msgstr "SMS-Ansicht"
+
+#: DECTMessagingViewer.py:313
+msgid "Alarm View"
+msgstr "Alarmansicht"
+
+#: DECTMessagingViewer.py:339
 msgid "Element View"
 msgstr "Elementansicht"
 
-#: DECTMessagingViewer.py:213
+#: DECTMessagingViewer.py:369
 msgid "Location View"
 msgstr "Standortansicht"
 
@@ -31,9 +44,16 @@ msgid "Devices seen by Beacon"
 msgstr "Geräte und Lokationen"
 
 #: templates/locationview.html:17
-msgid ".."
-msgstr ".."
+msgid "search and filter devices"
+msgstr "Geräte suchen und filtern"
+
+#: templates/locationview.html:26
+msgid "Search and filter devices"
+msgstr "Geräte suchen und filtern"
 
 #: templates/now.html:3
 msgid "Viel Spass"
 msgstr "Viel Spaß"
+
+#~ msgid ".."
+#~ msgstr ".."
