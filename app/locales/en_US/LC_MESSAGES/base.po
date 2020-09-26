@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-10-30 19:19+0100\n"
-"PO-Revision-Date: 2019-10-30 19:27+0100\n"
+"POT-Creation-Date: 2020-09-25 13:00+0200\n"
+"PO-Revision-Date: 2020-09-25 13:00+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_US\n"
@@ -17,11 +17,23 @@ msgstr ""
 "X-Generator: Poedit 1.8.9\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: DECTMessagingViewer.py:188
+#: DECTMessagingViewer.py:239
+msgid "BT-Mac Table"
+msgstr "BT-Mac Table"
+
+#: DECTMessagingViewer.py:276
+msgid "SMS View"
+msgstr "SMS View"
+
+#: DECTMessagingViewer.py:313
+msgid "Alarm View"
+msgstr "Alarm View"
+
+#: DECTMessagingViewer.py:339
 msgid "Element View"
 msgstr "Element View"
 
-#: DECTMessagingViewer.py:213
+#: DECTMessagingViewer.py:369
 msgid "Location View"
 msgstr "Location View"
 
@@ -30,9 +42,16 @@ msgid "Devices seen by Beacon"
 msgstr "Devices seen by Beacon"
 
 #: templates/locationview.html:17
-msgid ".."
-msgstr ".."
+msgid "search and filter devices"
+msgstr "search and filter devices"
+
+#: templates/locationview.html:26
+msgid "Search and filter devices"
+msgstr "Search and filter devices"
 
 #: templates/now.html:3
 msgid "Viel Spass"
 msgstr "have fun"
+
+#~ msgid ".."
+#~ msgstr ".."
