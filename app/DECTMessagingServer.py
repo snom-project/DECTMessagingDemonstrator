@@ -1513,20 +1513,18 @@ while True:
     amsg.m900_connection = addr
   
     #    print(data)
-    #try:
-    xmldata = data.decode('utf-8')
+    try:
+        xmldata = data.decode('utf-8')
         # process message
-    amsg.msg_process(xmldata)
+        amsg.msg_process(xmldata)
     
-    # mqtt publish needs to be sent as well
-    #mqttc.publish_login("M85 %s" % time.time())
-    rc = mqttc.run()
-    if rc != 0:
-        logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
-        rc = mqttc.connect_and_subscribe()
+        # mqtt publish needs to be sent as well
+        #mqttc.publish_login("M85 %s" % time.time())
+        rc = mqttc.run()
+        if rc != 0:
+            logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+            rc = mqttc.connect_and_subscribe()
 
-    #except:
-    #    logger.debug("main: Message could not be understoood or unexpected error %s" % data)
-
+    except:
+        logger.debug("main: Message could not be understoood or unexpected error %s" % data)
         print('Encode to utf-8 failed', data)
-    
