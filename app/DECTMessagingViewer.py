@@ -26,7 +26,7 @@ from bottle_utils.i18n import lazy_ngettext as ngettext, lazy_gettext as _
 from bottle import jinja2_view, route
 
 # read from DB
-from DECTMessagingDb import DECTMessagingDb
+from DB.DECTMessagingDb import DECTMessagingDb
 
 viewer_autonomous = True
 
@@ -85,12 +85,14 @@ bottle.debug(False)
 # used for templates with multiple urls to download images etc.
 
 bottle.TEMPLATE_PATH=("./views", "./templates")
+
+tabulator_root="/tabulator/"
+tabulator_root_path = ".%s" % tabulator_root
+
 css_root="/css/"
 css_root_path = ".%s" % css_root
 images_root="/images/"
 images_root_path = ".%s" % images_root
-config_root="/conf/"
-config_root_path = ".%s" % config_root
 save_root="/uploads/"
 save_root_path = ".%s" % save_root
 
@@ -144,30 +146,31 @@ def setup_request():
     Jinja2Template.defaults['session'] = request.session
     # check if the session is still valid / check login status
 
+
+# absolute path to tabular
+@bottle.get('/tabulator/<filename:path>', no_i18n = True)
+def load_tabulator(filename):
+    return static_file(filename, root="%s" % (tabulator_root_path))
+
 # absolute css path
 @bottle.get('/css/<filename>', no_i18n = True)
 def load_css(filename):
     return static_file(filename, root="%s" % (css_root_path))
 
-@bottle.get('/<filepath:path>/css/<filename>', no_i18n = True)
-def load_css(filepath, filename):
-    #    print("%s..%s." % (images_root_path, filepath))
-    return static_file(filename, root="%s" % (css_root_path))
+#@bottle.get('/<filepath:path>/css/<filename>', no_i18n = True)
+#def load_css(filepath, filename):
+#    #    print("%s..%s." % (images_root_path, filepath))
+#    return static_file(filename, root="%s" % (css_root_path))
 
 @bottle.get('/images/<filename>', no_i18n = True)
 def load_image(filename):
     #print("########################0")
     return static_file(filename, root="%s" % (images_root_path))
 
-@bottle.get('/<filepath:path>/images/<filename>', no_i18n = True)
-def load_image(filepath, filename):
-    #print("########################1")
-    return static_file(filename, root="%s" % (images_root_path))
-
-
-@bottle.route('%s<filepath:path>' % config_root, no_i18n = True)
-def send_static(filepath):
-    return static_file(filepath, root=config_root_path)
+#@bottle.get('/<filepath:path>/images/<filename>', no_i18n = True)
+#def load_image(filepath, filename):
+#    #print("########################1")
+#    return static_file(filename, root="%s" % (images_root_path))
 
 
 import socket
@@ -180,7 +183,24 @@ def devicessync():
 
     return dict(data=devices)
     
-    
+
+@route('/table', no_i18n = True)
+def table():
+    print('tabulator')
+    global devices
+
+    return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), devices=devices)
+
+@route('/get_m9b_device_status', no_i18n = True)
+def get_m9b_device_status():
+    global devices
+    if msgDb:
+        # MAX(time_stamp) is hard coded
+        result = msgDb.read_m9b_device_status_db()
+        
+    return dict(data=result)
+
+
 @route('/get_device/<bt_mac_key>', no_i18n = True)
 def get_device(bt_mac_key):
     global devices
