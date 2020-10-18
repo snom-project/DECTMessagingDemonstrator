@@ -1,0 +1,3 @@
+[submodule "app/tabulator"]
+	path = app/tabulator
+	url = https://github.com/olifolkerd/tabulator.git
