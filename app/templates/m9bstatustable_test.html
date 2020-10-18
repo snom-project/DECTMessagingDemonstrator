@@ -1,0 +1,193 @@
+{% include 'header.tpl' %}
+
+<link href="tabulator/dist/css/tabulator.min.css" rel="stylesheet">
+
+<script type="text/javascript" src="tabulator/dist/js/tabulator.min.js"></script>
+<script type="text/javascript" src="tabulator/dist/js/jquery_wrapper.min.js"></script>
+
+//<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+//<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css" />
+
+
+
+<div id="example-table"></div>
+    
+    <script type="text/javascript">
+        
+        
+        var genderEditor = function(cell, value){
+             //cell - JQuery object for current cell
+             //value - the current value for current cell
+
+             //create and style editor
+             var editor = $("<select><option value=''></option><option value='male'>male</option><option value='female'>female</option></select>");
+             editor.css({
+                 "padding":"3px",
+                 "width":"100%",
+                 "box-sizing":"border-box",
+             })
+
+             //Set value of editor to the value of the cell
+             .val(value);
+
+             //set focus on the select box when the editor is selected (timeout allows for editor to be added to DOM)
+             $(cell)
+             if(cell.hasClass("tabulator-cell")){
+                 setTimeout(function(){
+                     editor.focus();
+                 },100);
+             }
+
+
+             //when the value has been set, update the cell
+             editor.on("change blur", function(e){
+                 cell.trigger("editval", editor.val());
+             });
+
+             //return the editor element
+             return editor;
+         }
+    
+        
+        const proximityTypes = ['1', '2', '3', '0'];
+        function multiSelectHeaderFilter(cell) {
+            
+            var values = proximityTypes;
+            
+            const filterFunc = (rowData) => {
+                return values.includes(rowData['proximity']);
+            }
+            
+            const getSelectedValues = (multiSelect) => {
+                var result = [];
+                var options = multiSelect && multiSelect.options;
+                var opt;
+                
+                for (var i = 0, iLen = options.length; i < iLen; i++) {
+                    opt = options[i];
+                    
+                    if (opt.selected) {
+                        result.push(opt.value || opt.text);
+                    }
+                }
+                return result;
+            }
+            
+            $('#proximitySelector').on('change', function(e) {
+                // triggers when whole value changed
+                console.log("value changed");
+              });
+            
+            const onChange = () => {
+                var editor = document.getElementById('proximitySelector');
+                values = getSelectedValues(editor);
+                console.log(values)
+                cell.getColumn().getTable().removeFilter(filterFunc);
+                cell.getColumn().getTable().addFilter(filterFunc);
+            }
+            
+            var select = document.createElement("select");
+            select.multiple = "multiple";
+            select.id = 'proximitySelector';
+            select.class = "chosen-select";
+            select.style = 'width: 100%';
+            proximityTypes.forEach(proximities => {
+                var mytext='Unknown';
+                switch (proximities) {
+                    case '0':
+                        mytext = 'Outside'
+                        break;
+                    case '1':
+                        mytext = 'Inside'
+                        break;
+                    case '2':
+                        mytext = 'RSSI Diff'
+                        break;
+                    case '3':
+                        mytext = 'Report'
+                        break;
+                    default:
+                    // use the original table value
+                    mytext = proximities
+                }
+
+                select.innerHTML += "<option id='" + proximities + "' value='" + proximities + "' selected='selected'>" + mytext + "</option>";
+            });
+            cell.getColumn().getTable().addFilter(filterFunc);
+            select.addEventListener('change', onChange);
+            
+            return select;
+        }
+ 
+    // try chosen
+     //  $(document).ready(function () {
+      //    $('#proximitySelector').chosen();
+      //  });
+    
+        var table = new Tabulator("#example-table", {
+            height:450, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+            persistence:{
+                    sort: true, //persist column sorting
+                    filter: true, //persist filter sorting
+                    group: true, //persist row grouping
+                    page: true, //persist page
+                    columns: true, //persist columns
+            },
+            //autoColumns:true,
+            columns:[{title:"BT MAC", field:"bt_mac", headerFilter:true},
+                     {title:"Account", field:"account", headerFilter:true},
+                     {title:"M9B", field:"beacon_gateway_IPEI", headerFilter:true},
+                     {title:"Name", field:"beacon_gateway_name", headerFilter:true},
+                     {title:"Proximity", field:"proximity", headerSort:false,
+                //headerFilter:multiSelectHeaderFilter, headerFilterLiveFilter:false,
+                headerFilter:genderEditor, headerFilterLiveFilter:false,
+                      formatter:function(cell, formatterParams, onRendered){
+                        var value = cell.getValue();
+                        
+                        var prox_color = "text-white bg-success"
+                        var prox_back = "rgba(0, 200, 100, 0.4);"
+                        var prox_txt = "Unknown";
+                        var prox_badge ="badge-info"
+                            
+                        if(value == '0') {
+                              prox_color = "text-white badge-danger"
+                              prox_txt = "Outside";
+                              prox_badge ="badge-danger"
+                        }
+                        if(value == '1') {
+                              prox_color = "text-white bg-success"
+                              prox_txt = "Inside";
+                              prox_badge ="badge-success"
+                        }
+                        if(value == '2') {
+                              prox_color = "text-white bg-success"
+                              prox_txt = "RSSI Diff";
+                              prox_badge ="badge-success"
+                        }
+                        if(value == '3') {
+                              prox_color = "text-white bg-success"
+                              prox_txt = "Report";
+                              prox_badge ="badge-success"
+                        }
+                          html_code =`
+                        <p class="h4 mb-0 ">
+                        <a class="badge ${prox_badge} mb-2 ${prox_color}">${prox_txt}
+                        </a>
+                        </p>
+                        `;
+                        return html_code; //return the contents of the cell;
+                     },
+                     }
+                     ],
+            groupBy:"bt_mac",
+            layout:"fitColumns", //fit columns to width of table (optional)
+
+            // botte returns DICT in JSON {data:[{},{}]}, remove the data
+            ajaxResponse:function(url, params, response){
+                return response.data;
+            },
+            
+            });
+    table.setData("http://localhost:8081/de_DE/get_m9b_device_status");
+
+    </script>
