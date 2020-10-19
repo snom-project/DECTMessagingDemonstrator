@@ -1,6 +1,14 @@
 # DectMessagingDemonstrator
 Simple message server for snom Multicell DECT M700, M900
 
+install with:
+git clone https://github.com/snom-project/DECTMessagingDemonstrator.git
+git submodule update --init --recursive
+
+fully automated build and run:
+source runAll.sh
+
+Build step by step:
 build with:
 docker build -t snommd .
 
@@ -22,5 +30,5 @@ python DECTMessagingServer.py 10300
 Messaging server is listening on port 10300 from all incoming Base IPs. 
 
 Multicell Base configuration 
+![alt text](https://github.com/snom-project/DECTMessagingDemonstrator.git/doc/master/SampleBaseConfig.png?raw=true)
 
-![Alt text](doc/images/base-config.jpg?raw=true "Base Configuration")
