@@ -30,5 +30,5 @@ python DECTMessagingServer.py 10300
 Messaging server is listening on port 10300 from all incoming Base IPs. 
 
 Multicell Base configuration 
-![alt text](https://github.com/snom-project/DECTMessagingDemonstrator.git/doc/master/app/doc/SampleBaseConfig.png?raw=true)
+![alt text](https://github.com/snom-project/DECTMessagingDemonstrator/blob/master/app/doc/SampleBaseConfig.png?raw=true)
 
