@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import json
 import time
 
 class snomM900MqttClient(mqtt.Client):
@@ -43,6 +44,7 @@ class snomM900MqttClient(mqtt.Client):
             
             if beacon_type != "":
                 # publish a complete device sub-tree topic
+                self.publish("%s/bt_mac" % device_topic, bt_mac)
                 self.publish("%s/beaconType" % device_topic, beacon_type)
                 self.publish("%s/uuid" % device_topic, uuid)
                 self.publish("%s/dType" % device_topic, d_type)
@@ -53,11 +55,13 @@ class snomM900MqttClient(mqtt.Client):
             self.publish("%s/nameState" % device_topic, name)
             self.publish("%s/proximity" % device_topic, proximity)
 
-    def connect_and_subscribe(self):
+    def connect_and_subscribe(self, ip='127.0.0.1', port=1883):
         if self.enable:
-            self.connect("test.mosquitto.org", 1883, 60)
+            #self.connect("test.mosquitto.org", 1883, 60)
+            self.connect(ip, port, 60)
+        return 0
         #self.subscribe("$SYS/#", 0)
-#        self.subscribe("snomM900/13466A8A/device/login")
+        #self.subscribe("snomM900/13466A8A/device/login")
 
     def run(self):
         if self.enable:

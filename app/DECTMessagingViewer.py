@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # vi:si:et:sw=4:sts=4:ts=4
 # -*- coding: UTF-8 -*-
 # -*- Mode: Python -*-
@@ -254,7 +253,7 @@ def btmactable():
         if len(bottle.request.forms):
             for idx, btmac in enumerate(bottle.request.forms):
                 #print(btmac)
-                #print(idx, bottle.request.forms.get(btmac))
+                #print(idx, bottle.request.forms.get(btmac), btmac)
                 devices[idx]['bt_mac'] = bottle.request.forms.get(btmac)
                 # save directly in DB
                 # db is changed but not the memory data from Server!?
@@ -418,7 +417,5 @@ if __name__ == "__main__":
 
     # quiet=False adds http logs
     #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
-    
     bottle.run(app=app, server='gunicorn', workers=4, host=host, port=8081, reloader=False, debug=True, quiet=True)
     
-   

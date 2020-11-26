@@ -1,4 +1,3 @@
-##!/usr/bin/env python
 import pyproxy as pp
 from lxml import etree as ET
 import lxml.builder
@@ -10,7 +9,7 @@ import json
 import logging
 import random
 
-from mqtt.snomM900MqttClient import *
+from mqtt.snomM900MqttClient import snomM900MqttClient
 
 from colorama import init
 init()
@@ -27,7 +26,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 
 # DB reuse and type
 odbc=False
-initdb=False
+initdb=True
 msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=odbc, initdb=initdb)
 
 #msgDb.delete_db()
@@ -69,8 +68,8 @@ devices = [
           {'device_type': 'handset', 'bt_mac': '000413B50038', 'name': 'M90 Snom Medical', 'account': '100100100', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'handset', 'bt_mac': '000413630B9C', 'name': 'M85', 'account': '200200200', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
           {'device_type': 'BTLETag', 'bt_mac': '00087B1B39E1', 'name': 'inactive', 'account': 'TAG_00087B1B39E1', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
-           
-       
+          {'device_type': 'beacon', 'bt_mac': '00087B194558', 'name': 'M9B_TX', 'account': '00087B194558', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/beacon.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
+                  
    # stengel
              {'device_type': 'handset', 'bt_mac': '000413B3007D', 'name': 'M90 Snom Medical', 'account': 'SnomM70', 'rssi': '-100', 'uuid': 'FFFFFFFFFFFFFFF90', 'beacon_type': 'None', 'proximity': '0', 'beacon_gateway' : 'FFFFFFFFFF', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
              {'device_type': 'handset', 'bt_mac': '000413B40B18', 'name': 'M85', 'account': 'SnomM65', 'rssi': '-100', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'},
@@ -210,8 +209,9 @@ class MSSeriesMessageHandler:
         request_url = '{0}{1}{2}'.format(KNX_URL, '/1/2/10-', switch )
         
         if beacon_action:
-            print('KNX: %s' % request_url)
             r = requests.get(request_url)
+            print('KNX: %s' % request_url, r)
+
         else:
             print('KNX disabled: %s' % request_url)
 
@@ -281,13 +281,18 @@ class MSSeriesMessageHandler:
         # we found a new device
 
             # we see the device_type in the BT message
-            if d_type == "-4":
+            if d_type == "-4" and '1122334455667788990011223344' not in uuid:
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/beacon.jpeg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 
                 logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
 
             else:
+                # alt beacon M9b TX have payload e.g. 1122334455667788990011223344556677880444
+                # we use only the common part for all beacon types
+                if '1122334455667788990011223344' in uuid:
+                    print('device is a M9B in TX mode')
+            
                 device_type_new = 'beacon'
                 # add a new bt_mac
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
@@ -306,6 +311,10 @@ class MSSeriesMessageHandler:
                 matched_bt_mac['device_type'] = 'BTLETag'
             else:
                 matched_bt_mac['device_type'] = 'handset'
+            # M9B in TX mode
+            if '1122334455667788990011223344' in uuid:
+                matched_bt_mac['device_type'] = 'beacon'
+
 
 #            print('old   :', matched_bt_mac)
             matched_bt_mac['uuid'] = uuid
@@ -486,6 +495,7 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             print('FATAL??, alarm address of handset should always exist')
+            current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
             # add a new bt_mac
             self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'beacon_gateway_name' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
             
@@ -1004,7 +1014,7 @@ class MSSeriesMessageHandler:
                 # notify the viewer for now.
                 try:
                     # send btmacs updated data back to viewer.
-                    r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
+                    _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
                 except requests.exceptions.Timeout as errt:
                     print ("Timeout Error location:",errt)
 
@@ -1039,7 +1049,7 @@ class MSSeriesMessageHandler:
                 
             try:
                 # send btmacs updated data back to viewer.
-                r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
+                _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
             except requests.exceptions.Timeout as errt:
                 print ("Timeout Error location:",errt)
                 
@@ -1408,7 +1418,7 @@ class MSSeriesMessageHandler:
                     self.response_beacon(self.externalid, status, statusinfo)
                     
                 else:
-                    logger.debug('FATAL, we expected beacondata', data)
+                    logger.debug('FATAL, we expected beacondata %s' % data)
                     
                 # alarm is impotant, we update the viewer
                 self.send_to_location_viewer()
