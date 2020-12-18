@@ -12,7 +12,7 @@ import time
 
 class DECTMessagingDb:
 
-    def __init__(self, beacon_queue_size=3, odbc=True, initdb=True, logger=logging.getLogger('DECTMessagingDb')):
+    def __init__(self, beacon_queue_size=3, alarm_queue_size=5, odbc=True, initdb=True, logger=logging.getLogger('DECTMessagingDb')):
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         logger.addHandler(ch)
@@ -27,6 +27,7 @@ class DECTMessagingDb:
         self.schema_filename = None
         self.connection = None
         self.beacon_queue_size = beacon_queue_size
+        self.alarm_queue_size = alarm_queue_size
         
         if odbc:
             self.connectODBCDB()
@@ -169,6 +170,96 @@ class DECTMessagingDb:
             print('update_db: Connection does not exist, do nothing')
 
 
+    '''
+        Alarms are stored in a queue - FILO, the queue is limited to
+        alarms_queue_size rows.
+
+    account                 VARCHAR(255),
+    name		            VARCHAR(255) default "no name",
+    externalid              VARCHAR(255) default "0000000000",
+    alarm_type              SMALLINT default 0,
+    beacon_type             VARCHAR(255) default "None",
+    beacon_broadcastdata    VARCHAR(255) default "00000000000000000000000000000000000000000",
+    beacon_bdaddr           VARCHAR(12) default "000000000000",
+    rfpi_s                  VARCHAR(10) default "FFFFFFFFFF",  
+    rssi_s                  VARCHAR(255) default "-100",
+    rfpi_m                  VARCHAR(10) default "FFFFFFFFFF",
+    rssi_m                  VARCHAR(255) default "-100",
+    rfpi_w                  VARCHAR(10) default "FFFFFFFFFF",
+    rssi_w                  VARCHAR(255) default "-100",
+    time_stamp              VARCHAR(255) default "2020-04-01 00:00:01.100000",
+    server_time_stamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    '''
+    def record_alarm_db(self, **kwargs):
+        # account is our alarm key, bt_mac is only exisintg when BTLE is enabled on the device
+        if kwargs.get("account"):
+            account_key = kwargs.get("account")
+        else:
+            return False
+        #print(kwargs)
+        
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                '''
+                       1. insert new row
+                '''
+                self.update_db(table="Alarms", **kwargs)
+                '''
+                       2. remove oldest rows
+                '''
+                sql = list()
+               
+                if self.sqlite:
+                    sql.append("DELETE FROM Alarms WHERE ROWID IN (SELECT ROWID FROM Alarms WHERE account='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (account_key, self.alarm_queue_size))
+                    sql = "".join(sql)
+                    #print(sql)
+                    
+                    cur = conn.cursor()
+                    cur.execute(sql)
+                    conn.commit()
+                                   
+                else:
+                    # get old rows to be deleted
+                    sql.append("SELECT * FROM (SELECT * FROM (SELECT server_time_stamp FROM Alarms WHERE account='%s' order by server_time_stamp desc) as tobedeleted  LIMIT 10 offset %s) as b" % (account_key, self.alarm_queue_size))
+                    sql = "".join(sql)
+                    #print(sql)
+                                        
+                    cur = conn.cursor()
+                    cur.execute(sql)
+                    conn.commit()
+                                 
+                    conditions = []
+                    # convert to dict / compatible without factory Row
+                    results = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
+                    cur.close()
+                    if results == []:
+                        # nothing to delete, not enough old beacons yet
+                        return True
+                    
+                    # we have too many beacons, delete old beacons
+                    for result in results:
+                        conditions += ["%s='%s'" % (k, v) for k,v in result.items()]
+                    
+                    # delete old rows
+                    sql = list()
+                    sql.append("DELETE FROM Alarms WHERE ")
+                    sql.append(" OR ".join(conditions))
+                    sql.append(";")
+                    sql = "".join(sql)
+                    #print(sql)
+                    
+                    cur = conn.cursor()
+                    cur.execute(sql)
+                    conn.commit()
+                    # conn.close()
+                    
+                return True
+        else:
+            print('record_alarm_db: Connection does not exist, do nothing')
+ 
     '''
         Beacons are stored in a queue - FILO, the queue is limited to
         queue_size rows.
@@ -342,7 +433,6 @@ class DECTMessagingDb:
             return []
 
 
-    
     def record_gateway_db(self, table="m9bIPEI", **kwargs):
         if kwargs.get("beacon_gateway_IPEI"):
             ipei = kwargs.get("beacon_gateway_IPEI")
