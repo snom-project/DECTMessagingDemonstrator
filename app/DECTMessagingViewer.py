@@ -227,6 +227,25 @@ def get_beacons(bt_mac_key):
         
     return dict(data=result)
 
+@route('/get_alarms/<account>', no_i18n = True)
+def get_alarms(account):
+    global devices
+    if msgDb:
+        result = msgDb.read_db(table='Alarms',
+                               order_by="time_stamp DESC ",
+                               account=account,
+                               name='', 
+                               alarm_type='',
+                               beacon_type='',
+                               beacon_broadcastdata='',
+                               beacon_bdaddr='',
+                               rssi_s='', rfpi_s='',
+                               rssi_m='', rfpi_m='',
+                               rssi_w='', rfpi_w='',
+                               time_stamp='', server_time_stamp='')
+        
+    return dict(data=result)
+
 
 @route('/get_device_locations/<bt_mac_key>', no_i18n = True)
 def get_device_locations(bt_mac_key):
@@ -303,7 +322,7 @@ def sms():
 @bottle.route('/alarm', method=['GET','POST'])
 def alarm():
     global devices
-   
+        
     if bottle.request.method == 'POST':
         IP = '127.0.0.1'
         PORT = 10300
