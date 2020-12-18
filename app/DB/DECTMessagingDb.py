@@ -58,9 +58,8 @@ class DECTMessagingDb:
             return True
         
         directory = 'DB'
-        cursor = cnxn.cursor()
 
-        for root, dirs, files in os.walk(directory):
+        for _root, _dirs, files in os.walk(directory):
             #print(files)
             for file in files:
                 if file.endswith('mySQL.sql'):
@@ -132,7 +131,7 @@ class DECTMessagingDb:
     def update_db(self, table="Devices", **kwargs):
         # account is our key to find the data
         if kwargs.get("account"):
-            account_key = kwargs.get("account")
+            _account_key = kwargs.get("account")
         else:
             return False
         #print(kwargs)
@@ -369,7 +368,7 @@ class DECTMessagingDb:
     def record_m9b_device_status_db(self, **kwargs):
         # bt_mac is our beacon key
         if kwargs.get("bt_mac"):
-            bt_mac_key = kwargs.get("bt_mac")
+            _bt_mac_key = kwargs.get("bt_mac")
         else:
             return False
         #print(kwargs)
@@ -384,8 +383,8 @@ class DECTMessagingDb:
                 '''
                 self.update_db(table="m9bdevicestatus", **kwargs)
                 # add beacon_gateway_name when existing
-                cur = conn.cursor()
-                cur = conn.execute("UPDATE m9bdevicestatus SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI);")
+                _cur = conn.cursor()
+                _cur = conn.execute("UPDATE m9bdevicestatus SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI);")
                 conn.commit()
                
                 return True
@@ -435,7 +434,7 @@ class DECTMessagingDb:
 
     def record_gateway_db(self, table="m9bIPEI", **kwargs):
         if kwargs.get("beacon_gateway_IPEI"):
-            ipei = kwargs.get("beacon_gateway_IPEI")
+            _ipei = kwargs.get("beacon_gateway_IPEI")
         else:
             return False
         

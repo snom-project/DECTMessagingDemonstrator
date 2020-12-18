@@ -420,20 +420,35 @@ class MSSeriesMessageHandler:
 
 
     def update_rssi(self, name, address, rfpi, rssi):
+        rfpi_s = rfpi_m = rfpi_w = rssi_s = rssi_m = rssi_w = "None"
         if len(rfpi) > 1:
-            for element in rfpi:
+            for idx, element in enumerate(rfpi):
                 print("rfpi=", element)
+                if idx==0:
+                    rfpi_s = element
+                if idx==1:
+                    rfpi_m = element
+                if idx==2:
+                    rfpi_w = element        
         else:
-           print("rfpi=", rfpi[0])
+            # we didnt get a list of bases
+            print("rfpi=", rfpi[0])
+            rfpi_s = rfpi[0]
 
         if len(rssi) > 1:
-            for element in rssi:
+             for idx, element in enumerate(rssi):
                 print("rssi=", element)
+                if idx==0:
+                    rssi_s = element
+                if idx==1:
+                    rssi_m = element
+                if idx==2:
+                    rssi_w = element        
         else:
             print("rssi=", rssi[0])
+            rssi_s = rssi[0]
 
-
-        #print(name, address, rfpi, rssi)
+        return rfpi_s, rssi_s, rfpi_m, rssi_m, rfpi_w, rssi_w
 
 
     def update_image(self, login_address, image):
@@ -587,7 +602,7 @@ class MSSeriesMessageHandler:
         
         
     # test alarm
-    def request_alarm(self, account, alarm_txt):
+    def request_alarm(self, account, alarm_txt, alarm_status):
         final_doc = self.REQUEST(
                                  self.SYSTEMDATA(
                                                  self.NAME("SnomProxy"),
@@ -599,17 +614,17 @@ class MSSeriesMessageHandler:
                                  self.JOBDATA(
                                               self.ALARMNUMBER("5"),
                                               # repeated alarms with same reference will show only last alarm
-                                              self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 105))),
+                                              self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 100))),
                                               self.PRIORITY("1"),
                                               self.FLASH("0"),
-                                              self.RINGS("1"),
+                                              self.RINGS("10"),
                                               self.CONFIRMATIONTYPE("2"),
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
                                                             self.MESSAGEUUID(alarm_txt)
                                                             ),
-                                              self.STATUS("0"), # delete 10
+                                              self.STATUS(alarm_status), # delete 10
                                               self.STATUSINFO("")
                                               ),
                                  self.PERSONDATA(
@@ -617,7 +632,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID('alarm_%s' % str(random.randint(100, 999)))
+                                 self.EXTERNALID('alarm_%s' % str(random.randint(500, 500)))
                                  , version="1.0", type="job")
             
         self.send_xml(final_doc)
@@ -925,7 +940,7 @@ class MSSeriesMessageHandler:
         for element in data:
             if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
                 # request goes directly to any Mx00 base, we need to enquire for one..
-                self.m900_connection = ('10.110.30.109', 1300)
+                #self.m900_connection = ('10.110.30.109', 1300)
                 self.m900_connection = self.get_base_connection(element['account'])
                 #print('set connect', self.get_base_connection(element['account']))
                 # mark the handset and send
@@ -944,6 +959,7 @@ class MSSeriesMessageHandler:
             return
        
         sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
+        sms_status_item = next((item for item in data if item['name'] == 'FormControlStatus1'), False)
 
         for element in data:
             if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
@@ -955,7 +971,7 @@ class MSSeriesMessageHandler:
                 matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
                 if matched_account:
                     matched_account['proximity'] = 'alarm'
-                    self.request_alarm(element['account'], sms_message_item['account'])
+                    self.request_alarm(element['account'], sms_message_item['account'], sms_status_item['account'])
 
    
     def send_to_location_viewer(self):
@@ -1124,7 +1140,7 @@ class MSSeriesMessageHandler:
                     if alarm_job_status == []:
                         print("Beacon Received")
                     else:
-                        print("Job Response Status NOK?:", alarm_job_status)
+                        print("Job Response Status does not get a response :", alarm_job_status)
 
                 return True
 
@@ -1200,23 +1216,25 @@ class MSSeriesMessageHandler:
                 
                 alarmdata = alarm_profile_root.xpath(self.msg_xpath_map['X_ALARMDATA_XPATH'])
     
-                if alarmdata:
+                if alarmdata:  # will someday be the best 3 beacons
                     # beacon last position info
                     type = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_TYPE_XPATH')
                     beacontype = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
                     broadcastdata = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
-                    bdaadr = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
+                    bdaddr = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
                     if beacontype:
-                        print("alarm beacon info", type, beacontype, broadcastdata, bdaadr)
+                        print("alarm beacon info", type, beacontype, broadcastdata, bdaddr)
                         # update the last beacon location
                         # we assume proximity = "1" since this was the last known location
-                        self.update_last_beacon(name, address, bdaadr, base_location, "alarm")
+                        self.update_last_beacon(name, address, bdaddr, base_location, "alarm")
                     # - 0: Man Down
                     # - 1: No Movement - 2: Running
                     # - 3: Pull Cord
                     # - 4: Red Key
                     # - 5-9 Reserved
                     print('Alarmtype:', type)
+                else: # we set defaults for the DB
+                    type = beacontype = broadcastdata = bdaddr = None
                 
                 rssidata = alarm_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
                 if rssidata:
@@ -1225,11 +1243,27 @@ class MSSeriesMessageHandler:
                     rssi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RSSI_XPATH'])
 
                     # update handset rssi data
-                    self.update_rssi(name, address, rfpi, rssi)
-                    
+                    rfpi_s, rssi_s, rfpi_m, rssi_m, rfpi_w, rssi_w = self.update_rssi(name, address, rfpi, rssi)
+                else: # we set defaults for the DB
+                    rfpi_s = rssi_s = "None"
+                    rfpi_m = rssi_m = "None"
+                    rfpi_w = rssi_w = "None"
+
                 self.update_proximity(address, 'alarm_handset_%s' % type)
                 
                 self.response_alarm(self.externalid, status, statusinfo)
+
+                # add, update Alarm table
+                if msgDb:
+                    msgDb.record_alarm_db(account=address,
+                                   name=name,
+                                   alarm_type=type,
+                                   beacon_type=beacontype,
+                                   beacon_broadcastdata=broadcastdata,
+                                   beacon_bdaddr=bdaddr,
+                                   rfpi_s=rfpi_s, rfpi_m=rfpi_m, rfpi_w=rfpi_w, 
+                                   rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w, 
+                                   )
                 
                 self.send_to_location_viewer()
 
