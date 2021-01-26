@@ -41,7 +41,7 @@ devices = []
 #           {'bt_mac': '00087B177E9F', 'name': 'M80 Alarm Message', 'account': '7003', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : '0815', 'user_image': '/images/Michelle_Simmons_small.jpg', 'device_loggedin' : '1'},
 #           {'bt_mac': '000413B40044', 'name': 'M80 Alarm Call', 'account': '7004', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None','user_image': '/images/Steve_Fuller_small.jpg', 'device_loggedin' : '1'},
 #           {'bt_mac': '00087B177B4A', 'name': 'M70', 'account': '7001', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': '1', 'beacon_gateway' : 'None','user_image': '/images/depp.jpg', 'device_loggedin' : '1'}
-#           
+#
 #           ]
 
 # triggers redraw of the full page an change of num of elements
@@ -121,12 +121,12 @@ login_lastname = ''
 
 ## helper
 class PrettyFormsDict(FormsDict):
-    
+
     def __repr__(self):
         # Return a string that could be eval-ed to create this instance.
         args = ', '.join('{}={!r}'.format(k, v) for (k, v) in sorted(self.items()))
         return '{}({})'.format(self.__class__.__name__, args)
-    
+
     def __str__(self):
         # Return a string that is a pretty representation of this instance.
         args = ' ,\n'.join('\t{!r}: {!r}'.format(k, v) for (k, v) in sorted(self.items()))
@@ -181,7 +181,7 @@ def devicessync():
     global devices
 
     return dict(data=devices)
-    
+
 
 @route('/table', no_i18n = True)
 def table():
@@ -191,7 +191,7 @@ def table():
     # the data will be locally accesed, we need to know our server host
     host = bottle.request.get_header('host')
     print(host)
-    
+
     return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), host=host)
 
 
@@ -201,7 +201,7 @@ def get_m9b_device_status():
     if msgDb:
         # MAX(time_stamp) is hard coded
         result = msgDb.read_m9b_device_status_db()
-        
+
     return dict(data=result)
 
 
@@ -210,7 +210,7 @@ def get_device(bt_mac_key):
     global devices
     if msgDb:
         result = msgDb.read_db(account=None, device_type='',  bt_mac=bt_mac_key, name='', rssi='', uuid='', beacon_type='', proximity='', beacon_gateway='', device_loggedin='', base_location='', base_connection='')
-        
+
     return dict(data=result)
 
 
@@ -224,7 +224,7 @@ def get_beacons(bt_mac_key):
                                name='', rssi='', uuid='', beacon_type='',
                                proximity='', beacon_gateway='', beacon_gateway_name='',
                                time_stamp='', server_time_stamp='')
-        
+
     return dict(data=result)
 
 @route('/get_alarms/<account>', no_i18n = True)
@@ -234,7 +234,7 @@ def get_alarms(account):
         result = msgDb.read_db(table='Alarms',
                                order_by="time_stamp DESC ",
                                account=account,
-                               name='', 
+                               name='',
                                alarm_type='',
                                beacon_type='',
                                beacon_broadcastdata='',
@@ -243,7 +243,7 @@ def get_alarms(account):
                                rssi_m='', rfpi_m='',
                                rssi_w='', rfpi_w='',
                                time_stamp='', server_time_stamp='')
-        
+
     return dict(data=result)
 
 
@@ -259,14 +259,14 @@ def get_device_locations(bt_mac_key):
                                name='', rssi='', uuid='', beacon_type='',
                                proximity='1', beacon_gateway='', beacon_gateway_name='',
                                time_stamp='', server_time_stamp='')
-        
+
     return dict(data=result)
 
 
 @bottle.route('/btmactable', method=['GET','POST'])
 def btmactable():
     global devices
-    
+
     if bottle.request.method == 'POST':
         # update all bt_macs.
         if len(bottle.request.forms):
@@ -278,14 +278,14 @@ def btmactable():
                 # db is changed but not the memory data from Server!?
                 if msgDb:
                     msgDb.update_db(account=devices[idx]['account'] , bt_mac=devices[idx]['bt_mac'])
-        
+
     return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=devices)
 
 
 @bottle.route('/sms', method=['GET','POST'])
 def sms():
     global devices
-   
+
     if bottle.request.method == 'POST':
         IP = '127.0.0.1'
         PORT = 10300
@@ -300,11 +300,11 @@ def sms():
             print('Caught exception socket.error: {0}'.format(exc))
             sys.exit(0)
         print("init socket successfull")
-        
-       
+
+
         d = json.dumps(request.json).encode("ascii")
         #print('data:', d)
-       
+
         # prepare XML data request
         xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
         #print(xml_message)
@@ -315,14 +315,14 @@ def sms():
         s.close()
     else:
         print('GET request of the page, do nothing')
-    
+
     return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
 
 
 @bottle.route('/alarm', method=['GET','POST'])
 def alarm():
     global devices
-        
+
     if bottle.request.method == 'POST':
         IP = '127.0.0.1'
         PORT = 10300
@@ -337,22 +337,22 @@ def alarm():
             print('Caught exception socket.error: {0}'.format(exc))
             sys.exit(0)
         print("init socket successfull")
-        
-       
+
+
         d = json.dumps(request.json).encode("ascii")
         #print('data:', d)
-       
+
         # prepare XML data request
         xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>alarm</jobtype> </request>".format(d.decode('ascii'))
         #print(xml_message)
 
         s.send(bytes(xml_message, 'utf-8'))
         #print('data sent')
-        
+
         s.close()
     else:
         print('GET request of the page, do nothing')
-          
+
     return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=devices)
 
 
@@ -360,12 +360,12 @@ def alarm():
 @bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
 def run_element(deviceIdx):
     global devices
-    
+
 #    global lastNumOfDevices
-#    
+#
 #    if not devices:
 #        bottle.redirect('/location')
-#    
+#
 #    print(len(devices))
 #    # added and deleted elements need a full redraw
 #    if len(devices) != int(lastNumOfDevices):
@@ -396,20 +396,20 @@ def run_location():
         tmplist = []
         tmplist.append(updated_devices)
         devices = tmplist[0]
-    
+
     logger.debug('Number of devices:%s' % len(devices))
     return('done')
-    
+
 
 @bottle.route('/', name='main', method='GET')
 def run_main():
     request.session['test'] = request.session.get('test',0) + 1
     request.session.save()
     logger.debug("Session: %d" % request.session['test'])
-    
+
     request.session['profile_firstname'] = 'NA'
     request.session['profile_lastname'] = 'NA'
-    
+
     return bottle.jinja2_template('locationview', title=_("Location View"), devices=devices)
 
 import schedule
@@ -437,4 +437,3 @@ if __name__ == "__main__":
     # quiet=False adds http logs
     #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
     bottle.run(app=app, server='gunicorn', workers=4, host=host, port=8081, reloader=False, debug=True, quiet=True)
-    

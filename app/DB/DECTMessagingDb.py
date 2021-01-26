@@ -1,4 +1,3 @@
-import sys
 import logging
 
 from lxml import etree as ET
@@ -16,7 +15,7 @@ class DECTMessagingDb:
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         logger.addHandler(ch)
-          
+
         self.logger = logger
 
         # DB
@@ -28,35 +27,35 @@ class DECTMessagingDb:
         self.connection = None
         self.beacon_queue_size = beacon_queue_size
         self.alarm_queue_size = alarm_queue_size
-        
+
         if odbc:
             self.connectODBCDB()
         else:
             self.createDB()
-        
+
 
     def connectODBCDB(self):
         self.schema_filename = 'DB/DECTMessagingSchema_mySQL.sql'
-        
+
         cnxn = pyodbc.connect('DSN=mysqlansi')
         cnxn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
         cnxn.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
         cnxn.setencoding(encoding='utf-8')
 
-        
+
         self.connection = cnxn
 
         print('Trying ODBC Connect')
         #cnxn = pyodbc.connect("DRIVER={SQLite 3};Direct=True;Database=%s" % self.db_filename)
-        
+
         # only connect or new DB
         if not self.initdb:
             cnxn.execute("""
                             USE DECTmessaging;
                          """)
-                  
+
             return True
-        
+
         directory = 'DB'
 
         for _root, _dirs, files in os.walk(directory):
@@ -75,12 +74,12 @@ class DECTMessagingDb:
                                 if " ".join(statement.split()):
                                     cur.execute(" ".join(statement.split()))
 
-        
+
         cnxn.execute("""
                        insert into Beacons (account)
                        values ('test_db_account');
                        """)
-        
+
 
 
     def createDB(self):
@@ -93,13 +92,13 @@ class DECTMessagingDb:
         conn = sqlite3.connect(self.db_filename)
         # remember the connection to reuse
         self.connection = conn
-        
+
         if db_is_new:
             print('Creating schema')
             with open(self.schema_filename, 'rt') as f:
                 schema = f.read()
                 conn.executescript(schema)
-    
+
                 print('Inserting initial data')
                 conn.executescript("""
                 insert into Beacons (account)
@@ -135,7 +134,7 @@ class DECTMessagingDb:
         else:
             return False
         #print(kwargs)
-        
+
         """ update/insert rows into objects table (update if the row already exists)
             given the key-value pairs in kwargs
             INSERT OR REPLACE INTO Devices (account, name, rssi) VALUES ('depp_acc', 'depp', '-99');
@@ -180,7 +179,7 @@ class DECTMessagingDb:
     beacon_type             VARCHAR(255) default "None",
     beacon_broadcastdata    VARCHAR(255) default "00000000000000000000000000000000000000000",
     beacon_bdaddr           VARCHAR(12) default "000000000000",
-    rfpi_s                  VARCHAR(10) default "FFFFFFFFFF",  
+    rfpi_s                  VARCHAR(10) default "FFFFFFFFFF",
     rssi_s                  VARCHAR(255) default "-100",
     rfpi_m                  VARCHAR(10) default "FFFFFFFFFF",
     rssi_m                  VARCHAR(255) default "-100",
@@ -196,7 +195,7 @@ class DECTMessagingDb:
         else:
             return False
         #print(kwargs)
-        
+
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
         connection = self.connection
@@ -210,26 +209,26 @@ class DECTMessagingDb:
                        2. remove oldest rows
                 '''
                 sql = list()
-               
+
                 if self.sqlite:
                     sql.append("DELETE FROM Alarms WHERE ROWID IN (SELECT ROWID FROM Alarms WHERE account='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (account_key, self.alarm_queue_size))
                     sql = "".join(sql)
                     #print(sql)
-                    
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
-                                   
+
                 else:
                     # get old rows to be deleted
                     sql.append("SELECT * FROM (SELECT * FROM (SELECT server_time_stamp FROM Alarms WHERE account='%s' order by server_time_stamp desc) as tobedeleted  LIMIT 10 offset %s) as b" % (account_key, self.alarm_queue_size))
                     sql = "".join(sql)
                     #print(sql)
-                                        
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
-                                 
+
                     conditions = []
                     # convert to dict / compatible without factory Row
                     results = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
@@ -237,11 +236,11 @@ class DECTMessagingDb:
                     if results == []:
                         # nothing to delete, not enough old beacons yet
                         return True
-                    
+
                     # we have too many beacons, delete old beacons
                     for result in results:
                         conditions += ["%s='%s'" % (k, v) for k,v in result.items()]
-                    
+
                     # delete old rows
                     sql = list()
                     sql.append("DELETE FROM Alarms WHERE ")
@@ -249,20 +248,20 @@ class DECTMessagingDb:
                     sql.append(";")
                     sql = "".join(sql)
                     #print(sql)
-                    
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
                     # conn.close()
-                    
+
                 return True
         else:
             print('record_alarm_db: Connection does not exist, do nothing')
- 
+
     '''
         Beacons are stored in a queue - FILO, the queue is limited to
         queue_size rows.
-        
+
         account        text,
         device_type     text default "None",
         bt_mac         text default "",
@@ -283,7 +282,7 @@ class DECTMessagingDb:
         else:
             return False
         #print(kwargs)
-        
+
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
         connection = self.connection
@@ -301,27 +300,27 @@ class DECTMessagingDb:
                        2. remove oldest rows
                 '''
                 sql = list()
-               
+
                 if self.sqlite:
                     sql.append("DELETE FROM Beacons WHERE ROWID IN (SELECT ROWID FROM Beacons WHERE bt_mac='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (bt_mac_key, self.beacon_queue_size))
                     #sql.append("DELETE FROM Beacons WHERE server_time_stamp IN (SELECT server_time_stamp FROM Beacons GROUP BY `bt_mac` HAVING COUNT(`bt_mac`) > %s);" % self.beacon_queue_size)
                     sql = "".join(sql)
                     #print(sql)
-                    
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
-                                   
+
                 else:
                     # get old rows to be deleted
                     sql.append("SELECT * FROM (SELECT * FROM (SELECT server_time_stamp FROM beacons WHERE bt_mac='%s' order by server_time_stamp desc) as tobedeleted  LIMIT 10 offset %s) as b" % (bt_mac_key, self.beacon_queue_size))
                     sql = "".join(sql)
                     #print(sql)
-                                        
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
-                                 
+
                     conditions = []
                     # convert to dict / compatible without factory Row
                     results = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
@@ -329,11 +328,11 @@ class DECTMessagingDb:
                     if results == []:
                         # nothing to delete, not enough old beacons yet
                         return True
-                    
+
                     # we have too many beacons, delete old beacons
                     for result in results:
                         conditions += ["%s='%s'" % (k, v) for k,v in result.items()]
-                    
+
                     # delete old rows
                     sql = list()
                     sql.append("DELETE FROM Beacons WHERE ")
@@ -341,20 +340,20 @@ class DECTMessagingDb:
                     sql.append(";")
                     sql = "".join(sql)
                     #print(sql)
-                    
+
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
                     # conn.close()
-                    
+
                 return True
         else:
             print('record_beacon_db: Connection does not exist, do nothing')
- 
+
     '''
         M9B manages several devices and reports their proximity
         This table records the actual proximity per m9b and device
-        
+
         bt_mac         text default "",
         rssi        text default "-100",
         uuid        text default "",
@@ -372,7 +371,7 @@ class DECTMessagingDb:
         else:
             return False
         #print(kwargs)
-        
+
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
         connection = self.connection
@@ -386,11 +385,11 @@ class DECTMessagingDb:
                 _cur = conn.cursor()
                 _cur = conn.execute("UPDATE m9bdevicestatus SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI);")
                 conn.commit()
-               
+
                 return True
         else:
             print('record_m9b_device_status_db: Connection does not exist, do nothing')
-    
+
     def clear_old_m9b_device_status_db(self, timeout, target_timestamp):
         connection = self.connection
         if connection:
@@ -417,13 +416,13 @@ class DECTMessagingDb:
                 #conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 '''   mysql
-                
+
                 '''
                 cur.execute("SELECT account, bt_mac, rssi, uuid, beacon_type, proximity, beacon_gateway_IPEI, beacon_gateway_name, time_stamp, server_time_stamp, strftime('%s', datetime('now','localtime'))  - strftime('%s', time_stamp) AS timeout FROM m9bdevicestatus ORDER BY bt_mac DESC")
-                
+
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
-                            
+
                 cur.close()
                 # conn.close()
                 return result
@@ -437,7 +436,7 @@ class DECTMessagingDb:
             _ipei = kwargs.get("beacon_gateway_IPEI")
         else:
             return False
-        
+
         # prepare the SQL statement
         keys = ["%s" % k for k in kwargs]
         values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
@@ -501,10 +500,10 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
-                
+
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
-                            
+
                 cur.close()
                 #print('Result:%s' % result)
                 return result
@@ -512,7 +511,7 @@ class DECTMessagingDb:
             print('read_gateway_db: Connection does not exist, do nothing')
             return []
 
-    
+
     def delete_db(self, table="Devices", **kwargs):
         # we take any given when condition
         if len(kwargs):
@@ -536,7 +535,7 @@ class DECTMessagingDb:
             sql = list()
             sql.append("DELETE FROM Devices;")
             sql = "".join(sql)
-                 
+
         #print(sql)
         #connection = sqlite3.connect(self.db_filename)
         # reuse old connection
@@ -554,7 +553,7 @@ class DECTMessagingDb:
             print('delete_db: Connection does not exist, do nothing')
             return []
 
- 
+
     def read_db(self, table="Devices", order_by=None, group_by=None, **kwargs):
         # account or bt_mac is our where key, or no where
         #print(kwargs)
@@ -598,10 +597,10 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
-                
+
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
-                            
+
                 cur.close()
                 #print('Result:%s' % result)
                 return result
@@ -656,10 +655,10 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
-                  
+
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
-                              
+
                 cur.close()
                 #print('Result:%s' % result)
                 return result
@@ -686,7 +685,7 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
-                
+
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
                 #result = [dict(row) for row in cur.fetchall()]
@@ -697,7 +696,7 @@ class DECTMessagingDb:
         else:
             print('read_db: Connection does not exist, do nothing')
             return []
-              
+
 
     def update_devices_db(self, devices):
         for device in devices:
@@ -719,10 +718,10 @@ class DECTMessagingDb:
                             time_stamp = device['time_stamp'],
                             tag_time_stamp = device['tag_time_stamp']
                             )
-                            
+
         return True
-            
-    
+
+
     def is_empty_db(self):
         sql = list()
         sql.append("SELECT count(*) FROM (select 0 FROM Devices limit 1);")
@@ -740,7 +739,7 @@ class DECTMessagingDb:
                 cur.execute(sql)
                 conn.commit()
                 # conn.close()
-            
+
                 # convert to dict
                 result = [dict(row) for row in cur.fetchall()]
                 #print('Result is_empty_db:%s' % result)
@@ -772,5 +771,5 @@ if __name__ == "__main__":
     time.sleep(1.2)
     msgDb.record_beacon_db(account="test_beacon", bt_mac="123456789A", beacon_gateway="FFFFF00003")
 
-    
-    
+
+
