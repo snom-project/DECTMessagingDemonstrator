@@ -4,6 +4,7 @@ Simple message server for snom Multicell DECT M700, M900
 install with:
 git clone https://github.com/snom-project/DECTMessagingDemonstrator.git
 
+run inside DECTMessagingDemonstrator folder:
 git submodule update --init --recursive
 
 fully automated build and run:
@@ -18,6 +19,8 @@ run with:
 sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 snommd 
 
 In case your are not using docker:
+make sure you install all packages requested in docker.
+
 1. start the viewer in app directory
 python DECTMessagingViewer.py 
 
