@@ -5,6 +5,8 @@ import datetime
 import schedule
 import time
 import requests
+from requests.adapters import HTTPAdapter
+
 import json
 import logging
 import random
@@ -23,6 +25,7 @@ import subprocess # it's usable from multiple greenlets now
 
 
 from DB.DECTMessagingDb import DECTMessagingDb
+from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
 # DB reuse and type
 odbc=False
@@ -31,7 +34,7 @@ msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=odbc, initdb=initdb)
 
 #msgDb.delete_db()
 viewer_autonomous = True
-beacon_action = False
+KNX_ACTION = True
 
 
 m9bIPEI_description ={
@@ -51,13 +54,27 @@ m9bIPEI_description ={
          '0328D783C1': 'Marketing',
          '0328D783CA': 'Sales'
         }
+# add/overwrite all M9B descrtiption names to the existing table        
 if msgDb:
     for key in m9bIPEI_description.keys():
         msgDb.record_gateway_db(beacon_gateway_IPEI=key, beacon_gateway_name=m9bIPEI_description[key])
 
 
 class MSSeriesMessageHandler:
+    """Main M700,M900 Messaging class
 
+    This class implements parts of the message server functionality of an Alarm/SMS/Beacon system between a SnomM700, SnomM900 basestation (FP) and this message serber instance.
+    The class processes XML messages from the UDP messaging protocol received from base station.
+
+    The class handles:
+    - process SMS from handsets
+    - process sent alarms from the handset
+    - send alarms to the handset 
+    - process Beacon information
+
+    Returns:
+        XML message: Responses and Request defined in the protocol
+    """
     namespace = '.' # not used
     # XPATH // means all occurences within the tree!
     msg_xpath_map = {
@@ -114,7 +131,6 @@ class MSSeriesMessageHandler:
         'X_SENDERDATA_NAME_XPATH':     "//senderdata//name/text()",
         'X_SENDERDATA_NAME_EXISTS_XPATH':     "//senderdata/name",
 
-        #    <senderdata> <address type="IPEI">0328D3C909</address> ...
         'X_SENDERDATA_ADDRESS_IPEI_XPATH': "//senderdata/address[@type='IPEI']/text()",
 
         'X_SENDERDATA_LOCATION_XPATH': "//senderdata//location/text()",
@@ -128,6 +144,7 @@ class MSSeriesMessageHandler:
     }
 
     def __init__(self, devices={}):
+        # use standard UDP port on default
         self.m900_connection = ('127.0.0.1', 1300)
         self.devices = devices
         self.btmacaddresses = []
@@ -164,24 +181,7 @@ class MSSeriesMessageHandler:
         self.PERSONDATA = E.persondata
         self.ADDRESS = E.address
 
-
-    def fire_beacon_action(self, beacon_gateway, proximity):
-        KNX_URL = 'http://192.168.178.22:1234'
-
-        if proximity != "0":
-            switch='an'
-        else:
-            switch='aus'
-        request_url = '{0}{1}{2}'.format(KNX_URL, '/1/2/10-', switch )
-
-        if beacon_action:
-            r = requests.get(request_url)
-            print('KNX: %s' % request_url, r)
-
-        else:
-            print('KNX disabled: %s' % request_url)
-
-
+   
     '''
      Job:  <?xml version="1.0" encoding="UTF-8"?>
      <request version="20.3.18.2018" type="job">
@@ -208,13 +208,20 @@ class MSSeriesMessageHandler:
      <location>M900</location>
      </senderdata>
      <persondata>
-     <address>200</address>
+     <address>M9B200</address>
      </persondata>
      </request>
     '''
-    #   self.update_beacon(messageuui, senderaddress_ipei[0], personaddress)
-
     def update_beacon(self, messageuui, senderaddress, personaddress):
+        """Updates the received beacon data in the device list.
+
+        Args:
+            messageuui (string): <messageuui>!BT;0004136323B9;p;i;FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF85FF00FF00;0;1;-74</messageuui>
+
+            senderaddress (string): M9B which received the beacon. e.g. <address type="IPEI">0328D7830E</address>
+
+            personaddress (string): given Number/Name of the M9B generalSettings.alarmServerAddress. Not the name of the device sending the beacon!
+        """        
         # this is the sender of the beacon
         beacon_gateway = senderaddress
 
@@ -233,7 +240,6 @@ class MSSeriesMessageHandler:
 
         # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
         if proximity != '0' and int(rssi) < -100:
-            print('disregarding Beacon Info with rssi=', rssi)
             logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
             return False
 
@@ -270,7 +276,6 @@ class MSSeriesMessageHandler:
 
         # we found an already existing device
         else:
-
             # we see the device_type in the BT message
             if d_type == "-4":
                 matched_bt_mac['device_type'] = 'BTLETag'
@@ -305,7 +310,8 @@ class MSSeriesMessageHandler:
                 #print('update:', matched_bt_mac)
 
             # fire action on beacon proximity
-            self.fire_beacon_action(beacon_gateway, proximity)
+            if KNX_ACTION:
+                KNX_gateway.fire_KNX_action(matched_bt_mac['bt_mac'], beacon_gateway, proximity)
 
             # Tags have their own state.
             if matched_bt_mac['device_type'] == 'BTLETag':
@@ -318,7 +324,7 @@ class MSSeriesMessageHandler:
                 schedule.every(30).seconds.do(self.update_all_tags).tag('TAGHold')
 
 
-        # at this point we have appended new device and have a matched_bt_mac
+        # at this point we have appended a new device and have a matched_bt_mac
 
         # rssi change
         if proximity == '2' and matched_bt_mac:
@@ -340,7 +346,7 @@ class MSSeriesMessageHandler:
 
         # record the beacon
         if msgDb:
-            # we do not overide the device info but instead make sure we record the 0 Beacon
+            # we do not overide the device info but instead make sure we record the Beacon
             # in the database by using proximity and gateway directly.
             msgDb.record_beacon_db(account=matched_bt_mac["account"],
                                    device_type=matched_bt_mac["device_type"],
@@ -364,11 +370,6 @@ class MSSeriesMessageHandler:
                        beacon_gateway_name=beacon_gateway_name,
                        time_stamp=matched_bt_mac["time_stamp"]
                        )
-
-
-#        for item in self.devices:
-#            print(item['bt_mac'], ' ', item['name'], ' ', item['proximity'], ' ', item['beacon_gateway'], ':', item['beacon_gateway'], ' ', item['device_loggedin'])
-
         return True
 
 
@@ -452,16 +453,15 @@ class MSSeriesMessageHandler:
 
 
     def update_image(self, login_address, image):
-          # Update device data
-          matched_address = next((item for item in self.devices if item['account'] == login_address), False)
+        # Update device data
+        matched_address = next((item for item in self.devices if item['account'] == login_address), False)
 
-          # add new device address or update
-          if not matched_address:
-              # we assume it exists
-              print('FATAL: couldnt find address and update image', login_address)
-
-          else:
-              matched_address['user_image'] = image
+        # add new device address or update
+        if not matched_address:
+            # we assume it exists
+            print('FATAL: couldnt find address and update image', login_address)
+        else:
+            matched_address['user_image'] = image
 
 
     def update_last_beacon(self, login_name, login_address, last_beacon, base_location, eventtype):
@@ -469,7 +469,6 @@ class MSSeriesMessageHandler:
 
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
-        #matched_name = next((item for item in self.devices if item['name'] == login_name), False)
 
         # add new device address or update
         if not matched_address:
@@ -500,17 +499,21 @@ class MSSeriesMessageHandler:
 
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
-        #matched_name = next((item for item in self.devices if item['name'] == login_name), False)
         # update timstamp
         current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         # add new device address or update
         if not matched_address:
             # add a new device
-            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : 'None', 'user_image': '/images/depp.jpg', 'device_loggedin' : login, 'base_location': base_location, 'base_connection': ip_connection, 'last_beacon': 'None', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
+            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 
+                                'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 
+                                'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : 'None', 
+                                'user_image': '/images/depp.jpg', 'device_loggedin' : login, 
+                                'base_location': base_location, 'base_connection': ip_connection, 
+                                'last_beacon': 'None', 
+                                'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
 
-            print('added: ', login_address)
-
+            logger.debug("update_login: added: %s" % login_address)
         else:
             # update potentially changed fields
             matched_address['device_loggedin'] = login
@@ -519,6 +522,7 @@ class MSSeriesMessageHandler:
             matched_address['name']            = login_name
             matched_address['time_stamp']      = current_datetime
 
+        # add/update device on mqtt as well
         mqttc.publish_login(device_type, login_name, login_address, login, base_location)
 
 
@@ -632,10 +636,11 @@ class MSSeriesMessageHandler:
                                               # repeated alarms with same reference will show only last alarm
                                               #self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 100))),
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
-                                              self.PRIORITY("1"),
+                                              self.PRIORITY("2"),
                                               self.FLASH("0"),
-                                              self.RINGS("10"),
-                                              self.CONFIRMATIONTYPE("2"),
+                                              self.RINGS("2"),
+                                              #self.CONFIRMATIONTYPE("2"), # with confirmation 
+                                              self.CONFIRMATIONTYPE("0"), # without confirmation
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
@@ -885,7 +890,6 @@ class MSSeriesMessageHandler:
     def clear_old_m9b_device_status(self, timeout=70):
         logger.debug("clear_old_m9b_device_status: running with timeout=%s" % (timeout))
 
-        num_deleted = 0
         # database has its own time non UTC or else
         # we use our server time instead
         current_timestamp = datetime.datetime.now()
@@ -896,8 +900,6 @@ class MSSeriesMessageHandler:
             msgDb.clear_old_m9b_device_status_db(timeout, target_timestamp)
         else:
             logger.debug("clear_old_m9b_device_status: No DB, noting to do")
-
-        logger.debug("clear_old_m9b_device_status: %s status cleared" % (num_deleted))
 
         return True
 
@@ -967,7 +969,6 @@ class MSSeriesMessageHandler:
                     self.request_sms(element['account'], sms_message_item['account'])
 
 
-
     def alarms_MS_send_FP(self, data):
         print('alarms_MS_send_FP:')
         # get the message text
@@ -992,6 +993,13 @@ class MSSeriesMessageHandler:
 
 
     def send_to_location_viewer(self):
+        """Synchronise data from:
+        - Database Devices Table
+        - DECTMessagingViewer - changed btmacs
+
+        Returns:
+            devices [DICT]: Synchronised devices dict 
+        """        
         if msgDb:
             # sync btmacs first
             record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
@@ -1000,8 +1008,6 @@ class MSSeriesMessageHandler:
                 try:
                     matched_account = next((localitem for localitem in self.devices if localitem['account'] == elem['account']), False)
                     matched_account['bt_mac'] = elem['bt_mac']
-                    #print(matched_account)
-
                 except:
                     logger.debug("account for updated bt_mac from db not existing: a:%s,%s" % (elem['account'], elem['bt_mac']))
 
@@ -1059,6 +1065,7 @@ class MSSeriesMessageHandler:
         matched_address = next((localitem for localitem in self.devices if localitem['account'] == address), False)
         matched_address['proximity'] = alarm_type
 
+
     def get_value(self, xml_root, xpath):
         # handles empty tags and returns first value in case a list is returned.
         valueList = xml_root.xpath(self.msg_xpath_map[xpath])
@@ -1078,42 +1085,54 @@ class MSSeriesMessageHandler:
 
 
     def msg_process(self, data):
-        alarm_profile_root = ET.XML(data.encode('UTF-8'))
+        msg_profile_root = ET.XML(data.encode('UTF-8'))
 
         # check all response types and process accordingly
-        response_type = alarm_profile_root.xpath(self.msg_xpath_map['RESPONSE_TYPE_XPATH'])
+        response_type = msg_profile_root.xpath(self.msg_xpath_map['RESPONSE_TYPE_XPATH'])
 
         if response_type:
             print('response type')
             self.msg(data)
 
         # check all request types and respond accordingly
-        request_type = alarm_profile_root.xpath(self.msg_xpath_map['REQUEST_TYPE_XPATH'])
+        request_type = msg_profile_root.xpath(self.msg_xpath_map['REQUEST_TYPE_XPATH'])
 
         if request_type:
             print('request type')
             self.msg(data)
+        # done
+        return True
 
 
     def msg(self, data):
+        """XML message protocol flow handler
+
+
+
+        Args:
+            data (XML message): XML message described in the protocol specification
+
+        Returns:
+            XML message: XML response/request described in the protocol specification. Updates the devices dict / DB.
+        """        
 #        print('################################################')
 #        print(data)
 #        print('################################################')
 
-        alarm_profile_root = ET.XML(data.encode('UTF-8'))
+        msg_profile_root = ET.XML(data.encode('UTF-8'))
 
         # check all response types and process accordingly
-        response_type = alarm_profile_root.xpath(self.msg_xpath_map['RESPONSE_TYPE_XPATH'])
+        response_type = msg_profile_root.xpath(self.msg_xpath_map['RESPONSE_TYPE_XPATH'])
 
         if response_type:
             response_type = response_type[0]
             print('Response:', response_type)
 
-            print(f'{Fore.YELLOW}{ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
+            print(f'{Fore.YELLOW}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
             # check if we got a response on our keepalive
             if response_type == 'systeminfo':
                 # add all existing logged-in devices
-                self.add_senderdata(alarm_profile_root)
+                self.add_senderdata(msg_profile_root)
                 self.send_to_location_viewer()
 
                 return True
@@ -1122,20 +1141,20 @@ class MSSeriesMessageHandler:
             if response_type == 'job':
                 # check the status
                 ## zu viele werden gefunden.. brauchen nur den ersten stat
-                alarm_status = alarm_profile_root.xpath(self.msg_xpath_map['JOB_RESPONSE_STATUS_XPATH'])
+                alarm_status = msg_profile_root.xpath(self.msg_xpath_map['JOB_RESPONSE_STATUS_XPATH'])
                 if alarm_status:
                     alarm_status = alarm_status[0]
 
                     if alarm_status == "1":
                         print("message sent")
 
-                alarm_job_status = alarm_profile_root.xpath(self.msg_xpath_map['X_REQUEST_JOBDATA_STATUS_XPATH'])
+                alarm_job_status = msg_profile_root.xpath(self.msg_xpath_map['X_REQUEST_JOBDATA_STATUS_XPATH'])
 
-                alarm_job_address = self.get_value(alarm_profile_root,'X_SENDERDATA_ADDRESS_XPATH')
+                alarm_job_address = self.get_value(msg_profile_root,'X_SENDERDATA_ADDRESS_XPATH')
 
                 # external ID gives us a hint if it is an sms or alarm message
                 # sms: sms_xxx, alarm: alarm_xxx
-                externalid = self.get_value(alarm_profile_root, 'X_REQUEST_EXTERNALID_XPATH')
+                externalid = self.get_value(msg_profile_root, 'X_REQUEST_EXTERNALID_XPATH')
 
                 if alarm_job_status :
                     alarm_job_status = alarm_job_status[0]
@@ -1152,7 +1171,7 @@ class MSSeriesMessageHandler:
                         self.update_proximity(alarm_job_address, "alarm_canceled")
 
                 if alarm_job_status == '1':
-                    self.response_forward_sms(alarm_profile_root)
+                    self.response_forward_sms(msg_profile_root)
                 else:
                     if alarm_job_status == []:
                         print("Beacon Received")
@@ -1163,27 +1182,27 @@ class MSSeriesMessageHandler:
 
 
         # check all request types and respond accordingly
-        request_type = alarm_profile_root.xpath(self.msg_xpath_map['REQUEST_TYPE_XPATH'])
+        request_type = msg_profile_root.xpath(self.msg_xpath_map['REQUEST_TYPE_XPATH'])
 
         if request_type:
             request_type = request_type[0]
             print('Request:', request_type)
-            print(f'{Fore.GREEN}{ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
+            print(f'{Fore.GREEN}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
 
 
             # common systeminfo data for all request types
-            self.externalid = self.get_value(alarm_profile_root, 'X_REQUEST_EXTERNALID_XPATH')
-            status = self.get_value(alarm_profile_root, 'X_REQUEST_SYSTEMDATA_STATUS_XPATH')
-            statusinfo = self.get_value(alarm_profile_root, 'X_REQUEST_SYSTEMDATA_STATUSINFO_XPATH')
+            self.externalid = self.get_value(msg_profile_root, 'X_REQUEST_EXTERNALID_XPATH')
+            status = self.get_value(msg_profile_root, 'X_REQUEST_SYSTEMDATA_STATUS_XPATH')
+            statusinfo = self.get_value(msg_profile_root, 'X_REQUEST_SYSTEMDATA_STATUSINFO_XPATH')
 
 
             # sync beetween FP and MS
             if request_type == 'json-data':
                 # check if we have a login request, including a logindata section
 
-                json_data = self.get_value(alarm_profile_root, 'SNOM_REQUEST_JSONDATA')
+                json_data = self.get_value(msg_profile_root, 'SNOM_REQUEST_JSONDATA')
                 # we get sms or alarm handsets
-                jobtype = self.get_value(alarm_profile_root, 'SNOM_REQUEST_JSONDATA_JOBTYPE')
+                jobtype = self.get_value(msg_profile_root, 'SNOM_REQUEST_JSONDATA_JOBTYPE')
                 # all handset account and text message data
                 data = json.loads(json_data)
 
@@ -1201,11 +1220,11 @@ class MSSeriesMessageHandler:
             # sync beetween FP and MS
             if request_type == 'systeminfo':
                 # check if we have a login request, including a logindata section
-                senderdata = alarm_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_XPATH'])
+                senderdata = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_XPATH'])
 
                 if senderdata:
                     # add all existing logged-in devices
-                    self.add_senderdata(alarm_profile_root)
+                    self.add_senderdata(msg_profile_root)
                     self.send_to_location_viewer()
 
                     logger.debug("systeminfo keep_alive: Respond with MS confirm response to FP:")
@@ -1224,21 +1243,21 @@ class MSSeriesMessageHandler:
             #### HANDSET alarming
             if request_type == 'alarm':
                 # name/account and location of the device
-                name = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
-                address = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
-                base_location = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                base_location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
 
                 # update the location of the device
                 self.update_login('handset', name, address, "1", base_location)
 
-                alarmdata = alarm_profile_root.xpath(self.msg_xpath_map['X_ALARMDATA_XPATH'])
+                alarmdata = msg_profile_root.xpath(self.msg_xpath_map['X_ALARMDATA_XPATH'])
 
                 if alarmdata:  # will someday be the best 3 beacons
                     # beacon last position info
-                    type = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_TYPE_XPATH')
-                    beacontype = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
-                    broadcastdata = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
-                    bdaddr = self.get_value(alarm_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
+                    type = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_TYPE_XPATH')
+                    beacontype = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
+                    broadcastdata = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
+                    bdaddr = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
                     if beacontype:
                         print("alarm beacon info", type, beacontype, broadcastdata, bdaddr)
                         # update the last beacon location
@@ -1253,11 +1272,11 @@ class MSSeriesMessageHandler:
                 else: # we set defaults for the DB
                     type = beacontype = broadcastdata = bdaddr = None
 
-                rssidata = alarm_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
+                rssidata = msg_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
                 if rssidata:
                     # beacon last position info
-                    rfpi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RFPI_XPATH'])
-                    rssi = alarm_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RSSI_XPATH'])
+                    rfpi = msg_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RFPI_XPATH'])
+                    rssi = msg_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_RSSIDATA_RSSI_XPATH'])
 
                     # update handset rssi data
                     rfpi_s, rssi_s, rfpi_m, rssi_m, rfpi_w, rssi_w = self.update_rssi(name, address, rfpi, rssi)
@@ -1320,27 +1339,27 @@ class MSSeriesMessageHandler:
             if request_type == 'job':
 
                 print("We assume a SMS request")
-                priority = self.get_value(alarm_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
+                priority = self.get_value(msg_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
                 message1 = message2 = '' # not used today
-                toaddress = self.get_value(alarm_profile_root, 'JOB_REQUEST_PERSONDATA_ADDRESS_XPATH')
-                fromname = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
-                fromaddress = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
-                fromlocation = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                toaddress = self.get_value(msg_profile_root, 'JOB_REQUEST_PERSONDATA_ADDRESS_XPATH')
+                fromname = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                fromaddress = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                fromlocation = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
 
-                uuid = self.get_value(alarm_profile_root, 'JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH')
+                uuid = self.get_value(msg_profile_root, 'JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH')
 
                 if '!BT' in uuid:
                     print('Beacon')
                     print(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
 
-                    messageuui = alarm_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH'])[0]
-                    personaddress= alarm_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_PERSONDATA_ADDRESS_XPATH'])[0]
+                    messageuui = msg_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH'])[0]
+                    personaddress= msg_profile_root.xpath(self.msg_xpath_map['JOB_REQUEST_PERSONDATA_ADDRESS_XPATH'])[0]
 
                     #     <senderdata>
                     #     <address type="IPEI">0328D3C909</address>
                     #     <location>M700-1</location>
                     #     </senderdata>
-                    senderaddress_ipei = alarm_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
+                    senderaddress_ipei = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
                     #print("We have a GW sending device proximity identified by its BT mac ", senderaddress_ipei, messageuui)
                     if senderaddress_ipei:
                         print("personaddress could be empty, the GW IPEI is always there")
@@ -1393,12 +1412,12 @@ class MSSeriesMessageHandler:
                     print('Job SMS: ', data)
 
                     print("We assume a SMS request")
-                    priority = self.get_value(alarm_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
+                    priority = self.get_value(msg_profile_root, 'X_REQUEST_JOBDATA_PRIORITY_XPATH')
                     message1 = message2 = '' # not used today
-                    toaddress = self.get_value(alarm_profile_root, 'JOB_REQUEST_PERSONDATA_ADDRESS_XPATH')
-                    fromname = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
-                    fromaddress = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
-                    fromlocation = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                    toaddress = self.get_value(msg_profile_root, 'JOB_REQUEST_PERSONDATA_ADDRESS_XPATH')
+                    fromname = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                    fromaddress = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                    fromlocation = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
 
                     #print(uuid)
                     # forward to receiver
@@ -1410,21 +1429,21 @@ class MSSeriesMessageHandler:
                 print(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
                 # we have received a proximity beacon info from a handset
                 # name/account and location of the device
-                name = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
-                address = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
-                base_location = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                base_location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
 
                 # update the location of the device
                 self.update_login('handset', name, address, "1", base_location)
 
-                beacondata = alarm_profile_root.xpath(self.msg_xpath_map['X_BEACONDATA_XPATH'])
+                beacondata = msg_profile_root.xpath(self.msg_xpath_map['X_BEACONDATA_XPATH'])
                 # we expect beacondata
                 if beacondata:
                     # beacon last position info
-                    eventtype = self.get_value(alarm_profile_root,'X_BEACONDATA_EVENTTYPE_XPATH')
-                    beacontype = self.get_value(alarm_profile_root, 'X_BEACONDATA_BEACONTYPE_XPATH')
-                    broadcastdata = self.get_value(alarm_profile_root,'X_BEACONDATA_BROADCASTDATA_XPATH')
-                    bdaddr = self.get_value(alarm_profile_root, 'X_BEACONDATA_BDADDR_XPATH')
+                    eventtype = self.get_value(msg_profile_root,'X_BEACONDATA_EVENTTYPE_XPATH')
+                    beacontype = self.get_value(msg_profile_root, 'X_BEACONDATA_BEACONTYPE_XPATH')
+                    broadcastdata = self.get_value(msg_profile_root,'X_BEACONDATA_BROADCASTDATA_XPATH')
+                    bdaddr = self.get_value(msg_profile_root, 'X_BEACONDATA_BDADDR_XPATH')
 
 #                    The eventtype can be:
 #                    0: entering proximity of the beacon 1: leaving proximity of the beacon
@@ -1445,29 +1464,29 @@ class MSSeriesMessageHandler:
             if request_type == 'login':
 
                 device_type = 'handset'
-                name = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
                 # the name TAG is missing in case of a BEACON login.
                 # existence can only by checked by findall, xpath always returns empty not None
-                name_exists = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_EXISTS_XPATH')
+                name_exists = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_EXISTS_XPATH')
 
-                if name_exists is not "":
+                if name_exists != "":
                     # we have a handset
-                    name = self.get_value(alarm_profile_root, 'X_SENDERDATA_NAME_XPATH')
+                    name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
                     if len(name) == 0:
                         name = "no name"
-                    address = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                    address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
                 else:
                     # we have a beacon gateway, here name tag is not existing
                     name = "Snom M9B XX"
-                    address = self.get_value(alarm_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
+                    address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
 
                     # we cannot know RX or TX
 #                    device_type = 'SnomM9BRX'
 
 
-                loggedin = self.get_value(alarm_profile_root, 'LOGIN_REQUEST_LOGINDATA_STATUS_XPATH')
+                loggedin = self.get_value(msg_profile_root, 'LOGIN_REQUEST_LOGINDATA_STATUS_XPATH')
                 if loggedin == "1" :
-                    location = self.get_value(alarm_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+                    location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
                 else:
                     location = 'None'
 
@@ -1476,7 +1495,7 @@ class MSSeriesMessageHandler:
 
                 # <address type="IPEI">0328D3C918</address>
                 # Snom M9B gets its own picture
-                senderaddress_ipei = alarm_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
+                senderaddress_ipei = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
                 if senderaddress_ipei:
                     self.update_image(address, '/images/SnomM9B.jpg')
                     device_type = 'SnomM9BRX'
@@ -1494,117 +1513,143 @@ class MSSeriesMessageHandler:
         # type unknown !
         else:
             print('unknown request RECEIVED')
-            print(ET.tostring(alarm_profile_root, pretty_print=True, encoding="unicode"))
+            print(ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode"))
+
+# gevent greenlet queue
+def worker():
+    while True:
+        gevent.sleep(5.0)
+        xmldata = q.get()
+        try:
+            amsg.msg_process(xmldata)
+        finally:
+            q.task_done()
 
 
-# main
-logger = logging.getLogger('SnomMMessagingService')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+if __name__ == "__main__":
+    logger = logging.getLogger('SnomMMessagingService')
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    
+    ############################
+    # get the device list data #
+    ############################
 
+    if msgDb and not initdb:
+        # read device list from DB
+        devices = msgDb.read_devices_db()
 
-if msgDb and not initdb:
-    devices = msgDb.read_devices_db()
+    else:
+        # import device list from file
+        try:
+            from DeviceData import predefined_devices
+            devices = predefined_devices
+            logger.debug('devices imported: %s' % devices)
 
+        except:
+            devices = []
+            logger.debug('no devices found to import')
 
-# import data from file
-try:
-    from DeviceData import predefined_devices
-    devices = predefined_devices
-    logger.debug('devices imported: %s' % devices)
+    # initiate message handler
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.66:1234')
 
-except:
-    devices = []
-    logger.debug('no devices found to import')
+    # initiate message handler
+    amsg = MSSeriesMessageHandler(devices)
+    print(amsg.devices)
 
-amsg = MSSeriesMessageHandler(devices)
-print(amsg.devices)
+    for i in range(0):
+        devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
 
+    #######
+    #######
 
-for i in range(0):
-    devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
+    ##################################
+    # start the UDP protocol channel #
+    ##################################
 
+    import sys, socket
 
+    def fail(reason):
+        sys.stderr.write(reason + '\n')
+        sys.exit(1)
 
+    if len(sys.argv) != 2:
+        fail('FATAL: Wrong Commandline Arguments! \nUsage: DECTMessagingServer.py localPort -> python DECTMessagingServer.py 1300')
 
-#######
-#######
+    localPort = sys.argv[1]
 
-import sys, socket
-
-def fail(reason):
-    sys.stderr.write(reason + '\n')
-    sys.exit(1)
-
-
-#if len(sys.argv) != 2:
-#    fail('Usage: DECTMessagingServer.py localPort - python DECTMessagingServer.py 1300')
-
-localPort = sys.argv[1]
-
-try:
-    localPort = int(localPort)
-except:
-    fail('Invalid port number: ' + str(localPort))
-    exit()
-
-try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(('', localPort))
-except:
-    fail('Failed to bind on port ' + str(localPort))
-    exit()
-
-## check how far you can go without a real alarm server.
-## connection will be incoming Mx00 address
-amsg.m900_connection  = ('192.168.188.21', 1300)
-
-
-knownClient = None
-sys.stderr.write('All set.\n')
-
-#### send initial devices data
-amsg.send_to_location_viewer()
-
-logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
-schedule.every(1).minutes.do(amsg.request_keepalive)
-logger.debug("main: schedule.every(1).minutes.do(amsg.clear_old_devices(3600))")
-schedule.every(1).minutes.do(amsg.clear_old_devices, 60)
-logger.debug("main: schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status(360))")
-schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status, 350)
-
-
-# MQTT Interface / False to disable temporarily..
-mqttc = snomM900MqttClient(False)
-rc = mqttc.connect_and_subscribe()
-
-while True:
-    # check and execute scheduled task
-    schedule.run_pending()
-
-    data, addr = s.recvfrom(32768)
-
-    # data can come from multiple Mx00
-    #print(addr)
-    # addr is (ip, port) tuple
-    amsg.m900_connection = addr
-
-    #    print(data)
     try:
-        xmldata = data.decode('utf-8')
-        # process message
-        amsg.msg_process(xmldata)
-
-        # mqtt publish needs to be sent as well
-        #mqttc.publish_login("M85 %s" % time.time())
-        rc = mqttc.run()
-        if rc != 0:
-            logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
-            rc = mqttc.connect_and_subscribe()
-
+        localPort = int(localPort)
     except:
-        logger.debug("main: Message could not be understoood or unexpected error %s" % data)
-        print('Encode to utf-8 failed', data)
+        fail('FATAL: Invalid port number: ' + str(localPort))
+        exit()
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind(('', localPort))
+    except:
+        fail('FATAL: Failed to bind on port ' + str(localPort))
+        exit()
+
+    ## connection will be incoming Mx00 address, use a random connection for now.
+    amsg.m900_connection  = ('192.168.188.21', 1300)
+
+
+    knownClient = None
+    sys.stderr.write('All set.\n')
+
+    #send initial devices data
+    # in case device viwer is autonomous, this one syncs the DB again.
+    amsg.send_to_location_viewer()
+
+    logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")
+    schedule.every(1).minutes.do(amsg.request_keepalive)
+    # we delete records from the DB if this is set!
+    logger.debug("main: schedule.every(1).minutes.do(amsg.clear_old_devices(3600))")
+    #schedule.every(1).minutes.do(amsg.clear_old_devices, 60)
+    logger.debug("main: schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status(360))")
+    #schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status, 350)
+
+
+    # MQTT Interface / False to disable temporarily..
+    mqttc = snomM900MqttClient(False)
+    rc = mqttc.connect_and_subscribe()
+
+    ###################################
+    # UDP protocol listen and process #
+    ###################################
+    import gevent.queue
+    from gevent.queue import JoinableQueue
+
+    q = JoinableQueue(maxsize=5)
+
+    while True:
+        # check and execute scheduled task
+        schedule.run_pending()
+
+        data, addr = s.recvfrom(32768)
+
+        # data can come from multiple Mx00
+        # addr is (ip, port) tuple
+        amsg.m900_connection = addr
+
+        try:
+            # quick check if data is valid missing
+            xmldata = data.decode('utf-8')
+            # process message
+            #amsg.msg_process(xmldata)
+            gevent.spawn(worker)
+            q.put(xmldata)
+            # yield to worker
+            gevent.sleep(0)
+
+            # mqtt publish needs to be sent as well
+            rc = mqttc.run()
+            if rc != 0:
+                logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+                rc = mqttc.connect_and_subscribe()
+        except:
+            logger.debug("main: Message could not be understoood or unexpected error %s" % data)
