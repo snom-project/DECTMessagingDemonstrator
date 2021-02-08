@@ -14,14 +14,14 @@ RUN apt-get install unixodbc-dev -y
 RUN apt-get install sqlite3 -y
 RUN apt-get install python-gevent -y
 
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools
-RUN pip3 install wheel
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade setuptools
+RUN python3 -m pip install wheel
 #RUN python3 setup.py bdist_wheel
 
-RUN pip3 install pandas
-RUN pip3 install cython && \
-    pip3 install numpy
+RUN python3 -m pip install pandas
+RUN python3 -m pip install cython && \
+    python3 -m pip install numpy
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
