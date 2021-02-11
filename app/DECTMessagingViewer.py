@@ -4,37 +4,30 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
-import bottle
-import os
-import multiprocessing
 import logging
-import random
 
-import datetime
-import time
-
-from bottle import Bottle, app, run, static_file, template, request, FormsDict
-from multiprocessing import Process, Queue, cpu_count
+import bottle
+from bottle import route, app, static_file, template, request, url, FormsDict
+from bottle import Jinja2Template
 from beaker.middleware import SessionMiddleware
 
-from bottle_utils import html
+
 from bottle_utils.i18n import I18NPlugin
-
-from bottle_utils.i18n import lazy_ngettext as ngettext, lazy_gettext as _
-
-from bottle import jinja2_view, route
+from bottle_utils.i18n import lazy_gettext as _
 
 # read from DB
 from DB.DECTMessagingDb import DECTMessagingDb
 
-viewer_autonomous = True
+# schedule the DB updates
+import schedule
+
+VIEWER_AUTONOMOUS = True
 
 #examples
-#msgDb.delete_db(account='1000')
 #msgDb.delete_db()
 
-devices = []
-#devices = [
+DEVICES = []
+#DEVICES = [
 #           {'bt_mac': '00087B18E4DB', 'name': 'TAG 1', 'account': 'Passive', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/xray.jpeg', 'device_loggedin' : '1'},
 #           {'bt_mac': '00087B18E51B', 'name': 'TAG 2', 'account': 'Passive', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': '1', 'beacon_gateway' : 'None', 'user_image': '/images/bed.jpeg', 'device_loggedin' : '1'},
 #           {'bt_mac': '000413B50047', 'name': 'M90 Snom Medical', 'account': '7008', 'uuid': 'empty', 'beacon_type': 'None', 'proximity': 'None', 'beacon_gateway' : 'None', 'user_image': '/images/Heidi_MacMoran_small.jpg', 'device_loggedin' : '1'},
@@ -45,14 +38,12 @@ devices = []
 #           ]
 
 # triggers redraw of the full page an change of num of elements
-lastNumOfDevices = 0
+LAST_NUM_OF_DEVICES = 0
 
 
 template.settings = {
     'autoescape': True,
 }
-
-from bottle import url
 
 template.defaults = {
     'url': url,
@@ -105,19 +96,10 @@ wsgi_app = I18NPlugin(tapp,
 
 app = SessionMiddleware(wsgi_app, session_opts)
 
-from bottle import Jinja2Template
-
-
 logger = logging.getLogger('myDM')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 logger.addHandler(ch)
-
-# login user
-user = ''
-password = ''
-login_firstname = ''
-login_lastname = ''
 
 ## helper
 class PrettyFormsDict(FormsDict):
@@ -136,7 +118,7 @@ class PrettyFormsDict(FormsDict):
 
 @bottle.hook('before_request')
 def setup_request():
-    if viewer_autonomous:
+    if VIEWER_AUTONOMOUS:
         # viewer needs to periodically update the database.
         schedule.run_pending()
         #schedule.run_continuously()
@@ -178,26 +160,26 @@ import sys
 
 @route('/devicessync', no_i18n = True)
 def devicessync():
-    global devices
+    global DEVICES
 
-    return dict(data=devices)
+    return dict(data=DEVICES)
 
 
 @route('/table', no_i18n = True)
 def table():
     print('tabulator')
-    global devices
+    global DEVICES
 
     # the data will be locally accesed, we need to know our server host
-    host = bottle.request.get_header('host')
-    print(host)
+    current_host = bottle.request.get_header('host')
+    print(current_host)
 
-    return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), host=host)
+    return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), host=current_host)
 
 
 @route('/get_m9b_device_status', no_i18n = True)
 def get_m9b_device_status():
-    global devices
+    global DEVICES
     if msgDb:
         # MAX(time_stamp) is hard coded
         result = msgDb.read_m9b_device_status_db()
@@ -207,7 +189,7 @@ def get_m9b_device_status():
 
 @route('/get_device/<bt_mac_key>', no_i18n = True)
 def get_device(bt_mac_key):
-    global devices
+    global DEVICES
     if msgDb:
         result = msgDb.read_db(account=None, device_type='',  bt_mac=bt_mac_key, name='', rssi='', uuid='', beacon_type='', proximity='', beacon_gateway='', device_loggedin='', base_location='', base_connection='')
 
@@ -216,7 +198,7 @@ def get_device(bt_mac_key):
 
 @route('/get_beacons/<bt_mac_key>', no_i18n = True)
 def get_beacons(bt_mac_key):
-    global devices
+    global DEVICES
     if msgDb:
         result = msgDb.read_db(table='Beacons',
                                order_by="time_stamp DESC ",
@@ -229,7 +211,7 @@ def get_beacons(bt_mac_key):
 
 @route('/get_alarms/<account>', no_i18n = True)
 def get_alarms(account):
-    global devices
+    global DEVICES
     if msgDb:
         result = msgDb.read_db(table='Alarms',
                                order_by="time_stamp DESC ",
@@ -249,7 +231,7 @@ def get_alarms(account):
 
 @route('/get_device_locations/<bt_mac_key>', no_i18n = True)
 def get_device_locations(bt_mac_key):
-    global devices
+    global DEVICES
     if msgDb:
         # MAX(time_stamp) is hard coded
         result = msgDb.read_last_locations_db(table='Beacons',
@@ -265,26 +247,31 @@ def get_device_locations(bt_mac_key):
 
 @bottle.route('/btmactable', method=['GET','POST'])
 def btmactable():
-    global devices
+    global DEVICES
 
     if bottle.request.method == 'POST':
         # update all bt_macs.
-        if len(bottle.request.forms):
+        if len(bottle.request.forms) > 0:
             for idx, btmac in enumerate(bottle.request.forms):
                 #print(btmac)
                 #print(idx, bottle.request.forms.get(btmac), btmac)
-                devices[idx]['bt_mac'] = bottle.request.forms.get(btmac)
+                DEVICES[idx]['bt_mac'] = bottle.request.forms.get(btmac)
                 # save directly in DB
                 # db is changed but not the memory data from Server!?
                 if msgDb:
-                    msgDb.update_db(account=devices[idx]['account'] , bt_mac=devices[idx]['bt_mac'])
+                    msgDb.update_db(account=DEVICES[idx]['account'] , bt_mac=DEVICES[idx]['bt_mac'])
 
-    return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=devices)
+    return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=DEVICES)
 
 
 @bottle.route('/sms', method=['GET','POST'])
 def sms():
-    global devices
+    """SMS messaging page. Let's you select reciepients and message to send to M900 multicell.
+
+    Returns:
+        web page : Post or Get request answer resulting from the sms template
+    """
+    global DEVICES
 
     if bottle.request.method == 'POST':
         IP = '127.0.0.1'
@@ -316,12 +303,12 @@ def sms():
     else:
         print('GET request of the page, do nothing')
 
-    return bottle.jinja2_template('sms', title=_("SMS View"), devices=devices)
+    return bottle.jinja2_template('sms', title=_("SMS View"), devices=DEVICES)
 
 
 @bottle.route('/alarm', method=['GET','POST'])
 def alarm():
-    global devices
+    global DEVICES
 
     if bottle.request.method == 'POST':
         IP = '127.0.0.1'
@@ -353,26 +340,26 @@ def alarm():
     else:
         print('GET request of the page, do nothing')
 
-    return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=devices)
+    return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=DEVICES)
 
 
 # the content of the element triggered by AJAX reload
 @bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
 def run_element(deviceIdx):
-    global devices
+    global DEVICES
 
-#    global lastNumOfDevices
+#    global LAST_NUM_OF_DEVICES
 #
-#    if not devices:
+#    if not DEVICES:
 #        bottle.redirect('/location')
 #
-#    print(len(devices))
+#    print(len(DEVICES))
 #    # added and deleted elements need a full redraw
-#    if len(devices) != int(lastNumOfDevices):
-#        lastNumOfDevices = len(devices)
+#    if len(DEVICES) != int(LAST_NUM_OF_DEVICES):
+#        LAST_NUM_OF_DEVICES = len(DEVICES)
 #        bottle.redirect('/location')
     try:
-        device = devices[int(deviceIdx)]
+        device = DEVICES[int(deviceIdx)]
     except:
         #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
         return ""
@@ -382,37 +369,36 @@ def run_element(deviceIdx):
     return bottle.jinja2_template('element', title=_("Element View"), i=device)
 
 
-# receives full list of devices in json format devices
+# receives full list of DEVICES in json format DEVICES
 @bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
 def run_location():
-    global devices
+    global DEVICES
     logger.debug("run_location: location update triggered.")
 
     if msgDb:
-        result = msgDb.read_devices_db()
-        devices = result
+        DEVICES = []
+        DEVICES = msgDb.read_devices_db()
     else:
         updated_devices = request.json
         tmplist = []
         tmplist.append(updated_devices)
-        devices = tmplist[0]
+        DEVICES = tmplist[0]
 
-    logger.debug('Number of devices:%s' % len(devices))
-    return('done')
+    logger.debug('Number of devices:%s', len(DEVICES))
+    return True
 
 
 @bottle.route('/', name='main', method='GET')
 def run_main():
     request.session['test'] = request.session.get('test',0) + 1
     request.session.save()
-    logger.debug("Session: %d" % request.session['test'])
+    logger.debug("Session: %d", request.session['test'])
 
     request.session['profile_firstname'] = 'NA'
     request.session['profile_lastname'] = 'NA'
 
-    return bottle.jinja2_template('locationview', title=_("Location View"), devices=devices)
+    return bottle.jinja2_template('locationview', title=_("Location View"), devices=DEVICES)
 
-import schedule
 
 if __name__ == "__main__":
 
@@ -422,18 +408,18 @@ if __name__ == "__main__":
     # run web server
     #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
     #host = "10.245.0.28"
-    host = "0.0.0.0"
-    #host = "10.110.11.132"
+    HOST = "0.0.0.0"
+    #HOST = "10.110.11.132"
 
-    #host = "10.110.16.75"
-    #host = "192.168.188.21"
-    #host = "192.168.55.23"
+    #HOST = "10.110.16.75"
+    #HOST = "192.168.188.21"
+    #HOST = "192.168.55.23"
 
-    if viewer_autonomous:
+    if VIEWER_AUTONOMOUS:
         # schedule db re_read
         logger.debug("main: schedule.every(5).seconds.do(run_location)")
         schedule.every(5).seconds.do(run_location)
 
     # quiet=False adds http logs
     #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
-    bottle.run(app=app, server='gunicorn', workers=4, host=host, port=8081, reloader=False, debug=True, quiet=True)
+    bottle.run(app=app, server='gunicorn', workers=4, host=HOST, port=8081, reloader=False, debug=True, quiet=True)

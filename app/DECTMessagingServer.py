@@ -4,6 +4,7 @@ import lxml.builder
 import datetime
 import schedule
 import time
+import socket
 import requests
 from requests.adapters import HTTPAdapter
 
@@ -1554,7 +1555,12 @@ if __name__ == "__main__":
             logger.debug('no devices found to import')
 
     # initiate message handler
-    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.66:1234')
+    # assume KNX is on same host 
+    host_name = socket.gethostbyname(socket.gethostname())
+    KNX_URL = f'http://{host_name}:1234'
+    #KNX_URL = 'http://10.110.16.66:1234'
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL)
+
 
     # initiate message handler
     amsg = MSSeriesMessageHandler(devices)
