@@ -35,26 +35,10 @@ msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=odbc, initdb=initdb)
 
 #msgDb.delete_db()
 viewer_autonomous = True
-KNX_ACTION = True
+KNX_ACTION = False
 
 
-m9bIPEI_description ={
-         '0328D3C918': 'Schreibtisch',
-         '0328D3C922': 'Computer',
-         '0328D7848C': 'Meeting6OG',
-         '0328D78490': 'Kueche6OG',
-         '0328D78488': 'Poststelle6O',
-         '0328D78483': 'Eingang7OG',
-         '0328D783CB': 'Treppe6OG',
-         '0328D7848F': 'Treppe7OG',
-         '0328D78491': 'MeetingG7OG',
-         '0328D78492': 'StandUP6OG',
-         '0328D78493': 'Kueche7OG',
-         '0328D784B4': 'MeetingW7OG',
-         '0328D3C8FC': 'RMA7OG',
-         '0328D783C1': 'Marketing',
-         '0328D783CA': 'Sales'
-        }
+m9bIPEI_description = {}
 # add/overwrite all M9B descrtiption names to the existing table        
 if msgDb:
     for key in m9bIPEI_description.keys():
