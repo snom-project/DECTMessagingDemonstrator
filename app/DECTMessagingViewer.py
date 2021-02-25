@@ -22,6 +22,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 import schedule
 
 VIEWER_AUTONOMOUS = True
+MINIMUM_VIEWER = True
 
 #examples
 #msgDb.delete_db()
@@ -244,131 +245,6 @@ def get_device_locations(bt_mac_key):
 
     return dict(data=result)
 
-
-@bottle.route('/btmactable', method=['GET','POST'])
-def btmactable():
-    global DEVICES
-
-    if bottle.request.method == 'POST':
-        # update all bt_macs.
-        if len(bottle.request.forms) > 0:
-            for idx, btmac in enumerate(bottle.request.forms):
-                #print(btmac)
-                #print(idx, bottle.request.forms.get(btmac), btmac)
-                DEVICES[idx]['bt_mac'] = bottle.request.forms.get(btmac)
-                # save directly in DB
-                # db is changed but not the memory data from Server!?
-                if msgDb:
-                    msgDb.update_db(account=DEVICES[idx]['account'] , bt_mac=DEVICES[idx]['bt_mac'])
-
-    return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=DEVICES)
-
-
-@bottle.route('/sms', method=['GET','POST'])
-def sms():
-    """SMS messaging page. Let's you select reciepients and message to send to M900 multicell.
-
-    Returns:
-        web page : Post or Get request answer resulting from the sms template
-    """
-    global DEVICES
-
-    if bottle.request.method == 'POST':
-        IP = '127.0.0.1'
-        PORT = 10300
-
-        print('init socket...')
-
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect((IP, PORT))
-            s.settimeout(500)
-        except socket.error as exc:
-            print('Caught exception socket.error: {0}'.format(exc))
-            sys.exit(0)
-        print("init socket successfull")
-
-
-        d = json.dumps(request.json).encode("ascii")
-        #print('data:', d)
-
-        # prepare XML data request
-        xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
-        #print(xml_message)
-
-        s.send(bytes(xml_message, 'utf-8'))
-        #print('data sent')
-
-        s.close()
-    else:
-        print('GET request of the page, do nothing')
-
-    return bottle.jinja2_template('sms', title=_("SMS View"), devices=DEVICES)
-
-
-@bottle.route('/alarm', method=['GET','POST'])
-def alarm():
-    global DEVICES
-
-    if bottle.request.method == 'POST':
-        IP = '127.0.0.1'
-        PORT = 10300
-
-        print('init socket...')
-
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect((IP, PORT))
-            s.settimeout(500)
-        except socket.error as exc:
-            print('Caught exception socket.error: {0}'.format(exc))
-            sys.exit(0)
-        print("init socket successfull")
-
-
-        d = json.dumps(request.json).encode("ascii")
-        #print('data:', d)
-
-        # prepare XML data request
-        xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>alarm</jobtype> </request>".format(d.decode('ascii'))
-        #print(xml_message)
-
-        s.send(bytes(xml_message, 'utf-8'))
-        #print('data sent')
-
-        s.close()
-    else:
-        print('GET request of the page, do nothing')
-
-    return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=DEVICES)
-
-
-# the content of the element triggered by AJAX reload
-@bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
-def run_element(deviceIdx):
-    global DEVICES
-
-#    global LAST_NUM_OF_DEVICES
-#
-#    if not DEVICES:
-#        bottle.redirect('/location')
-#
-#    print(len(DEVICES))
-#    # added and deleted elements need a full redraw
-#    if len(DEVICES) != int(LAST_NUM_OF_DEVICES):
-#        LAST_NUM_OF_DEVICES = len(DEVICES)
-#        bottle.redirect('/location')
-    try:
-        device = DEVICES[int(deviceIdx)]
-    except:
-        #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
-        return ""
-    #print('vorher:', datetime.datetime.today())
-    # yield to greenlet queue
-    gevent.sleep(0)
-    return bottle.jinja2_template('element', title=_("Element View"), i=device)
-
-
 # receives full list of DEVICES in json format DEVICES
 @bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
 def run_location():
@@ -388,20 +264,144 @@ def run_location():
     return True
 
 
-@bottle.route('/', name='main', method='GET')
-def run_main():
-    request.session['test'] = request.session.get('test',0) + 1
-    request.session.save()
-    logger.debug("Session: %d", request.session['test'])
+if not MINIMUM_VIEWER:
+    @bottle.route('/btmactable', method=['GET','POST'])
+    def btmactable():
+        global DEVICES
 
-    request.session['profile_firstname'] = 'NA'
-    request.session['profile_lastname'] = 'NA'
+        if bottle.request.method == 'POST':
+            # update all bt_macs.
+            if len(bottle.request.forms) > 0:
+                for idx, btmac in enumerate(bottle.request.forms):
+                    #print(btmac)
+                    #print(idx, bottle.request.forms.get(btmac), btmac)
+                    DEVICES[idx]['bt_mac'] = bottle.request.forms.get(btmac)
+                    # save directly in DB
+                    # db is changed but not the memory data from Server!?
+                    if msgDb:
+                        msgDb.update_db(account=DEVICES[idx]['account'] , bt_mac=DEVICES[idx]['bt_mac'])
 
-    return bottle.jinja2_template('locationview', title=_("Location View"), devices=DEVICES)
+        return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=DEVICES)
+
+
+    @bottle.route('/sms', method=['GET','POST'])
+    def sms():
+        """SMS messaging page. Let's you select reciepients and message to send to M900 multicell.
+
+        Returns:
+            web page : Post or Get request answer resulting from the sms template
+        """
+        global DEVICES
+
+        if bottle.request.method == 'POST':
+            IP = '127.0.0.1'
+            PORT = 10300
+
+            print('init socket...')
+
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect((IP, PORT))
+                s.settimeout(500)
+            except socket.error as exc:
+                print('Caught exception socket.error: {0}'.format(exc))
+                sys.exit(0)
+            print("init socket successfull")
+
+
+            d = json.dumps(request.json).encode("ascii")
+            #print('data:', d)
+
+            # prepare XML data request
+            xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
+            #print(xml_message)
+
+            s.send(bytes(xml_message, 'utf-8'))
+            #print('data sent')
+
+            s.close()
+        else:
+            print('GET request of the page, do nothing')
+
+        return bottle.jinja2_template('sms', title=_("SMS View"), devices=DEVICES)
+
+
+    @bottle.route('/alarm', method=['GET','POST'])
+    def alarm():
+        global DEVICES
+
+        if bottle.request.method == 'POST':
+            IP = '127.0.0.1'
+            PORT = 10300
+
+            print('init socket...')
+
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect((IP, PORT))
+                s.settimeout(500)
+            except socket.error as exc:
+                print('Caught exception socket.error: {0}'.format(exc))
+                sys.exit(0)
+            print("init socket successfull")
+
+
+            d = json.dumps(request.json).encode("ascii")
+            #print('data:', d)
+
+            # prepare XML data request
+            xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>alarm</jobtype> </request>".format(d.decode('ascii'))
+            #print(xml_message)
+
+            s.send(bytes(xml_message, 'utf-8'))
+            #print('data sent')
+
+            s.close()
+        else:
+            print('GET request of the page, do nothing')
+
+        return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=DEVICES)
+
+
+    # the content of the element triggered by AJAX reload
+    @bottle.route('/element/<deviceIdx>', name='element', method=['GET','POST'])
+    def run_element(deviceIdx):
+        global DEVICES
+
+    #    global LAST_NUM_OF_DEVICES
+    #
+    #    if not DEVICES:
+    #        bottle.redirect('/location')
+    #
+    #    print(len(DEVICES))
+    #    # added and deleted elements need a full redraw
+    #    if len(DEVICES) != int(LAST_NUM_OF_DEVICES):
+    #        LAST_NUM_OF_DEVICES = len(DEVICES)
+    #        bottle.redirect('/location')
+        try:
+            device = DEVICES[int(deviceIdx)]
+        except:
+            #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
+            return ""
+        #print('vorher:', datetime.datetime.today())
+        # yield to greenlet queue
+        gevent.sleep(0)
+        return bottle.jinja2_template('element', title=_("Element View"), i=device)
+
+
+    @bottle.route('/', name='main', method='GET')
+    def run_main():
+        request.session['test'] = request.session.get('test',0) + 1
+        request.session.save()
+        logger.debug("Session: %d", request.session['test'])
+
+        request.session['profile_firstname'] = 'NA'
+        request.session['profile_lastname'] = 'NA'
+
+        return bottle.jinja2_template('locationview', title=_("Location View"), devices=DEVICES)
 
 
 if __name__ == "__main__":
-
     # connect DB
     msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=True)
 
