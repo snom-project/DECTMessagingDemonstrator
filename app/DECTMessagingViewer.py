@@ -22,7 +22,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 import schedule
 
 VIEWER_AUTONOMOUS = True
-MINIMUM_VIEWER = True
+MINIMUM_VIEWER = False
 
 #examples
 #msgDb.delete_db()
@@ -97,9 +97,11 @@ wsgi_app = I18NPlugin(tapp,
 
 app = SessionMiddleware(wsgi_app, session_opts)
 
-logger = logging.getLogger('myDM')
+logger = logging.getLogger('DMViewer')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s  %(name)s  %(levelname)s: %(message)s')
+ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 ## helper
@@ -294,14 +296,14 @@ if not MINIMUM_VIEWER:
         global DEVICES
 
         if bottle.request.method == 'POST':
-            IP = '127.0.0.1'
-            PORT = 10300
+            ip = '127.0.0.1'
+            port = 10300
 
             print('init socket...')
 
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect((IP, PORT))
+                s.connect((ip, port))
                 s.settimeout(500)
             except socket.error as exc:
                 print('Caught exception socket.error: {0}'.format(exc))
@@ -331,14 +333,14 @@ if not MINIMUM_VIEWER:
         global DEVICES
 
         if bottle.request.method == 'POST':
-            IP = '127.0.0.1'
-            PORT = 10300
+            ip = '127.0.0.1'
+            port = 10300
 
             print('init socket...')
 
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect((IP, PORT))
+                s.connect((ip, port))
                 s.settimeout(500)
             except socket.error as exc:
                 print('Caught exception socket.error: {0}'.format(exc))
@@ -368,16 +370,6 @@ if not MINIMUM_VIEWER:
     def run_element(deviceIdx):
         global DEVICES
 
-    #    global LAST_NUM_OF_DEVICES
-    #
-    #    if not DEVICES:
-    #        bottle.redirect('/location')
-    #
-    #    print(len(DEVICES))
-    #    # added and deleted elements need a full redraw
-    #    if len(DEVICES) != int(LAST_NUM_OF_DEVICES):
-    #        LAST_NUM_OF_DEVICES = len(DEVICES)
-    #        bottle.redirect('/location')
         try:
             device = DEVICES[int(deviceIdx)]
         except:

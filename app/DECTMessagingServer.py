@@ -29,9 +29,9 @@ from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
 # DB reuse and type
-odbc=False
-initdb=True
-msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=odbc, initdb=initdb)
+ODBC=False
+INITDB=True
+msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=ODBC, initdb=INITDB)
 
 #msgDb.delete_db()
 viewer_autonomous = True
@@ -39,7 +39,7 @@ KNX_ACTION = False
 
 
 m9bIPEI_description = {}
-# add/overwrite all M9B descrtiption names to the existing table        
+# add/overwrite all M9B descrtiption names to the existing table
 if msgDb:
     for key in m9bIPEI_description.keys():
         msgDb.record_gateway_db(beacon_gateway_IPEI=key, beacon_gateway_name=m9bIPEI_description[key])
@@ -54,7 +54,7 @@ class MSSeriesMessageHandler:
     The class handles:
     - process SMS from handsets
     - process sent alarms from the handset
-    - send alarms to the handset 
+    - send alarms to the handset
     - process Beacon information
 
     Returns:
@@ -128,7 +128,7 @@ class MSSeriesMessageHandler:
         'ALARM_NAMESPACE_PREFIX': {'x': namespace}
     }
 
-    def __init__(self, devices={}):
+    def __init__(self, devices=[]):
         # use standard UDP port on default
         self.m900_connection = ('127.0.0.1', 1300)
         self.devices = devices
@@ -166,7 +166,7 @@ class MSSeriesMessageHandler:
         self.PERSONDATA = E.persondata
         self.ADDRESS = E.address
 
-   
+
     '''
      Job:  <?xml version="1.0" encoding="UTF-8"?>
      <request version="20.3.18.2018" type="job">
@@ -206,7 +206,7 @@ class MSSeriesMessageHandler:
             senderaddress (string): M9B which received the beacon. e.g. <address type="IPEI">0328D7830E</address>
 
             personaddress (string): given Number/Name of the M9B generalSettings.alarmServerAddress. Not the name of the device sending the beacon!
-        """        
+        """
         # this is the sender of the beacon
         beacon_gateway = senderaddress
 
@@ -216,11 +216,11 @@ class MSSeriesMessageHandler:
         if messageuui.split(';',1)[0] == '!BT':
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
 
-            print("take only the first 2 characters form d_type", d_type)
+            logger.debug('take only the first 2 characters form d_type d_type:%s' % d_type)
             d_type = d_type[:2]
-            print("resulting d_type:", d_type)
+            logger.debug('resulting d_type:%s' % d_type)
         else:
-            print('not a BT message')
+            logger.warning('not a BT message')
             return False
 
         # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
@@ -247,17 +247,18 @@ class MSSeriesMessageHandler:
                 # alt beacon M9b TX have payload default e.g. 001122334455667788990011223344556677889000
                 # we use only the common part for all beacon types
                 if '1122334455667788990011223344' in uuid:
-                    print('device is a M9B in TX mode')
+                    logger.debug("device is a M9B in TX mode")
 
                 device_type_new = 'beacon'
                 # add a new bt_mac
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/beacon.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
-                print('added: beacon?M9B ', personaddress, bt_mac, ' ', uuid)
+                logger.debug("added: beacon?M9B %s %s %s" % (personaddress, bt_mac, uuid))
+
             # we have added a new device, now match it to process further
             matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
             if not matched_bt_mac:
-                print('FATAL: We have added a new device and cant match it.')
+                logger.error("FATAL: We have added a new device and cant match it.")
 
         # we found an already existing device
         else:
@@ -409,7 +410,7 @@ class MSSeriesMessageHandler:
         rfpi_s = rfpi_m = rfpi_w = rssi_s = rssi_m = rssi_w = "None"
         if len(rfpi) > 1:
             for idx, element in enumerate(rfpi):
-                print("rfpi=", element)
+                logger.debug('rfpi=' % element)
                 if idx==0:
                     rfpi_s = element
                 if idx==1:
@@ -418,12 +419,12 @@ class MSSeriesMessageHandler:
                     rfpi_w = element
         else:
             # we didnt get a list of bases
-            print("rfpi=", rfpi[0])
+            logger.debug('rfpi=' % rfpi[0])
             rfpi_s = rfpi[0]
 
         if len(rssi) > 1:
-             for idx, element in enumerate(rssi):
-                print("rssi=", element)
+            for idx, element in enumerate(rssi):
+                logger.debug('rssi=' % element)
                 if idx==0:
                     rssi_s = element
                 if idx==1:
@@ -431,7 +432,8 @@ class MSSeriesMessageHandler:
                 if idx==2:
                     rssi_w = element
         else:
-            print("rssi=", rssi[0])
+            logger.debug('rssi=' % rssi[0])
+
             rssi_s = rssi[0]
 
         return rfpi_s, rssi_s, rfpi_m, rssi_m, rfpi_w, rssi_w
@@ -444,7 +446,7 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             # we assume it exists
-            print('FATAL: couldnt find address and update image', login_address)
+            logger.error('FATAL: couldnt find address and update image' % login_address)
         else:
             matched_address['user_image'] = image
 
@@ -457,12 +459,13 @@ class MSSeriesMessageHandler:
 
         # add new device address or update
         if not matched_address:
-            print('FATAL??, alarm address of handset should always exist')
+            logger.error("FATAL??, alarm address of handset should always exist")
+
             current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
             # add a new bt_mac
             self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'beacon_gateway_name' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
 
-            print('added unexspected Beacon: ', login_address)
+            logger.error('added unexspected Beacon: %s' % login_address)
 
         else:
             matched_address['last_beacon'] = last_beacon
@@ -479,7 +482,7 @@ class MSSeriesMessageHandler:
     def update_login(self, device_type, login_name, login_address, login, base_location, ip_connection = None):
         #print('update_login:',device_type, login_name, login_address, login, base_location)
         # default is current connection
-        if ip_connection == None:
+        if ip_connection is None:
             ip_connection = self.m900_connection
 
         # Update device data
@@ -490,12 +493,12 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             # add a new device
-            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name, 
-                                'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 
-                                'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : 'None', 
-                                'user_image': '/images/depp.jpg', 'device_loggedin' : login, 
-                                'base_location': base_location, 'base_connection': ip_connection, 
-                                'last_beacon': 'None', 
+            self.devices.append({'device_type': device_type, 'bt_mac': 'None', 'name': login_name,
+                                'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None',
+                                'proximity': 'None', 'beacon_gateway' : 'None', 'beacon_gateway_name' : 'None',
+                                'user_image': '/images/depp.jpg', 'device_loggedin' : login,
+                                'base_location': base_location, 'base_connection': ip_connection,
+                                'last_beacon': 'None',
                                 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
 
             logger.debug("update_login: added: %s" % login_address)
@@ -537,7 +540,7 @@ class MSSeriesMessageHandler:
             ip_connection = self.m900_connection
             # get old base ip from db
             old_m900_connection = self.get_base_connection(address_txt)
-            if (old_m900_connection != self.m900_connection):
+            if old_m900_connection != self.m900_connection:
                 print('update base IP. DECT reg moved:', old_m900_connection, ip_connection)
 
             base_location = xml_root.xpath("//systemdata/name/text()")[0]
@@ -591,7 +594,7 @@ class MSSeriesMessageHandler:
 
 
     # test alarm
-    def request_alarm(self, account, alarm_txt, alarm_status):
+    def request_alarm(self, account, alarm_txt, alarm_status='0'):
         if int(alarm_status) == 10 or int(alarm_status) == 0:
             refnum = 100
         elif int(alarm_status) == 110 or int(alarm_status) == 100:
@@ -602,7 +605,7 @@ class MSSeriesMessageHandler:
                 alarm_status = '0'
             if int(alarm_status) == 110:
                 alarm_status = '10'
-        else: # randomm 
+        else: # randomm
             refnum = str(random.randint(100, 999))
             alarm_status = '0'
         print(f'corr:{alarm_status},{refnum}')
@@ -624,7 +627,7 @@ class MSSeriesMessageHandler:
                                               self.PRIORITY("2"),
                                               self.FLASH("0"),
                                               self.RINGS("2"),
-                                              #self.CONFIRMATIONTYPE("2"), # with confirmation 
+                                              #self.CONFIRMATIONTYPE("2"), # with confirmation
                                               self.CONFIRMATIONTYPE("0"), # without confirmation
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
@@ -884,7 +887,7 @@ class MSSeriesMessageHandler:
         if msgDb:
             msgDb.clear_old_m9b_device_status_db(timeout, target_timestamp)
         else:
-            logger.debug("clear_old_m9b_device_status: No DB, noting to do")
+            logger.warning("clear_old_m9b_device_status: No DB, nothing to do")
 
         return True
 
@@ -924,6 +927,7 @@ class MSSeriesMessageHandler:
 
         self.send_xml(final_doc)
 
+
     def get_base_connection(self, account):
         matched_device = next((item for item in self.devices if item['account'] == account), False)
         if matched_device:
@@ -944,9 +948,7 @@ class MSSeriesMessageHandler:
         for element in data:
             if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
                 # request goes directly to any Mx00 base, we need to enquire for one..
-                #self.m900_connection = ('10.110.30.109', 1300)
                 self.m900_connection = self.get_base_connection(element['account'])
-                #print('set connect', self.get_base_connection(element['account']))
                 # mark the handset and send
                 matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
                 if matched_account:
@@ -969,7 +971,6 @@ class MSSeriesMessageHandler:
 
                 # request goes directly to any Mx00 base, we need to enquire for one..
                 self.m900_connection = self.get_base_connection(element['account'])
-                #print('set connect', self.get_base_connection(element['account']))
                 # mark the handset and send
                 matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
                 if matched_account:
@@ -983,8 +984,8 @@ class MSSeriesMessageHandler:
         - DECTMessagingViewer - changed btmacs
 
         Returns:
-            devices [DICT]: Synchronised devices dict 
-        """        
+            devices [DICT]: Synchronised devices dict
+        """
         if msgDb:
             # sync btmacs first
             record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
@@ -1004,7 +1005,8 @@ class MSSeriesMessageHandler:
                     # send btmacs updated data back to viewer.
                     _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
                 except requests.exceptions.Timeout as errt:
-                    print ("Timeout Error location:",errt)
+                    logger.warning("Timeout Error location:%s" % errt)
+
 
                 return success
             else:
@@ -1019,7 +1021,7 @@ class MSSeriesMessageHandler:
             # enumerate cannot work..
             try:
                 response = requests.get('http://127.0.0.1:8081/en_US/devicessync', timeout=3)
-                if (response):
+                if response:
                     json_data = json.loads(response.text)
                     if json_data is not None:
                         #print(json_data)
@@ -1099,7 +1101,7 @@ class MSSeriesMessageHandler:
 
         Returns:
             XML message: XML response/request described in the protocol specification. Updates the devices dict / DB.
-        """        
+        """
 #        print('################################################')
 #        print(data)
 #        print('################################################')
@@ -1437,7 +1439,7 @@ class MSSeriesMessageHandler:
                     self.response_beacon(self.externalid, status, statusinfo)
 
                 else:
-                    logger.debug('FATAL, we expected beacondata %s' % data)
+                    logger.error('FATAL, we expected beacondata %s' % data)
 
                 # alarm is impotant, we update the viewer
                 self.send_to_location_viewer()
@@ -1500,10 +1502,11 @@ class MSSeriesMessageHandler:
             print('unknown request RECEIVED')
             print(ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode"))
 
+
 # gevent greenlet queue
 def worker():
     while True:
-        gevent.sleep(5.0)
+        gevent.sleep(0.0)
         xmldata = q.get()
         try:
             amsg.msg_process(xmldata)
@@ -1512,46 +1515,50 @@ def worker():
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger('SnomMMessagingService')
+    logger = logging.getLogger('DMServer')
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(message)s')
+    formatter = logging.Formatter('%(asctime)s  %(name)s  %(levelname)s: %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    
+
     ############################
     # get the device list data #
     ############################
 
-    if msgDb and not initdb:
+    if msgDb and not INITDB:
         # read device list from DB
-        devices = msgDb.read_devices_db()
+        my_devices = msgDb.read_devices_db()
 
     else:
         # import device list from file
         try:
             from DeviceData import predefined_devices
-            devices = predefined_devices
-            logger.debug('devices imported: %s' % devices)
+            my_devices = predefined_devices
+            logger.debug('devices imported: %s' % my_devices)
 
         except:
-            devices = []
+            my_devices = []
             logger.debug('no devices found to import')
 
     # initiate message handler
-    # assume KNX is on same host 
+    # assume KNX is on same host
     host_name = socket.gethostbyname(socket.gethostname())
     KNX_URL = f'http://{host_name}:1234'
     #KNX_URL = 'http://10.110.16.66:1234'
     KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL)
 
+    # add dummy devices for load testing
+    for i in range(0):
+        my_devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i,
+                        'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None',
+                        'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1",
+                        'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711),
+                        'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
 
     # initiate message handler
-    amsg = MSSeriesMessageHandler(devices)
+    amsg = MSSeriesMessageHandler(my_devices)
     print(amsg.devices)
-
-    for i in range(0):
-        devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': "name_%s" % i, 'account': "account_%s" % i, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': "1", 'beacon_gateway' : 'None', 'beacon_gateway_name' : '', 'user_image': '/images/depp.jpg', 'device_loggedin' : "1", 'base_location': "no clue", 'last_beacon': "None", 'base_connection': ('127.0.0.1', 4711), 'time_stamp': '2020-04-01 00:00:01.100000', 'tag_time_stamp': '2020-04-01 00:00:01.100000'} )
 
     #######
     #######
@@ -1642,4 +1649,4 @@ if __name__ == "__main__":
                 logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
                 rc = mqttc.connect_and_subscribe()
         except:
-            logger.debug("main: Message could not be understoood or unexpected error %s" % data)
+            logger.warning("main: Message could not be understoood or unexpected error %s" % data)
