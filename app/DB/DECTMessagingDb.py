@@ -110,6 +110,7 @@ class DECTMessagingDb:
         # keep the connection
         #conn.close()
 
+
     '''
         account        text,
         device_type     text default "None",
@@ -218,6 +219,7 @@ class DECTMessagingDb:
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
+                    cur.close()
 
                 else:
                     # get old rows to be deleted
@@ -252,11 +254,13 @@ class DECTMessagingDb:
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
+                    cur.close()
                     # conn.close()
 
                 return True
         else:
             print('record_alarm_db: Connection does not exist, do nothing')
+
 
     '''
         Beacons are stored in a queue - FILO, the queue is limited to
@@ -296,6 +300,7 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur = conn.execute("UPDATE Beacons SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=Beacons.beacon_gateway) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=Beacons.beacon_gateway);")
                 conn.commit()
+                cur.close()
                 '''
                        2. remove oldest rows
                 '''
@@ -310,6 +315,7 @@ class DECTMessagingDb:
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
+                    cur.close()
 
                 else:
                     # get old rows to be deleted
@@ -344,6 +350,7 @@ class DECTMessagingDb:
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
+                    cur.close()
                     # conn.close()
 
                 return True
@@ -382,13 +389,14 @@ class DECTMessagingDb:
                 '''
                 self.update_db(table="m9bdevicestatus", **kwargs)
                 # add beacon_gateway_name when existing
-                _cur = conn.cursor()
-                _cur = conn.execute("UPDATE m9bdevicestatus SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI);")
+                cur = conn.cursor()
+                cur.execute("UPDATE m9bdevicestatus SET beacon_gateway_name=(SELECT beacon_gateway_name FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI) WHERE EXISTS (SELECT * FROM m9bIPEI WHERE beacon_gateway_IPEI=m9bdevicestatus.beacon_gateway_IPEI);")
                 conn.commit()
-
+                cur.close()
                 return True
         else:
             print('record_m9b_device_status_db: Connection does not exist, do nothing')
+
 
     def clear_old_m9b_device_status_db(self, timeout, target_timestamp):
         connection = self.connection
@@ -402,6 +410,7 @@ class DECTMessagingDb:
                 '''
                 cur.execute("DELETE FROM m9bdevicestatus where strftime('%s', time_stamp) < strftime('%s', '{}')".format(target_timestamp))
                 conn.commit()
+                cur.close()
                 # conn.close()
                 return True
         else:
@@ -577,6 +586,7 @@ class DECTMessagingDb:
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
+                cur.close()
                 # conn.close()
                 return True
         else:
