@@ -39,12 +39,12 @@ class DECT_KNX_gateway_connector:
     Returns:
         OK: in case it could be fired.
     """
-    def __init__(self, knx_url='http://192.168.178.22:1234', maxsize=5):
+    def __init__(self, knx_url='http://192.168.178.22:1234', maxsize=5, loglevel=logging.DEBUG):
         global ACTION_URLS
 
         # logging
         self.logger = logging.getLogger('DECT_KNX_Gateway')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(loglevel)
         ch = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s  %(name)s  %(levelname)s: %(message)s')
         ch.setFormatter(formatter)
@@ -59,7 +59,7 @@ class DECT_KNX_gateway_connector:
         self.action_urls = ACTION_URLS
 
     def update_actions(self, list_of_actions):
-        """Adds or updates a list of actions of the fornm 
+        """Adds or updates a list of actions of the fornm
         [ {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'},
             ...
           {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'}
@@ -79,10 +79,10 @@ class DECT_KNX_gateway_connector:
                 finally:
                     ACTION_URLS.append(action)
                     self.logger.debug('update_actions: add action=%s', action)
-        else: 
+        else:
             self.logger.warning('update_actions: empty list of actions - do nothing!')
-            
-        
+
+
     # KNX Gateway actions get queued and worked on as greenlets
     def fire_KNX_action(self, device_bt_mac, gateway, trigger):
         """Fires an action URL to the KNX Gateway, if
@@ -146,7 +146,7 @@ class DECT_KNX_gateway_connector:
                                 if item['m9b_IPEI'] == gateway and item['device_bt_mac'] == device_bt_mac and item['proximity'] == trigger
                              ), False)
         self.logger.info(f'match in list of actionURLS: {matched_bt_mac}')
-                     
+
         if not matched_bt_mac:
             self.logger.warning(f'No match in list of actionURLS for { device_bt_mac}, {gateway}, {trigger}')
             return False
@@ -170,7 +170,7 @@ class DECT_KNX_gateway_connector:
         return True
 
 if __name__ == "__main__":
-    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5)
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.WARNING)
 
     for p in range(5):
         w = random.randint(1,10)
