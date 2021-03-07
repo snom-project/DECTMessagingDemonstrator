@@ -174,7 +174,7 @@ def table():
     global DEVICES
 
     # the data will be locally accesed, we need to know our server host
-    current_host = bottle.request.get_header('host')
+    current_host = request.get_header('host')
     print(current_host)
 
     return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), host=current_host)
@@ -271,13 +271,13 @@ if not MINIMUM_VIEWER:
     def btmactable():
         global DEVICES
 
-        if bottle.request.method == 'POST':
+        if request.method == 'POST':
             # update all bt_macs.
-            if len(bottle.request.forms) > 0:
-                for idx, btmac in enumerate(bottle.request.forms):
+            if len(request.forms) > 0:
+                for idx, btmac in enumerate(request.forms):
                     #print(btmac)
                     #print(idx, bottle.request.forms.get(btmac), btmac)
-                    DEVICES[idx]['bt_mac'] = bottle.request.forms.get(btmac)
+                    DEVICES[idx]['bt_mac'] = request.forms.get(btmac)
                     # save directly in DB
                     # db is changed but not the memory data from Server!?
                     if msgDb:
@@ -295,7 +295,7 @@ if not MINIMUM_VIEWER:
         """
         global DEVICES
 
-        if bottle.request.method == 'POST':
+        if request.method == 'POST':
             ip = '127.0.0.1'
             port = 10300
 
@@ -332,7 +332,7 @@ if not MINIMUM_VIEWER:
     def alarm():
         global DEVICES
 
-        if bottle.request.method == 'POST':
+        if request.method == 'POST':
             ip = '127.0.0.1'
             port = 10300
 
@@ -372,7 +372,7 @@ if not MINIMUM_VIEWER:
 
         try:
             device = DEVICES[int(deviceIdx)]
-        except:
+        except IndexError:
             #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
             return ""
         #print('vorher:', datetime.datetime.today())

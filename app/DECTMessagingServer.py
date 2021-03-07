@@ -30,19 +30,12 @@ from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
 # DB reuse and type
 ODBC=False
-INITDB=True
-msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=ODBC, initdb=INITDB)
+INITDB=False
+msgDb = DECTMessagingDb(beacon_queue_size=3, odbc=ODBC, initdb=INITDB)
 
 #msgDb.delete_db()
 viewer_autonomous = True
 KNX_ACTION = False
-
-
-m9bIPEI_description = {}
-# add/overwrite all M9B descrtiption names to the existing table
-if msgDb:
-    for key in m9bIPEI_description.keys():
-        msgDb.record_gateway_db(beacon_gateway_IPEI=key, beacon_gateway_name=m9bIPEI_description[key])
 
 
 class MSSeriesMessageHandler:
@@ -167,6 +160,31 @@ class MSSeriesMessageHandler:
         self.ADDRESS = E.address
 
 
+    def is_TAG(self, beacon_type, uui):
+        """Check if uuid is a TAG
+           Altbeacon, example DFE707D0-- (2-C3A11B2) --951700087B1B39E10000000073
+           2 = TAG
+           C3A11B2=YYWWSSSSSS when converted in decimal
+
+        Args:
+            beacon_type (string): a=AltBeacon, i=iBeacon, e=EddyStone
+            uui (string): uuid payload for beacon_type
+
+        Returns:
+            [boolean]: True, if TAG is detected
+        """
+        if beacon_type == "a":
+            if uui[8] == '2':
+                logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
+                return True
+        if beacon_type == "i":
+            if uui[8] == '2':
+                logger.error('iBeacon: uui=%s, not sure if this is correct', uui)
+                return True
+        # else
+        return False
+
+
     '''
      Job:  <?xml version="1.0" encoding="UTF-8"?>
      <request version="20.3.18.2018" type="job">
@@ -211,21 +229,17 @@ class MSSeriesMessageHandler:
         beacon_gateway = senderaddress
 
         #print('update_beacon')
-        logger.debug('messageuui from %s:%s' % (beacon_gateway, messageuui))
+        logger.debug('messageuui from %s:%s', beacon_gateway, messageuui)
 
         if messageuui.split(';',1)[0] == '!BT':
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
-
-            logger.debug('take only the first 2 characters form d_type d_type:%s' % d_type)
-            d_type = d_type[:2]
-            logger.debug('resulting d_type:%s' % d_type)
         else:
             logger.warning('not a BT message')
             return False
 
         # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
         if proximity != '0' and int(rssi) < -100:
-            logger.info("update_beacon: disregarding Beacon Info with rssi=%s" % rssi)
+            logger.info("update_beacon: disregarding Beacon Info with rssi=%s", rssi)
             return False
 
         # Update device data
@@ -237,12 +251,10 @@ class MSSeriesMessageHandler:
         # we found a new device
 
             # we see the device_type in the BT message
-            if d_type == "-4" and '1122334455667788990011223344' not in uuid:
+            if self.is_TAG(beacon_type, uuid):
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
-
-                logger.debug("update_beacon: added Tag %s %s" % (bt_mac, uuid))
-
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
+                logger.debug("update_beacon: added Tag %s %s", bt_mac, uuid)
             else:
                 # alt beacon M9b TX have payload default e.g. 001122334455667788990011223344556677889000
                 # we use only the common part for all beacon types
@@ -253,7 +265,7 @@ class MSSeriesMessageHandler:
                 # add a new bt_mac
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/beacon.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
-                logger.debug("added: beacon?M9B %s %s %s" % (personaddress, bt_mac, uuid))
+                logger.debug("added: beacon?M9B %s %s %s", personaddress, bt_mac, uuid)
 
             # we have added a new device, now match it to process further
             matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
@@ -263,7 +275,7 @@ class MSSeriesMessageHandler:
         # we found an already existing device
         else:
             # we see the device_type in the BT message
-            if d_type == "-4":
+            if self.is_TAG(beacon_type, uuid):
                 matched_bt_mac['device_type'] = 'BTLETag'
             else:
                 matched_bt_mac['device_type'] = 'handset'
@@ -281,9 +293,11 @@ class MSSeriesMessageHandler:
 
             # check if address has changed. In this case do not Overwrite with Outside on old location
             #print('################', matched_bt_mac['beacon_gateway'], beacon_gateway, proximity)
-            if (matched_bt_mac['beacon_gateway'] != beacon_gateway) and  proximity == '0':
+            if (matched_bt_mac['beacon_gateway'] != beacon_gateway) and  proximity == '0' and False:
                 # we have a new address already, this message is leave message from an old address
                 # do nothing
+                # IN CASE THE DEVICE IS STILL INSIDE IN ANOTHER M9B
+                # THIS IS DISABLED: WE CANNOT GET ALL LEAVE MESSAGE BEACONS RECORDED.
                 # we do not overide the device info but instead make sure we record the 0 Beacon
                 # in the database by using proximity and gateway directly.
                 print('%%%%%%%%%%%%%old leave message, ignore', matched_bt_mac)
@@ -295,6 +309,7 @@ class MSSeriesMessageHandler:
                 matched_bt_mac['beacon_gateway'] = beacon_gateway
                 #print('update:', matched_bt_mac)
 
+            # !!!TAG will toggle wildy for a while.!!!
             # fire action on beacon proximity
             if KNX_ACTION:
                 KNX_gateway.fire_KNX_action(matched_bt_mac['bt_mac'], beacon_gateway, proximity)
@@ -302,7 +317,10 @@ class MSSeriesMessageHandler:
             # Tags have their own state.
             if matched_bt_mac['device_type'] == 'BTLETag':
                 # udpdate newly beacon and all Tags timstamps and states
-                self.update_tags(matched_bt_mac)
+                # TAGs switch beetween 0 and 1 for some time. Here, we detected a moving TAG already.
+                matched_bt_mac['proximity'] = 'moving'
+                self.update_tag_and_m9bs(matched_bt_mac)
+
                 # Tags keep sending bursts and a final before they stop. We do not count the bursts
                 # instead we assume that after the last burst in the next 30s nothing will come.
                 # The Tag rests
@@ -341,9 +359,9 @@ class MSSeriesMessageHandler:
                                    rssi=matched_bt_mac["rssi"],
                                    uuid=matched_bt_mac["uuid"],
                                    beacon_type=matched_bt_mac["beacon_type"],
-                                   proximity=proximity,
+                                   proximity=matched_bt_mac["proximity"],
                                    beacon_gateway=beacon_gateway,
-                                   beacon_gateway_name=beacon_gateway_name,
+                                   beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
                                    time_stamp=matched_bt_mac["time_stamp"]
                                    )
             msgDb.record_m9b_device_status_db(account=matched_bt_mac["account"],
@@ -351,17 +369,21 @@ class MSSeriesMessageHandler:
                        rssi=matched_bt_mac["rssi"],
                        uuid=matched_bt_mac["uuid"],
                        beacon_type=matched_bt_mac["beacon_type"],
-                       proximity=proximity,
+                       proximity=matched_bt_mac["proximity"],
                        beacon_gateway_IPEI=beacon_gateway,
-                       beacon_gateway_name=beacon_gateway_name,
+                       beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
                        time_stamp=matched_bt_mac["time_stamp"]
                        )
         return True
 
 
     def update_all_tags(self):
-        current_timestamp = datetime.datetime.now()
+        """Scheduled function processes all TAGs and changes non-active to holding.
 
+        Returns:
+            [job]: schedule.CancelJob
+        """
+        current_timestamp = datetime.datetime.now()
         # update all moving devices in holding_still
         for d in self.devices:
             if d['device_type'] == 'BTLETag':
@@ -371,19 +393,38 @@ class MSSeriesMessageHandler:
                 #print(d, 'delta', delta)
                 if delta.total_seconds() > 20 and current_state == 'moving':
                     d['name'] = 'holding_still'
-                    if d['proximity'] == '1':
-                        d['proximity'] = 'holding'
+                    # special holding state, since TAG switches beetween 0 and 1 for some time.
+                    d['proximity'] = 'holding'
                     d['tag_time_stamp'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
                     #print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
                     mqttc.publish_beacon(d["bt_mac"], "", "", "", d["proximity"], -0, d["name"], d["beacon_gateway"])
+                    # Update the m9b tag status from moving for all gateways
+                    msgDb.update_m9b_tag_status_db(bt_mac=d["bt_mac"], proximity=d["proximity"])
+                    # !!! update the beacon status from moving for all affected entries? bt_mac !!!
 
 
         # the job has been called via schedule and needs to run only once.
         return schedule.CancelJob
 
 
-    def update_tags(self, tag_device):
+    def update_tag_and_m9bs(self, tag_device):
+        """Current device proximity will be changed into moving,
+        clear_old_m9b_tag_status_db removes current TAG from all gateways,
+        when TAG is older than 30s.
+        Otherwise in-active TAGs stay forever within the gateway proximity.
+
+        Args:
+            tag_device (device DICT): current device
+
+        Returns:
+            [boolean]: True
+        """
         #print(tag_device)
+        bt_mac = tag_device["bt_mac"]
+        # clear all older M9Bs holding this TAG, only leave the newest ones
+        current_timestamp = datetime.datetime.now()
+        target_timestamp = current_timestamp - datetime.timedelta(seconds=30)
+        msgDb.clear_old_m9b_tag_status_db(bt_mac, target_timestamp)
 
         # get current state and timestamp
         current_state = tag_device['name']
@@ -398,19 +439,19 @@ class MSSeriesMessageHandler:
 
         if delta.total_seconds() > 20 and current_state != 'moving':
             tag_device['name'] = 'moving'
-            tag_device['proximity'] = '1'
+            tag_device['proximity'] = 'moving'
         if delta.total_seconds() <= 20:
             tag_device['name'] = 'moving'
-            tag_device['proximity'] = '1'
+            tag_device['proximity'] = 'moving'
 
         return True
 
 
-    def update_rssi(self, name, address, rfpi, rssi):
+    def update_rssi(self, _name, _address, rfpi, rssi):
         rfpi_s = rfpi_m = rfpi_w = rssi_s = rssi_m = rssi_w = "None"
         if len(rfpi) > 1:
             for idx, element in enumerate(rfpi):
-                logger.debug('rfpi=' % element)
+                logger.debug('rfpi=%s', element)
                 if idx==0:
                     rfpi_s = element
                 if idx==1:
@@ -419,12 +460,12 @@ class MSSeriesMessageHandler:
                     rfpi_w = element
         else:
             # we didnt get a list of bases
-            logger.debug('rfpi=' % rfpi[0])
+            logger.debug('rfpi=%s', rfpi[0])
             rfpi_s = rfpi[0]
 
         if len(rssi) > 1:
             for idx, element in enumerate(rssi):
-                logger.debug('rssi=' % element)
+                logger.debug('rssi=%s', element)
                 if idx==0:
                     rssi_s = element
                 if idx==1:
@@ -432,7 +473,7 @@ class MSSeriesMessageHandler:
                 if idx==2:
                     rssi_w = element
         else:
-            logger.debug('rssi=' % rssi[0])
+            logger.debug('rssi=%s', rssi[0])
 
             rssi_s = rssi[0]
 
@@ -446,7 +487,7 @@ class MSSeriesMessageHandler:
         # add new device address or update
         if not matched_address:
             # we assume it exists
-            logger.error('FATAL: couldnt find address and update image' % login_address)
+            logger.error('FATAL: couldnt find address and update image %s', login_address)
         else:
             matched_address['user_image'] = image
 
@@ -465,7 +506,7 @@ class MSSeriesMessageHandler:
             # add a new bt_mac
             self.devices.append({'device_type': 'None', 'bt_mac': 'None', 'name': login_name, 'account': login_address, 'rssi': '-100', 'uuid': '', 'beacon_type': 'None', 'proximity': eventtype, 'beacon_gateway' : 'Unexpected', 'beacon_gateway_name' : 'Unexpected', 'user_image': '/images/depp.jpg', 'device_loggedin' : '1', 'base_location': base_location, 'last_beacon': last_beacon, 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
 
-            logger.error('added unexspected Beacon: %s' % login_address)
+            logger.error('added unexspected Beacon: %s', login_address)
 
         else:
             matched_address['last_beacon'] = last_beacon
@@ -501,7 +542,7 @@ class MSSeriesMessageHandler:
                                 'last_beacon': 'None',
                                 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime})
 
-            logger.debug("update_login: added: %s" % login_address)
+            logger.debug("update_login: added: %s", login_address)
         else:
             # update potentially changed fields
             matched_address['device_loggedin'] = login
@@ -648,7 +689,7 @@ class MSSeriesMessageHandler:
         self.send_xml(final_doc)
 
     # beacon: MS confirm response to FP:
-    def response_beacon(self, externalid, status, statusinfo):
+    def response_beacon(self, externalid, _status, _statusinfo):
         final_doc = self.RESPONSE(
                                   self.EXTERNALID(externalid),
                                   self.STATUS("1"),
@@ -814,7 +855,7 @@ class MSSeriesMessageHandler:
 
 
     # alarm: MS confirm response to FP:
-    def response_alarm(self, externalid, status, statusinfo):
+    def response_alarm(self, externalid, _status, _statusinfo):
         final_doc = self.RESPONSE(
                                   self.EXTERNALID(externalid),
                                   self.STATUS("1"),
@@ -852,7 +893,7 @@ class MSSeriesMessageHandler:
         self.response_systeminfo(externalid, status, statusinfo)
 
     def clear_old_devices(self, timeout=70):
-        logger.debug("clear_old_devices: running with timeout=%s" % (timeout))
+        logger.debug("clear_old_devices: running with timeout=%s", timeout)
 
         current_timestamp = datetime.datetime.now()
         # remove all devices older than 60min
@@ -876,7 +917,7 @@ class MSSeriesMessageHandler:
         return True
 
     def clear_old_m9b_device_status(self, timeout=70):
-        logger.debug("clear_old_m9b_device_status: running with timeout=%s" % (timeout))
+        logger.debug("clear_old_m9b_device_status: running with timeout=%s", timeout)
 
         # database has its own time non UTC or else
         # we use our server time instead
@@ -893,7 +934,7 @@ class MSSeriesMessageHandler:
 
 
     # login: MS confirm response to FP:
-    def response_login(self, externalid, status, statusinfo):
+    def response_login(self, externalid, _status, _statusinfo):
         final_doc = self.RESPONSE(
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
@@ -911,7 +952,7 @@ class MSSeriesMessageHandler:
 
 
     # systeminfo: MS confirm response to FP:
-    def response_systeminfo(self, externalid, status, statusinfo):
+    def response_systeminfo(self, externalid, _status, statusinfo):
         final_doc = self.RESPONSE(
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
@@ -995,7 +1036,7 @@ class MSSeriesMessageHandler:
                     matched_account = next((localitem for localitem in self.devices if localitem['account'] == elem['account']), False)
                     matched_account['bt_mac'] = elem['bt_mac']
                 except:
-                    logger.debug("account for updated bt_mac from db not existing: a:%s,%s" % (elem['account'], elem['bt_mac']))
+                    logger.debug("account for updated bt_mac from db not existing: a:%s,%s", elem['account'], elem['bt_mac'])
 
             # autonomous viewer does not need to sync data back or get triggered
             if not viewer_autonomous:
@@ -1005,7 +1046,7 @@ class MSSeriesMessageHandler:
                     # send btmacs updated data back to viewer.
                     _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
                 except requests.exceptions.Timeout as errt:
-                    logger.warning("Timeout Error location:%s" % errt)
+                    logger.warning("Timeout Error location:%s", errt)
 
 
                 return success
@@ -1533,10 +1574,14 @@ if __name__ == "__main__":
     else:
         # import device list from file
         try:
-            from DeviceData import predefined_devices
+            from DeviceData import predefined_devices, m9bIPEI_description
             my_devices = predefined_devices
             logger.debug('devices imported: %s' % my_devices)
 
+            # add/overwrite all M9B descrtiption names to the existing table
+            if msgDb:
+                for key in m9bIPEI_description.keys():
+                    msgDb.record_gateway_db(beacon_gateway_IPEI=key, beacon_gateway_name=m9bIPEI_description[key])
         except:
             my_devices = []
             logger.debug('no devices found to import')
@@ -1608,7 +1653,7 @@ if __name__ == "__main__":
     logger.debug("main: schedule.every(1).minutes.do(amsg.clear_old_devices(3600))")
     #schedule.every(1).minutes.do(amsg.clear_old_devices, 60)
     logger.debug("main: schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status(360))")
-    #schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status, 350)
+    schedule.every(6).minutes.do(amsg.clear_old_m9b_device_status, 350)
 
 
     # MQTT Interface / False to disable temporarily..

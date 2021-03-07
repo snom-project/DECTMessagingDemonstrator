@@ -1,13 +1,9 @@
 import logging
 
-from lxml import etree as ET
-import lxml.builder
-from copy import deepcopy
-
 import os
 import sqlite3
-import pyodbc
 import time
+import pyodbc
 
 class DECTMessagingDb:
 
@@ -285,6 +281,10 @@ class DECTMessagingDb:
             bt_mac_key = kwargs.get("bt_mac")
         else:
             return False
+        if kwargs.get("beacon_gateway"):
+            beacon_gateway_key = kwargs.get("beacon_gateway")
+        else:
+            return False
         #print(kwargs)
 
         #connection = sqlite3.connect(self.db_filename)
@@ -307,8 +307,7 @@ class DECTMessagingDb:
                 sql = list()
 
                 if self.sqlite:
-                    sql.append("DELETE FROM Beacons WHERE ROWID IN (SELECT ROWID FROM Beacons WHERE bt_mac='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (bt_mac_key, self.beacon_queue_size))
-                    #sql.append("DELETE FROM Beacons WHERE server_time_stamp IN (SELECT server_time_stamp FROM Beacons GROUP BY `bt_mac` HAVING COUNT(`bt_mac`) > %s);" % self.beacon_queue_size)
+                    sql.append("DELETE FROM Beacons WHERE ROWID IN (SELECT ROWID FROM Beacons WHERE bt_mac='%s' AND beacon_gateway='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (bt_mac_key, beacon_gateway_key, self.beacon_queue_size))
                     sql = "".join(sql)
                     #print(sql)
 
@@ -398,7 +397,44 @@ class DECTMessagingDb:
             print('record_m9b_device_status_db: Connection does not exist, do nothing')
 
 
-    def clear_old_m9b_device_status_db(self, timeout, target_timestamp):
+    def update_m9b_tag_status_db(self, bt_mac, proximity):
+        # bt_mac is our beacon key     
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # update all gateways holding TAG bt_mac
+                cur = conn.cursor()
+                cur.execute("UPDATE m9bdevicestatus SET proximity='%s' WHERE bt_mac='%s';" % (proximity, bt_mac))
+                conn.commit()
+                cur.close()
+                return True
+        else:
+            print('update_m9b_tag_status_db: Connection does not exist, do nothing')
+
+
+    def clear_old_m9b_tag_status_db(self, bt_mac, target_timestamp):
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # format needed to convert to dict
+                #conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                '''   mysql
+                "DELETE FROM m9bdevicestatus WHERE time_stamp  < STR_TO_DATE({},'%Y-%m-%d %H:%M:%S.%f') ".format(target_timestamp))
+                '''
+                cur.execute("DELETE FROM m9bdevicestatus where bt_mac = '{}' AND strftime('%s', time_stamp) < strftime('%s', '{}')".format(bt_mac, target_timestamp))
+                conn.commit()
+                cur.close()
+                # conn.close()
+                return True
+        else:
+            print('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
+            return []
+
+
+    def clear_old_m9b_device_status_db(self, _timeout, target_timestamp):
         connection = self.connection
         if connection:
             with connection as conn:
@@ -414,7 +450,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return True
         else:
-            print('delete_db: Connection does not exist, do nothing')
+            print('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
             return []
 
 
@@ -442,13 +478,13 @@ class DECTMessagingDb:
 
 
     def read_m9b_device_status_2_db(self):
-        """Funtion returns Devices.account, Devices.base_connection to re-use to send SMS or alarms to the right base and status information, like
-        m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, 
+        """Function returns Devices.account, Devices.base_connection to re-use to send SMS or alarms to the right base and status information, like
+        m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity,
         m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name.
-        
+
         Returns:
-            [List of dict]: DB result composed 
-        """        
+            [List of dict]: DB result composed
+        """
         connection = self.connection
         if connection:
             with connection as conn:
@@ -458,7 +494,7 @@ class DECTMessagingDb:
                 '''   mysql
 
                 '''
-                cur.execute("SELECT Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac WHERE m9bdevicestatus.proximity != '0'")
+                cur.execute("SELECT Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac WHERE m9bdevicestatus.proximity != '0'")                
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
 
@@ -502,7 +538,7 @@ class DECTMessagingDb:
                 cur.close()
                 # conn.close()
         else:
-            print('record_gateway: Connection does not exist, do nothing')
+            print('record_gateway_db: Connection does not exist, do nothing')
 
 
     def read_gateway_db(self, table="m9bIPEI", order_by=None, **kwargs):
@@ -553,7 +589,7 @@ class DECTMessagingDb:
 
     def delete_db(self, table="Devices", **kwargs):
         # we take any given when condition
-        if len(kwargs):
+        if len(kwargs) > 0:
             # delete selected rows
             #print(kwargs)
             """ DELETE FROM Devices Where ??
@@ -734,7 +770,7 @@ class DECTMessagingDb:
 
                 return result
         else:
-            print('read_db: Connection does not exist, do nothing')
+            print('read_devices_db: Connection does not exist, do nothing')
             return []
 
 
@@ -810,6 +846,3 @@ if __name__ == "__main__":
     # add and reduce from 4 to 3 entries
     time.sleep(1.2)
     msgDb.record_beacon_db(account="test_beacon", bt_mac="123456789A", beacon_gateway="FFFFF00003")
-
-
-

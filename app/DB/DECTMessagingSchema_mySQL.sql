@@ -40,6 +40,7 @@ create table Beacons  (
 create table m9bIPEI (
     beacon_gateway_IPEI    VARCHAR(255) default "FFFFFFFFFF",
     beacon_gateway_name    VARCHAR(255) default "",
+    max_allowed_devices    SMALLINT default 100,
     UNIQUE(beacon_gateway_IPEI)
 );
 
