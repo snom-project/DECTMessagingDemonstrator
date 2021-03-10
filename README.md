@@ -20,6 +20,10 @@ sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 sn
 
 In case your are not using docker:
 make sure you install all packages requested in docker.
+A script to install all the necessary packages you can run in your python environment.
+
+source install_packages.sh
+
 
 1. start the viewer in app directory:
 
