@@ -257,8 +257,9 @@ class MSSeriesMessageHandler:
                 logger.debug("update_beacon: added Tag %s %s", bt_mac, uuid)
             else:
                 # alt beacon M9b TX have payload default e.g. 001122334455667788990011223344556677889000
+                # default 000102030405060708090A0B0C0D0E0F1011121300
                 # we use only the common part for all beacon types
-                if '1122334455667788990011223344' in uuid:
+                if '1122334455667788990011223344' in uuid or '000102030405060708090A0B0C0' in uuid :
                     logger.debug("device is a M9B in TX mode")
 
                 device_type_new = 'beacon'
@@ -280,9 +281,8 @@ class MSSeriesMessageHandler:
             else:
                 matched_bt_mac['device_type'] = 'handset'
             # M9B in TX mode
-            if '1122334455667788990011223344' in uuid:
+            if '1122334455667788990011223344' in uuid  or '000102030405060708090A0B0C0' in uuid:
                 matched_bt_mac['device_type'] = 'beacon'
-
 
 #            print('old   :', matched_bt_mac)
             matched_bt_mac['uuid'] = uuid

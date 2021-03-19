@@ -180,8 +180,8 @@ def table():
     return bottle.jinja2_template('m9bstatustable', title=_("M9B Device Location Status"), host=current_host)
 
 @route('/count', no_i18n = True)
-def table():
-    print('tabulator')
+def count():
+    print('count')
     global DEVICES
 
     # the data will be locally accesed, we need to know our server host

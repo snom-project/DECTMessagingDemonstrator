@@ -36,8 +36,8 @@ class snomRoomCapacityClient():
         if msgDb:
 
             result = msgDb.read_m9b_device_status_2_db()
-            #print(result)
-
+            max_room_counts = msgDb.read_gateway_db(beacon_gateway_IPEI='', max_allowed_devices='')
+            print(result)
             #[{'account': '000413B50038', 'bt_mac': '000413B50038',
             #'rssi': '-53', 'uuid': 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF90FF',
             #'beacon_type': 'a', 'proximity': '3',
@@ -49,15 +49,11 @@ class snomRoomCapacityClient():
             #print(m9bs)
 
             for m9b in m9bs:
-                # publish config
-                #mqttc.publish_beacon_full_config_ha(btmac.lower(), "M90", "001122334455", "d_type", "0", "-99", "000413444444", "beacon_gateway")
-
                 # get btmac data for m9b
                 selected_items = [{k:d[k] for k in d if k!="a"} for d in result if d.get("beacon_gateway_IPEI") == m9b]
                 logger.debug("%s devices seen by M9B=%s (%s)", len(selected_items), m9b, selected_items[0]["beacon_gateway_name"])
-                # create list of visible m9bs
-                #gateway_list = []
-                if len(selected_items) > 2:
+                
+                if len(selected_items) > selected_items[0]['max_allowed_devices']:
                     logger.info("check_rooms_capacity: capacity of %s exceeded.", selected_items[0]["beacon_gateway_IPEI"])
 
                     for elem in selected_items:
