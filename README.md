@@ -20,16 +20,24 @@ sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 sn
 
 In case your are not using docker:
 make sure you install all packages requested in docker.
+A script to install all the necessary packages you can run in your python environment.
 
-1. start the viewer in app directory
+source install_packages.sh
+
+
+1. start the viewer in app directory:
+
 python DECTMessagingViewer.py 
 
 DECTMessagingViewer listens on port 8081 on localhost 
+
 check if Viewer is running
+
 http://localhost:8081/
 
 
 2. start the messaging server in app directory
+
 python DECTMessagingServer.py 10300
 
 Messaging server is listening on port 10300 from all incoming Base IPs. 
