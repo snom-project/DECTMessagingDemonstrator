@@ -326,7 +326,7 @@ if not MINIMUM_VIEWER:
             #print('data:', d)
 
             # prepare XML data request
-            xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> </request>".format(d.decode('ascii'))
+            xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>sms</jobtype> </request>".format(d.decode('ascii'))
             #print(xml_message)
 
             s.send(bytes(xml_message, 'utf-8'))
@@ -337,6 +337,60 @@ if not MINIMUM_VIEWER:
             print('GET request of the page, do nothing')
 
         return bottle.jinja2_template('sms', title=_("SMS View"), devices=DEVICES)
+
+
+    @bottle.route('/send_sms', no_i18n = True, method=['POST'], )
+    def send_sms():
+        """SMS POST requests listener. 
+            Expects necessary data for a single SMS in JSON format.
+
+            JSON format example:
+            {
+                "externalid": "id_3x100", 
+                "name": "3x100", 
+                "account": "100100100",
+                "message": "SMS sample message",
+                "priority": "0",
+                "confirmationtype": "2",
+                "rings": "1"
+            }
+
+        Returns:
+            text : Post request answer 'Success' or 'Failure'
+        """
+        if request.method == 'POST':
+            # prepare to send the data to the messaging viewer.
+            ip = '127.0.0.1'
+            port = 10300
+
+            print('init socket...')
+
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect((ip, port))
+                s.settimeout(500)
+            except socket.error as exc:
+                print('Caught exception socket.error: {0}'.format(exc))
+                return "Failure"
+            print("init socket successfull")
+
+            # convert to JSON payload
+            try:
+                d = json.dumps(request.json).encode("ascii")
+                # prepare XML data request
+                xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>send_sms</jobtype> </request>".format(d.decode('ascii'))
+        
+                s.send(bytes(xml_message, 'utf-8'))
+                #print('data sent')
+            except :
+                e = sys.exc_info()[0]
+                logger.debug("send_sms: failed to convert JSON post and send. Error: %s", e)
+            finally:
+                s.close()
+        else:
+            print('GET request of the page, do nothing')
+
+        return "Success"
 
 
     @bottle.route('/alarm', method=['GET','POST'])
