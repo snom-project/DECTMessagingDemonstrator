@@ -41,7 +41,7 @@ class DECTMessagingDb:
 
         self.connection = cnxn
 
-        print('Trying ODBC Connect')
+        self.logger.debug('Trying ODBC Connect')
         #cnxn = pyodbc.connect("DRIVER={SQLite 3};Direct=True;Database=%s" % self.db_filename)
 
         # only connect or new DB
@@ -90,19 +90,19 @@ class DECTMessagingDb:
         self.connection = conn
 
         if db_is_new:
-            print('Creating schema')
+            self.logger.info('Creating schema')
             with open(self.schema_filename, 'rt') as f:
                 schema = f.read()
                 conn.executescript(schema)
 
-                print('Inserting initial data')
+                self.logger.debug('Inserting initial data')
                 conn.executescript("""
                 insert into Beacons (account)
                 values ('test_db_account');
                 """)
 
         else:
-            print('Database exists, assume schema does, too.')
+            self.logger.info('Database exists, assume schema does, too.')
         # keep the connection
         #conn.close()
 
@@ -162,7 +162,7 @@ class DECTMessagingDb:
                 cur.close()
                 # conn.close()
         else:
-            print('update_db: Connection does not exist, do nothing')
+            self.logger.error('update_db: Connection does not exist, do nothing')
 
 
     '''
@@ -255,7 +255,7 @@ class DECTMessagingDb:
 
                 return True
         else:
-            print('record_alarm_db: Connection does not exist, do nothing')
+            self.logger.error('record_alarm_db: Connection does not exist, do nothing')
 
 
     '''
@@ -354,7 +354,7 @@ class DECTMessagingDb:
 
                 return True
         else:
-            print('record_beacon_db: Connection does not exist, do nothing')
+            self.logger.error('record_beacon_db: Connection does not exist, do nothing')
 
     '''
         M9B manages several devices and reports their proximity
@@ -394,7 +394,7 @@ class DECTMessagingDb:
                 cur.close()
                 return True
         else:
-            print('record_m9b_device_status_db: Connection does not exist, do nothing')
+            self.logger.error('record_m9b_device_status_db: Connection does not exist, do nothing')
 
 
     def update_m9b_tag_status_db(self, bt_mac, proximity):
@@ -411,7 +411,7 @@ class DECTMessagingDb:
                 cur.close()
                 return True
         else:
-            print('update_m9b_tag_status_db: Connection does not exist, do nothing')
+            self.logger.error('update_m9b_tag_status_db: Connection does not exist, do nothing')
 
 
     def clear_old_m9b_tag_status_db(self, bt_mac, target_timestamp):
@@ -430,7 +430,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return True
         else:
-            print('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
+            self.logger.error('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
             return []
 
 
@@ -450,7 +450,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return True
         else:
-            print('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
+            self.logger.error('clear_old_m9b_device_status_db: Connection does not exist, do nothing')
             return []
 
 
@@ -473,7 +473,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return result
         else:
-            print('read_m9b_device_status_db: Connection does not exist, do nothing')
+            self.logger.error('read_m9b_device_status_db: Connection does not exist, do nothing')
             return []
 
 
@@ -503,7 +503,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return result
         else:
-            print('read_m9b_device_status_db_2: Connection does not exist, do nothing')
+            self.logger.error('read_m9b_device_status_db_2: Connection does not exist, do nothing')
             return []
 
 
@@ -539,7 +539,7 @@ class DECTMessagingDb:
                 cur.close()
                 # conn.close()
         else:
-            print('record_gateway_db: Connection does not exist, do nothing')
+            self.logger.error('record_gateway_db: Connection does not exist, do nothing')
 
 
     def read_gateway_db(self, table="m9bIPEI", order_by=None, **kwargs):
@@ -584,7 +584,7 @@ class DECTMessagingDb:
                 #print('Result:%s' % result)
                 return result
         else:
-            print('read_gateway_db: Connection does not exist, do nothing')
+            self.logger.error('read_gateway_db: Connection does not exist, do nothing')
             return []
 
 
@@ -605,7 +605,7 @@ class DECTMessagingDb:
             sql.append(" OR ".join(conditions))
             sql.append(";")
             sql = "".join(sql)
-            print(sql)
+            #print(sql)
         else:
             # delete all rows
             sql = list()
@@ -627,7 +627,7 @@ class DECTMessagingDb:
                 # conn.close()
                 return True
         else:
-            print('delete_db: Connection does not exist, do nothing')
+            self.logger.error('delete_db: Connection does not exist, do nothing')
             return []
 
 
@@ -682,7 +682,7 @@ class DECTMessagingDb:
                 #print('Result:%s' % result)
                 return result
         else:
-            print('read_db: Connection does not exist, do nothing')
+            self.logger.error('read_db: Connection does not exist, do nothing')
             return []
 
 
@@ -740,7 +740,7 @@ class DECTMessagingDb:
                 #print('Result:%s' % result)
                 return result
         else:
-            print('read_last_locations_db: Connection does not exist, do nothing')
+            self.logger.error('read_last_locations_db: Connection does not exist, do nothing')
             return []
 
 
@@ -771,7 +771,7 @@ class DECTMessagingDb:
 
                 return result
         else:
-            print('read_devices_db: Connection does not exist, do nothing')
+            self.logger.error('read_devices_db: Connection does not exist, do nothing')
             return []
 
 
@@ -824,7 +824,7 @@ class DECTMessagingDb:
 
                 return result[0]['count(*)'] == "1"
         else:
-            print('is_empty_db: Connection does not exist, do nothing')
+            self.logger.error('is_empty_db: Connection does not exist, do nothing')
             return []
 
 
