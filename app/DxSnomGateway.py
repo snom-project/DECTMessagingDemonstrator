@@ -166,10 +166,10 @@ def run_snomair():
         qual_icon = "leaf-24px.png"
         iaq_text = "- excellent"
     if IAQ > 100:
-        qual_icon = "virus_yellow.jpg"
+        qual_icon = "virus_yellow.png"
         iaq_text = "- pause and leave the room"
     if IAQ > 100:
-        qual_icon = "virus_yellow.jpg"
+        qual_icon = "virus_yellow.png"
         iaq_text = "- pause and leave the room"
     if IAQ > 150:
         qual_icon = "virus_red.png"
