@@ -181,7 +181,7 @@ def run_snomair():
         open = True
     if IAQ > 300:
         qual_icon = "virus_red.png"
-        iaq_text = "- run!"
+        iaq_text = "- ! RUN !"
         open = True
     if IAQACC != 3:
         iaq_acc_text = "- calibrate, please"
@@ -236,7 +236,7 @@ def run_snomair():
 
     snom_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <InfoBoxQueue loop="true">
- <InfoBox duration="2">
+ <InfoBox duration="1">
   <Line pos="1">
    <Icon>kIconTypeFkeyDispCode</Icon>
    <Text>Corona alert, airquality control </Text>
@@ -246,13 +246,13 @@ def run_snomair():
    <Text>{IAQ} / 300+ {iaq_text}</Text>
   </Line>
   </InfoBox>
-  <InfoBox duration="2">
+  <InfoBox duration="1">
   <Line pos="1">
    <Icon>kIconTypeFkeyDispCode</Icon>
    <Text>Corona alert, airquality control, {TEMPERATURE:.1f} C</Text>
   </Line>
    </InfoBox>
-  <InfoBox duration="2">
+  <InfoBox duration="1">
   <Line pos="1">
    <Icon>kIconTypeFkeyDispCode</Icon>
    <Text>Corona alert, airquality control, {HUMIDITY}% Humidity</Text>
@@ -367,8 +367,8 @@ if __name__ == "__main__":
     open = False
     
     # run web server
-    HOST = "10.245.0.28"
-    # HOST = "0.0.0.0"
+    # HOST = "10.245.0.28"
+    HOST = "0.0.0.0"
     # HOST = "10.110.11.132"
     # HOST = "10.110.16.75"
     # HOST = "192.168.188.21"
