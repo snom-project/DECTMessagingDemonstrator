@@ -85,7 +85,11 @@ class DECTMessagingDb:
 
         db_is_new = not os.path.exists(self.db_filename)
 
-        conn = sqlite3.connect(self.db_filename)
+        # try WAL modes, multiple read accesses granted
+        #conn = sqlite3.connect(self.db_filename)
+        conn = sqlite3.connect(self.db_filename, isolation_level=None)
+        conn.execute('pragma journal_mode=wal;')
+
         # remember the connection to reuse
         self.connection = conn
 

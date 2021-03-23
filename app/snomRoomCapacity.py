@@ -113,9 +113,8 @@ if __name__ == "__main__":
 
     # fire data with scheduler
     logger.debug("main: schedule.every(2).seconds.do(rc.check_rooms_capacity)")
-    schedule.every(2).seconds.do(rc.check_rooms_capacity)
+    schedule.every(10).seconds.do(rc.check_rooms_capacity)
 
     while True:
         # check and execute scheduled task
         schedule.run_pending()
-        time.sleep(10)
