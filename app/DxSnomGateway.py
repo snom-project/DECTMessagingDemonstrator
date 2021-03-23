@@ -156,6 +156,8 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
+    global last_state
+    #global open # !!!! remove  open = False 
 
     if IAQ < 100:
         qual_icon = "leaf-24px.png"
@@ -172,15 +174,38 @@ def run_snomair():
     if IAQ > 150:
         qual_icon = "virus_red.png"
         iaq_text = "- open windows shortly"
+        open = True
     if IAQ > 200:
         qual_icon = "virus_red.png"
         iaq_text = "- open windows and leave"
+        open = True
     if IAQ > 300:
         qual_icon = "virus_red.png"
         iaq_text = "- run!"
+        open = True
     if IAQACC != 3:
         iaq_acc_text = "- calibrate, please"
         iaq_text = iaq_acc_text
+
+    ### test open close switching
+    if open is True or open is None:
+        open = False
+    else:
+        open = True
+
+
+    # check if we should open or close window.
+    if open:
+        open_window()
+        last_state = "open"
+        logger.info("run_snomair: window opened")
+    else:
+        if last_state == "open":
+            # we can close 
+            close_window()
+            last_state = "close"
+            logger.info("run_snomair: window closed")
+
 
     # we got a response
 
@@ -318,9 +343,29 @@ def run_main():
 
     return "nothing here."
 
+def open_window():
+    actors.set_expert_pc("1", "1")
+    gevent.sleep(5.0) 
+    actors.set_expert_pc("1", "0")
+
+def close_window():
+    actors.set_expert_pc("2", "1") 
+    gevent.sleep(5.0) 
+    actors.set_expert_pc("2", "0") 
+
+        #set_expert_pc("2", "1") schließt das Fenster.  Dann nach 5 Sekunden: set_expert_pc("2", "0") (edited) 
+
 
 if __name__ == "__main__":
 
+# Homematic connector (A. Thalmann)
+    from actors import Actors
+
+
+    actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
+    last_state = "close"
+    open = False
+    
     # run web server
     HOST = "10.245.0.28"
     # HOST = "0.0.0.0"
@@ -333,8 +378,8 @@ if __name__ == "__main__":
     # bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
     bottle.run(
         app=app,
-        server="gunicorn",
-        workers=1,
+        #server="gunicorn",
+        #workers=1,
         host=HOST,
         port=8088,
         reloader=False,
