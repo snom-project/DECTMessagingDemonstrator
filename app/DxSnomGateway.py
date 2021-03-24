@@ -156,8 +156,11 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
+    
     global last_state
-    #global open # !!!! remove  open = False 
+    #global open # !!!! remove  
+ 
+    open = False
 
     if IAQ < 100:
         qual_icon = "leaf-24px.png"
@@ -188,19 +191,19 @@ def run_snomair():
         iaq_text = iaq_acc_text
 
     ### test open close switching
-    if open is True or open is None:
-        open = False
-    else:
-        open = True
+    #if open is True or open is None:
+    #    open = False
+    #else:
+    #   open = True
 
 
     # check if we should open or close window.
-    if open:
+    if open and last_state == "close":
         open_window()
         last_state = "open"
         logger.info("run_snomair: window opened")
     else:
-        if last_state == "open":
+        if if not open and last_state == "close":
             # we can close 
             close_window()
             last_state = "close"
@@ -352,8 +355,6 @@ def close_window():
     actors.set_expert_pc("2", "1") 
     gevent.sleep(5.0) 
     actors.set_expert_pc("2", "0") 
-
-        #set_expert_pc("2", "1") schließt das Fenster.  Dann nach 5 Sekunden: set_expert_pc("2", "0") (edited) 
 
 
 if __name__ == "__main__":
