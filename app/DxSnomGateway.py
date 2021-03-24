@@ -114,9 +114,20 @@ IAQACC = 0
 IAQ = 0
 HUMIDITY = 0
 
+@bottle.route("/window_open", method=["GET"], no_i18n=True)
+def run_window_open():
+    open_window()
+    return 'Trying to open window...'
+
+
+@bottle.route("/window_close", method=["GET"], no_i18n=True)
+def run_window_close():
+    close_window()
+    return 'Trying to close window...'
+
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
-def airquality():
+def run_airquality():
     global TEMPERATURE
     global IAQACC
     global IAQ
@@ -160,14 +171,9 @@ def run_snomair():
     global last_state
     global last_IAQ
 
-    global IAQ 
-
     open = False
+    switch = False
 
-    if IAQ == 150:
-        IAQ = 145
-    else:
-        IAQ = 150
 
     if IAQ < 100:
         qual_icon = "leaf-24px.png"
@@ -194,8 +200,9 @@ def run_snomair():
         iaq_text = "- ! RUN !"
         open = True
     if IAQACC != 3:
-        iaq_acc_text = "- calibrate, please"
-        iaq_text = iaq_acc_text
+        iaq_acc_text = "- calibrate"
+        iaq_text = f'{iaq_text}{iaq_acc_text}'
+
 
     # we need a switching tolrance to avoid toggling
     if abs(IAQ - last_IAQ) < 10:
@@ -206,23 +213,20 @@ def run_snomair():
             if last_state == "close":
                 # do not close, tolerance not reached
                 open = True
-    last_IAQ = IAQ
+    else:
+        # ok to switch, take next threshold 
+        last_IAQ = IAQ
+        switch = True
 
-
-    ### test open close switching
-    #if open is True or open is None:
-    #    open = False
-    #else:
-    #   open = True
-
+    logger.info("Final State:", IAQ, abs(IAQ - last_IAQ), open, last_state)
 
     # check if we should open or close window.
-    if open and last_state == "close":
+    if switch and open and last_state == "close":
         open_window()
         last_state = "open"
         logger.info("run_snomair: window opened")
     else:
-        if not open and last_state == "open":
+        if switch and not open and last_state == "open":
             # we can close 
             close_window()
             last_state = "close"
@@ -230,31 +234,6 @@ def run_snomair():
 
 
     # we got a response
-
-    #   kIconTypeFkeyStats -- alternative Sensor Icon.
-    # More than 2 lines are NOT WORKING
-    snom_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<InfoBoxQueue>
- <InfoBox>
-  <Line pos="1">
-   <Icon>kIconTypeFkeyDispCode</Icon>
-   <Text>Corona alert, airquality control </Text>
-  </Line>
-  <Line pos="2">
-   <Icon>http://10.245.0.28/sensor/{qual_icon}</Icon>
-   <Text>{IAQ} / 250 {iaq_text}</Text>
-  </Line>
-  <Line pos="3">
-   <Icon>kIconTypeFkeyDispCode</Icon>
-   <Text>{TEMPERATURE:.1f} C</Text>
-  </Line>
-  <Line pos="4">
-   <Icon>kIconTypeFkeyDispCode</Icon>
-   <Text>{HUMIDITY} Humidity</Text>
-  </Line>
- </InfoBox>
-</InfoBoxQueue>
-"""
 
     snom_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <InfoBoxQueue loop="true">
@@ -264,7 +243,7 @@ def run_snomair():
    <Text>Corona alert, airquality control </Text>
   </Line>
    <Line pos="2">
-   <Icon>http://10.245.0.28/sensor/{qual_icon}</Icon>
+   <Icon>http://10.110.16.63/sensor/{qual_icon}</Icon>
    <Text>{IAQ} / 300+ {iaq_text}</Text>
   </Line>
   </InfoBox>
