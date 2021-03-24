@@ -347,11 +347,17 @@ def run_main():
     return "nothing here."
 
 def open_window():
+    # make sure close is powerless
+    actors.set_expert_pc("2", "0") 
+
     actors.set_expert_pc("1", "1")
     gevent.sleep(5.0) 
     actors.set_expert_pc("1", "0")
 
 def close_window():
+    # make sure open is powerless
+    actors.set_expert_pc("1", "0")
+
     actors.set_expert_pc("2", "1") 
     gevent.sleep(5.0) 
     actors.set_expert_pc("2", "0") 
