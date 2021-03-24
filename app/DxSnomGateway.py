@@ -218,7 +218,7 @@ def run_snomair():
         last_IAQ = IAQ
         switch = True
 
-    logger.info("Final State:", IAQ, abs(IAQ - last_IAQ), open, last_state)
+    logger.info("Final State: %s %s %s %s", IAQ, abs(IAQ - last_IAQ), open, last_state)
 
     # check if we should open or close window.
     if switch and open and last_state == "close":
@@ -349,7 +349,7 @@ def open_window():
     actors.set_expert_pc("2", "0") 
 
     actors.set_expert_pc("1", "1")
-    gevent.sleep(5.0) 
+    gevent.sleep(6.0) 
     actors.set_expert_pc("1", "0")
 
 def close_window():
@@ -357,7 +357,7 @@ def close_window():
     actors.set_expert_pc("1", "0")
 
     actors.set_expert_pc("2", "1") 
-    gevent.sleep(5.0) 
+    gevent.sleep(6.0) 
     actors.set_expert_pc("2", "0") 
 
 def window_all_off():
