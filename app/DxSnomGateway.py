@@ -156,7 +156,7 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
-    
+
     global last_state
     #global open # !!!! remove  
  
@@ -356,17 +356,23 @@ def close_window():
     gevent.sleep(5.0) 
     actors.set_expert_pc("2", "0") 
 
+def window_all_off():
+    actors.set_expert_pc("1", "0")
+    actors.set_expert_pc("2", "0") 
+
 
 if __name__ == "__main__":
 
 # Homematic connector (A. Thalmann)
     from actors import Actors
 
-
     actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
     last_state = "close"
     open = False
-    
+
+    # inital turn off all power
+    window_all_off()
+
     # run web server
     # HOST = "10.245.0.28"
     HOST = "0.0.0.0"
