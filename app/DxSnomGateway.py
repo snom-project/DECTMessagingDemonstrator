@@ -76,7 +76,7 @@ wsgi_app = I18NPlugin(
 
 app = SessionMiddleware(wsgi_app, session_opts)
 
-logger = logging.getLogger("DxSnomHateway")
+logger = logging.getLogger("DxSnomGateway")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s  %(name)s  %(levelname)s: %(message)s")
@@ -123,6 +123,11 @@ def run_window_open():
 @bottle.route("/window_close", method=["GET"], no_i18n=True)
 def run_window_close():
     close_window()
+    return 'Trying to close window...'
+
+@bottle.route("/window_off", method=["GET"], no_i18n=True)
+def run_window_off():
+    window_all_off()
     return 'Trying to close window...'
 
 
