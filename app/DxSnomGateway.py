@@ -158,9 +158,16 @@ def run_snomair():
     global IAQ
 
     global last_state
-    #global open # !!!! remove  
- 
+    global last_IAQ
+
+    global IAQ 
+
     open = False
+
+    if IAQ == 150:
+        IAQ = 145
+    else:
+        IAQ = 150
 
     if IAQ < 100:
         qual_icon = "leaf-24px.png"
@@ -190,6 +197,18 @@ def run_snomair():
         iaq_acc_text = "- calibrate, please"
         iaq_text = iaq_acc_text
 
+    # we need a switching tolrance to avoid toggling
+    if abs(IAQ - last_IAQ) < 10:
+        if last_state == "open":
+            # do not close, tolerance not reached
+            open = False 
+        else:
+            if last_state == "close":
+                # do not close, tolerance not reached
+                open = True
+    last_IAQ = IAQ
+
+
     ### test open close switching
     #if open is True or open is None:
     #    open = False
@@ -203,7 +222,7 @@ def run_snomair():
         last_state = "open"
         logger.info("run_snomair: window opened")
     else:
-        if if not open and last_state == "close":
+        if not open and last_state == "open":
             # we can close 
             close_window()
             last_state = "close"
@@ -375,6 +394,9 @@ if __name__ == "__main__":
     actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
     last_state = "close"
     open = False
+    last_IAQ = 0
+
+    IAQ = 150
 
     # inital turn off all power
     window_all_off()
