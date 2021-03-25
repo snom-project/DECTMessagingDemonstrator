@@ -361,7 +361,7 @@ def run_main():
 
 def open_window():
     # make sure close is powerless
-    if WINDOWOPEN == "open":
+    if WINDOWOPEN != "on":
         actors.set_expert_pc("2", "0") 
 
         actors.set_expert_pc("1", "1")
@@ -372,7 +372,7 @@ def open_window():
         window_all_off()
 
 def close_window():
-    if WINDOWOPEN == "close":
+    if WINDOWOPEN != "off":
         # make sure open is powerless
         actors.set_expert_pc("1", "0")
 
