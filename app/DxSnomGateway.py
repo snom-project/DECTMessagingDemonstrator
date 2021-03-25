@@ -113,6 +113,9 @@ TEMPERATURE = 0.0
 IAQACC = 0
 IAQ = 0
 HUMIDITY = 0
+# inital state is window closed 
+WINDOWOPEN = "off"
+
 
 @bottle.route("/window_open", method=["GET"], no_i18n=True)
 def run_window_open():
@@ -137,10 +140,11 @@ def run_airquality():
     global IAQACC
     global IAQ
     global HUMIDITY
+    global WINDOWOPEN
 
     if request.method == "POST":
         d = request.json
-        print("dict:", d)
+        logger.info("dict:%s", d)
         try:
             TEMPERATURE = float(d["TEMP"])
         except:
@@ -162,7 +166,7 @@ def run_airquality():
         except:
             pass
     else:
-        print("GET request of the page, do nothing")
+        logger.warning("GET request of the page, do nothing")
 
     return d
 
@@ -394,9 +398,7 @@ if __name__ == "__main__":
     last_state = "close"
     open = False
     last_IAQ = 0
-    # inital state is window closed 
-    WINDOWOPEN = "off"
-    IAQ = 0
+   
 
     # inital turn off all power
     window_all_off()
