@@ -157,6 +157,10 @@ def run_airquality():
             HUMIDITY = int(d["HUM"])
         except:
             pass
+        try:
+            WINDOWOPEN = d["window"]
+        except:
+            pass
     else:
         print("GET request of the page, do nothing")
 
@@ -172,6 +176,7 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
+    global WINDOWOPEN
 
     global last_state
     global last_IAQ
@@ -224,6 +229,7 @@ def run_snomair():
         switch = True
 
     logger.info("Final State: %s %s %s %s", IAQ, abs(IAQ - last_IAQ), open, last_state)
+    logger.info("Window Open Sensor: %s", WINDOWOPEN)
 
     # check if we should open or close window.
     if switch and open and last_state == "close":
@@ -351,19 +357,28 @@ def run_main():
 
 def open_window():
     # make sure close is powerless
-    actors.set_expert_pc("2", "0") 
+    if WINDOWOPEN == "open":
+        actors.set_expert_pc("2", "0") 
 
-    actors.set_expert_pc("1", "1")
-    gevent.sleep(6.0) 
-    actors.set_expert_pc("1", "0")
+        actors.set_expert_pc("1", "1")
+        gevent.sleep(6.0) 
+        actors.set_expert_pc("1", "0")
+    else:
+        # to make sure we turn all off
+        window_all_off()
 
 def close_window():
-    # make sure open is powerless
-    actors.set_expert_pc("1", "0")
+    if WINDOWOPEN == "close":
+        # make sure open is powerless
+        actors.set_expert_pc("1", "0")
 
-    actors.set_expert_pc("2", "1") 
-    gevent.sleep(6.0) 
-    actors.set_expert_pc("2", "0") 
+        actors.set_expert_pc("2", "1") 
+        gevent.sleep(6.0) 
+        actors.set_expert_pc("2", "0") 
+    else:
+        # to make sure we turn all off
+        window_all_off()
+
 
 def window_all_off():
     actors.set_expert_pc("1", "0")
@@ -379,8 +394,9 @@ if __name__ == "__main__":
     last_state = "close"
     open = False
     last_IAQ = 0
-
-    IAQ = 150
+    # inital state is window closed 
+    WINDOWOPEN = "off"
+    IAQ = 0
 
     # inital turn off all power
     window_all_off()
