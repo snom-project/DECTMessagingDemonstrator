@@ -413,8 +413,8 @@ if __name__ == "__main__":
     # bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
     bottle.run(
         app=app,
-        #server="gunicorn",
-        #workers=1,
+        server="gunicorn",
+        workers=2,
         host=HOST,
         port=8088,
         reloader=False,
