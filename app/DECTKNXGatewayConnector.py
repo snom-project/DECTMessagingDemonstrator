@@ -124,7 +124,8 @@ class DECT_KNX_gateway_connector:
             finally:
                 self.queue.task_done()
                 self.pool.killone(wt, block=False)
-                self.logger.info(f'task {wt} finished, pool_free={self.pool.free_count()}')
+                break
+        self.logger.info(f'task {wt} finished, pool_free={self.pool.free_count()}')
 
 
     # the real work
@@ -170,7 +171,7 @@ class DECT_KNX_gateway_connector:
         return True
 
 if __name__ == "__main__":
-    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.WARNING)
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.DEBUG)
 
     for p in range(5):
         w = random.randint(1,10)

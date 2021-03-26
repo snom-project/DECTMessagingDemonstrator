@@ -124,7 +124,7 @@ class MSSeriesMessageHandler:
     }
 
     def __init__(self, devices=[]):
-        # use standard UDP port on default
+        # use standard UDP port by default
         self.m900_connection = ('127.0.0.1', 1300)
         self.devices = devices
         self.btmacaddresses = []
@@ -1613,7 +1613,11 @@ def worker():
             amsg.msg_process(xmldata)
         finally:
             q.task_done()
-
+            break
+    #print(gevent.getcurrent())
+    # kill greenlet - otherwise mem leak
+    gevent.kill(gevent.getcurrent())
+    
 
 if __name__ == "__main__":
     import argparse
@@ -1763,6 +1767,7 @@ if __name__ == "__main__":
             #amsg.msg_process(xmldata)
             gevent.spawn(worker)
             q.put(xmldata)
+
             # yield to worker
             gevent.sleep(0)
 
