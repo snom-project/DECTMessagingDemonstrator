@@ -522,7 +522,7 @@ class DECTMessagingDb:
         values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
         #print(kwargs.values())
         sql = list()
-        sql.append("REPLACE INTO %s (" % table)
+        sql.append("INSERT OR IGNORE INTO %s (" % table)
         sql.append(", ".join(keys))
         sql.append(") VALUES (")
         sql.append(", ".join(values))
