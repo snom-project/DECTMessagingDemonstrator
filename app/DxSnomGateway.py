@@ -133,6 +133,19 @@ def run_window_off():
     window_all_off()
     return 'Trying to close window...'
 
+@bottle.route("/state", method=["GET"], no_i18n=True)
+def run_airquality():
+    global TEMPERATURE
+    global IAQACC
+    global IAQ
+    global HUMIDITY
+    global WINDOWOPEN
+    print(f'temp:{TEMPERATURE}')
+    print(f'IAQACC:{IAQACC}')
+    print(f'IAQ:{IAQ}')
+    print(f'HUMIDITY:{HUMIDITY}')
+    print(f'WINDOWOPEN:{WINDOWOPEN}')
+    
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
 def run_airquality():
@@ -165,10 +178,11 @@ def run_airquality():
             WINDOWOPEN = d["window"]
         except:
             pass
+        return d
+
     else:
         logger.warning("GET request of the page, do nothing")
-
-    return d
+        return "GET request of the page, do nothing"
 
 
 # receives full list of DEVICES in json format DEVICES
@@ -294,7 +308,7 @@ def run_snomair():
 
 # receives full list of DEVICES in json format DEVICES
 @bottle.route("/json_action", name="json_action", no_i18n=True, method=["GET", "POST"])
-def run_ljson_action():
+def run_json_action():
 
     # run action to device
     request_url = "http://10.245.0.136:12380/cm?cmnd=Power%20TOGGLE"
