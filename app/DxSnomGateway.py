@@ -11,16 +11,13 @@ import requests
 import logging
 
 import bottle
-from bottle import route, app, static_file, template, request, url, FormsDict
+from bottle import app, template, request, url, FormsDict
 from bottle import Jinja2Template
 from beaker.middleware import SessionMiddleware
 
 
 from bottle_utils.i18n import I18NPlugin
 from bottle_utils.i18n import lazy_gettext as _
-
-# schedule the DB updates
-import schedule
 
 
 template.settings = {
@@ -103,7 +100,7 @@ TEMPERATURE = 0.0
 IAQACC = 0
 IAQ = 0
 HUMIDITY = 0
-# inital state is window closed 
+# inital state is window closed
 WINDOWOPEN = "off"
 
 
@@ -137,7 +134,7 @@ def run_state():
     print(f'IAQ:{IAQ}')
     print(f'HUMIDITY:{HUMIDITY}')
     print(f'WINDOWOPEN:{WINDOWOPEN}')
-    
+
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
 def run_airquality():
@@ -228,13 +225,13 @@ def run_snomair():
     if abs(IAQ - last_IAQ) < 10:
         if last_state == "open":
             # do not close, tolerance not reached
-            open = False 
+            open = False
         else:
             if last_state == "close":
                 # do not close, tolerance not reached
                 open = True
     else:
-        # ok to switch, take next threshold 
+        # ok to switch, take next threshold
         last_IAQ = IAQ
         switch = True
 
@@ -248,7 +245,7 @@ def run_snomair():
         logger.info("run_snomair: window opened")
     else:
         if switch and not open and last_state == "open":
-            # we can close 
+            # we can close
             close_window()
             last_state = "close"
             logger.info("run_snomair: window closed")
@@ -282,18 +279,7 @@ def run_snomair():
  </InfoBox>
 </InfoBoxQueue>
 """
-    # fetch example TXT - not used
-    snom_xmlt = f"""<?xml version="1.0" encoding="UTF-8"?>
-<SnomIPPhoneText>
-    <Title>Demo</Title>
-    <Text>
-   {IAQ} / 300+ {iaq_text}
-        <br/>
-   Corona alert, airquality control, {TEMPERATURE:.1f}
-    </Text>
-<Fetch mil="5000">http://10.245.0.28:8088/snomair</Fetch>
-</SnomIPPhoneText>
- """
+
     print(snom_xml)
     return snom_xml
 
@@ -368,10 +354,10 @@ def run_main():
 def open_window():
     # make sure close is powerless
     if WINDOWOPEN != "on":
-        actors.set_expert_pc("2", "0") 
+        actors.set_expert_pc("2", "0")
 
         actors.set_expert_pc("1", "1")
-        gevent.sleep(6.0) 
+        gevent.sleep(6.0)
         actors.set_expert_pc("1", "0")
     else:
         # to make sure we turn all off
@@ -382,9 +368,9 @@ def close_window():
         # make sure open is powerless
         actors.set_expert_pc("1", "0")
 
-        actors.set_expert_pc("2", "1") 
-        gevent.sleep(6.0) 
-        actors.set_expert_pc("2", "0") 
+        actors.set_expert_pc("2", "1")
+        gevent.sleep(6.0)
+        actors.set_expert_pc("2", "0")
     else:
         # to make sure we turn all off
         window_all_off()
@@ -392,7 +378,7 @@ def close_window():
 
 def window_all_off():
     actors.set_expert_pc("1", "0")
-    actors.set_expert_pc("2", "0") 
+    actors.set_expert_pc("2", "0")
 
 
 if __name__ == "__main__":
@@ -404,7 +390,7 @@ if __name__ == "__main__":
     last_state = "close"
     open = False
     last_IAQ = 0
-   
+
 
     # inital turn off all power
     window_all_off()
