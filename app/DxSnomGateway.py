@@ -96,17 +96,7 @@ class PrettyFormsDict(FormsDict):
             "\t{!r}: {!r}".format(k, v) for (k, v) in sorted(self.items())
         )
         return "{{\n{}\n}}".format(args)
-
-
 ## end helper
-
-
-@bottle.hook("before_request")
-def setup_request():
-
-    request.session = request.environ["beaker.session"]
-    Jinja2Template.defaults["session"] = request.session
-    # check if the session is still valid / check login status
 
 
 TEMPERATURE = 0.0
@@ -128,19 +118,21 @@ def run_window_close():
     close_window()
     return 'Trying to close window...'
 
+
 @bottle.route("/window_off", method=["GET"], no_i18n=True)
 def run_window_off():
     window_all_off()
     return 'Trying to close window...'
 
+
 @bottle.route("/state", method=["GET"], no_i18n=True)
-def run_airquality():
+def run_state():
     global TEMPERATURE
     global IAQACC
     global IAQ
     global HUMIDITY
     global WINDOWOPEN
-    print(f'temp:{TEMPERATURE}')
+    print(f'TEMPERATURE:{TEMPERATURE}')
     print(f'IAQACC:{IAQACC}')
     print(f'IAQ:{IAQ}')
     print(f'HUMIDITY:{HUMIDITY}')
