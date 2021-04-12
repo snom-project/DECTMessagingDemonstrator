@@ -107,3 +107,6 @@ opengl\.py
 
 readmeDTAG\.txt
 readmeDemonstrator.txt
+app/DB/DECTMessaging.db
+app/DB/DECTMessaging.db-shm
+app/DB/DECTMessaging.db

@@ -1,13 +1,8 @@
-import pyproxy as pp
 from lxml import etree as ET
 import lxml.builder
 import datetime
-import schedule
-import time
 
-import random
-
-class create_message:
+class CreateMessage:
 
     def __init__(self):
         E = lxml.builder.ElementMaker()
@@ -81,16 +76,15 @@ class create_message:
         return final_doc
 
 if __name__ == "__main__":
-    cm = create_message()
+    cm = CreateMessage()
     print('Data generated')
     print(f'date:{datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")}, time:{format(int(datetime.datetime.utcnow().strftime("%s")), "x")}')
-  
+
     xml_msg = cm.response_systeminfo('extID0001', 'status', 'info')
     print(f'XML Message response_systeminfo: {ET.tostring(xml_msg, pretty_print=True, encoding="unicode")}')
 
     xml_msg = cm.response_keepalive('extID0001', 'status', 'info')
     print(f'XML Message response_keepalive: {ET.tostring(xml_msg, pretty_print=True, encoding="unicode")}')
-    
+
     xml_msg = cm.response_login('extID0001', 'status', 'info')
     print(f'XML Message response_login: {ET.tostring(xml_msg, pretty_print=True, encoding="unicode")}')
-    
