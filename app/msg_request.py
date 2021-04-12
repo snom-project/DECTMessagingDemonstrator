@@ -3,6 +3,8 @@ from lxml import etree as ET
 from colorama import init, Fore, Style
 init()
 
+from create_message import * 
+
 def msg_request(self, request_type, msg_profile_root):
     """XML request message handler
 
@@ -36,12 +38,16 @@ def msg_request(self, request_type, msg_profile_root):
                 self.logger.debug("systeminfo keep_alive: Respond with MS confirm response to FP:")
 
                 # send ready to operate response
-                self.response_keepalive(self.externalid, status, statusinfo)
+                #self.response_keepalive(self.externalid, status, statusinfo)
+                cm = create_message()
+                self.send_xml(cm.response_keepalive(self.externalid, status, statusinfo))
+
             else:
                 self.logger.debug("systeminfo: Respond with MS confirm response to FP:")
 
                 # send ready to operate response
-                self.response_systeminfo(self.externalid, status, statusinfo)
+                cm = create_message()
+                self.send_xml(cm.response_systeminfo(self.externalid, status, statusinfo))
 
             return True
 
@@ -310,5 +316,9 @@ def msg_request(self, request_type, msg_profile_root):
             # send to location viewer
             self.send_to_location_viewer()
 
-            # send to FP
-            self.response_login(self.externalid, status, statusinfo)
+            # send response to FP
+            status = statusinfo = '' # not used
+            #def response_login(self, externalid, _status, _statusinfo):
+
+            cm = create_message()
+            self.send_xml(cm.response_login(self.externalid, status, statusinfo))

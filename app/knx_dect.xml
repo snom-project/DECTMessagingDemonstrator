@@ -1,0 +1,39 @@
+<SnomIPPhoneMenu>
+    <Title>Main</Title>
+        <MenuItem>
+            <Name>Heizung Lüftung Klima</Name>
+            <URL>http://127.0.0.1/xml/0S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Beleuchtung</Name>
+            <URL>http://127.0.0.1/xml/1S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Jalousien</Name>
+            <URL>http://127.0.0.1/xml/2S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Alarm/Sensoren</Name>
+            <URL>http://127.0.0.1/xml/3S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Szenen</Name>
+            <URL>http://127.0.0.1/xml/4S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Zentralfunktionen</Name>
+            <URL>http://127.0.0.1/xml/5S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Systemdaten Wetter Zeit Datum Pool</Name>
+            <URL>http://127.0.0.1/xml/6S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>Steckdosen</Name>
+            <URL>http://127.0.0.1/xml/7S-S-.xml</URL>
+        </MenuItem>
+        <MenuItem>
+            <Name>SONOS</Name>
+            <URL>http://127.0.0.1/xml/10S-S-.xml</URL>
+        </MenuItem>
+</SnomIPPhoneMenu>
