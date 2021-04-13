@@ -129,11 +129,8 @@ def run_state():
     global IAQ
     global HUMIDITY
     global WINDOWOPEN
-    print(f'TEMPERATURE:{TEMPERATURE}')
-    print(f'IAQACC:{IAQACC}')
-    print(f'IAQ:{IAQ}')
-    print(f'HUMIDITY:{HUMIDITY}')
-    print(f'WINDOWOPEN:{WINDOWOPEN}')
+    
+    return f'TEMPERATURE:{TEMPERATURE} IAQACC:{IAQACC} IAQ:{IAQ} HUMIDITY:{HUMIDITY} WINDOWOPEN:{WINDOWOPEN}'
 
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
