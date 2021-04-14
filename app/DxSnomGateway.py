@@ -363,12 +363,14 @@ def run_main():
     return "nothing here."
 
 def open_window():
-    logger.debug("ow LOCK: %s", getVariable("LOCK").decode())
+    logger.debug("ow: LOCK: %s", getVariable("LOCK").decode())
 
     if getVariable("LOCK").decode() != "locked":
         setVariable("LOCK", "locked")
-        # make sure close is powerless
+        logger.debug("ow: window opening")
+
         if getVariable("WINDOWOPEN").decode() != "on":
+            # make sure close is powerless
             actors.set_expert_pc("2", "0")
 
             actors.set_expert_pc("1", "1")
@@ -386,11 +388,12 @@ def open_window():
      
 
 def close_window():
-    logger.debug("cw LOCK: %s", getVariable("LOCK").decode())
+    logger.debug("cw: LOCK: %s", getVariable("LOCK").decode())
 
     if getVariable("LOCK").decode() != "locked":
         setVariable("LOCK", "locked")
-    
+        logger.debug("oc: window closing")
+
         if getVariable("WINDOWOPEN").decode() != "off":
             # make sure open is powerless
             actors.set_expert_pc("1", "0")
