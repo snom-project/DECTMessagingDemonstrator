@@ -251,13 +251,13 @@ def run_snomair():
     if switch and open and last_state == "close":
         open_window()
         last_state = "open"
-        logger.info("run_snomair: window opened")
+        #logger.info("run_snomair: window opened")
     else:
         if switch and not open and last_state == "open":
             # we can close
             close_window()
             last_state = "close"
-            logger.info("run_snomair: window closed")
+            #logger.info("run_snomair: window closed")
 
     setVariable("last_state", last_state)
     setVariable("last_IAQ", last_IAQ)
