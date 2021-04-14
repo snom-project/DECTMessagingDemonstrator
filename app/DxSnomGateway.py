@@ -378,6 +378,7 @@ def open_window():
             # to make sure we turn all off
             window_all_off()
         setVariable("LOCK", "unlocked")
+        logger.debug("ow window now opened LOCK: %s", getVariable("LOCK").decode())
     else:
         logger.debug("ow: another worker is running: %s", getVariable("LOCK").decode())
      
@@ -399,6 +400,7 @@ def close_window():
             # to make sure we turn all off
             window_all_off()
         setVariable("LOCK", "unlocked")
+        logger.debug("cw window now closed LOCK: %s", getVariable("LOCK").decode())
     else:
         logger.debug("cw: another worker is running: %s", getVariable("LOCK").decode())
 
