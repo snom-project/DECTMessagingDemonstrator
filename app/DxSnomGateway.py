@@ -230,7 +230,7 @@ def run_snomair():
     if abs(IAQ - last_IAQ) >= 10:
         if last_state == "open":
             # do not close, tolerance not reached
-            open = False
+            logger.info("last state open wish=%s", open)
         else:
             if last_state == "close":
                 # respect the IAQ open threshhold
