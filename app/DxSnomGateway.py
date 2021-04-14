@@ -19,6 +19,18 @@ from beaker.middleware import SessionMiddleware
 from bottle_utils.i18n import I18NPlugin
 from bottle_utils.i18n import lazy_gettext as _
 
+import redis
+
+POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
+
+def getVariable(variable_name):
+    my_server = redis.Redis(connection_pool=POOL)
+    response = my_server.get(variable_name)
+    return response
+
+def setVariable(variable_name, variable_value):
+    my_server = redis.Redis(connection_pool=POOL)
+    my_server.set(variable_name, variable_value)
 
 template.settings = {
     "autoescape": True,
@@ -96,12 +108,13 @@ class PrettyFormsDict(FormsDict):
 ## end helper
 
 
+# define redis shared variables across threads from gunicorn
+setVariable("WINDOWOPEN", "off")
+
 TEMPERATURE = 0.0
 IAQACC = 0
 IAQ = 0
 HUMIDITY = 0
-# inital state is window closed
-WINDOWOPEN = "off"
 
 
 @bottle.route("/window_open", method=["GET"], no_i18n=True)
@@ -128,9 +141,8 @@ def run_state():
     global IAQACC
     global IAQ
     global HUMIDITY
-    global WINDOWOPEN
     
-    return f'TEMPERATURE:{TEMPERATURE} IAQACC:{IAQACC} IAQ:{IAQ} HUMIDITY:{HUMIDITY} WINDOWOPEN:{WINDOWOPEN}'
+    return f'TEMPERATURE:{TEMPERATURE} IAQACC:{IAQACC} IAQ:{IAQ} HUMIDITY:{HUMIDITY} WINDOWOPEN:{getVariable("WINDOWOPEN").decode()}'
 
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
@@ -139,7 +151,6 @@ def run_airquality():
     global IAQACC
     global IAQ
     global HUMIDITY
-    global WINDOWOPEN
 
     if request.method == "POST":
         d = request.json
@@ -161,7 +172,7 @@ def run_airquality():
         except:
             pass
         try:
-            WINDOWOPEN = d["window"]
+            setVariable("WINDOWOPEN", d["window"])
         except:
             pass
         return d
@@ -180,7 +191,6 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
-    global WINDOWOPEN
 
     global last_state
     global last_IAQ
@@ -233,7 +243,7 @@ def run_snomair():
         switch = True
 
     logger.info("Final State: %s %s %s %s", IAQ, abs(IAQ - last_IAQ), open, last_state)
-    logger.info("Window Open Sensor: %s", WINDOWOPEN)
+    logger.info("Window Open Sensor: %s", getVariable("WINDOWOPEN"))
 
     # check if we should open or close window.
     if switch and open and last_state == "close":
@@ -350,7 +360,7 @@ def run_main():
 
 def open_window():
     # make sure close is powerless
-    if WINDOWOPEN != "on":
+    if getVariable("WINDOWOPEN").decode() != "on":
         actors.set_expert_pc("2", "0")
 
         actors.set_expert_pc("1", "1")
@@ -361,7 +371,7 @@ def open_window():
         window_all_off()
 
 def close_window():
-    if WINDOWOPEN != "off":
+    if getVariable("WINDOWOPEN").decode() != "off":
         # make sure open is powerless
         actors.set_expert_pc("1", "0")
 
@@ -380,16 +390,16 @@ def window_all_off():
 
 if __name__ == "__main__":
 
-# Homematic connector (A. Thalmann)
+    # Homematic connector (A. Thalmann)
     from actors import Actors
 
     actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
+    
     last_state = "close"
     open = False
     last_IAQ = 0
 
-
-    # inital turn off all power
+    # initally turn off all power
     window_all_off()
 
     # run web server
@@ -401,7 +411,8 @@ if __name__ == "__main__":
     # HOST = "192.168.55.23"
 
     # quiet=False adds http logs
-    # bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
+    #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
+    
     bottle.run(
         app=app,
         server="gunicorn",
