@@ -205,12 +205,10 @@ def run_snomair():
     if IAQ < 50:
         qual_icon = "leaf-24px.png"
         iaq_text = "- excellent"
-    if IAQ > 100:
+    if IAQ >= 100:
         qual_icon = "virus_yellow.png"
         iaq_text = "- pause and leave the room"
-    if IAQ > 100:
-        qual_icon = "virus_yellow.png"
-        iaq_text = "- pause and leave the room"
+        open = True
     if IAQ > 150:
         qual_icon = "virus_red.png"
         iaq_text = "- open windows shortly"
@@ -235,8 +233,9 @@ def run_snomair():
             open = False
         else:
             if last_state == "close":
-                # do not close, tolerance not reached
-                open = True
+                # respect the IAQ open threshhold
+                logger.info("respect the current IAQ open threshhold=%s", open)
+
         # ok to switch, take next threshold
         last_IAQ = IAQ
         switch = True
