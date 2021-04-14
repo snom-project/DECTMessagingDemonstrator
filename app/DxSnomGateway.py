@@ -192,12 +192,12 @@ def run_snomair():
     global HUMIDITY
     global IAQ
 
-    global last_state
-    global last_IAQ
-
     open = False
     switch = False
 
+    # get the state for this worker
+    last_state = getVariable("last_state").decode()
+    last_IAQ = int(getVariable("last_IAQ").decode())
 
     if IAQ < 100:
         qual_icon = "leaf-24px.png"
@@ -257,6 +257,8 @@ def run_snomair():
             last_state = "close"
             logger.info("run_snomair: window closed")
 
+    setVariable("last_state", last_state)
+    setVariable("last_IAQ", last_IAQ)
 
     # we got a response
 
@@ -359,28 +361,46 @@ def run_main():
     return "nothing here."
 
 def open_window():
-    # make sure close is powerless
-    if getVariable("WINDOWOPEN").decode() != "on":
-        actors.set_expert_pc("2", "0")
+    logger.debug("ow LOCK: %s", getVariable("LOCK").decode())
 
-        actors.set_expert_pc("1", "1")
-        gevent.sleep(6.0)
-        actors.set_expert_pc("1", "0")
+    if getVariable("LOCK").decode() != "locked":
+        setVariable("LOCK", "locked")
+        # make sure close is powerless
+        if getVariable("WINDOWOPEN").decode() != "on":
+            actors.set_expert_pc("2", "0")
+
+            actors.set_expert_pc("1", "1")
+            gevent.sleep(6.0)
+            actors.set_expert_pc("1", "0")
+        else:
+            # to make sure we turn all off
+            window_all_off()
+        setVariable("LOCK", "unlocked")
     else:
-        # to make sure we turn all off
-        window_all_off()
+        logger.debug("ow: another worker is running: %s", getVariable("LOCK").decode())
+
+        
 
 def close_window():
-    if getVariable("WINDOWOPEN").decode() != "off":
-        # make sure open is powerless
-        actors.set_expert_pc("1", "0")
+    logger.debug("cw LOCK: %s", getVariable("LOCK").decode())
 
-        actors.set_expert_pc("2", "1")
-        gevent.sleep(6.0)
-        actors.set_expert_pc("2", "0")
+    if getVariable("LOCK").decode() != "locked":
+        setVariable("LOCK", "locked")
+    
+        if getVariable("WINDOWOPEN").decode() != "off":
+            # make sure open is powerless
+            actors.set_expert_pc("1", "0")
+
+            actors.set_expert_pc("2", "1")
+            gevent.sleep(6.0)
+            actors.set_expert_pc("2", "0")
+        else:
+            # to make sure we turn all off
+            window_all_off()
+        setVariable("LOCK", "unlocked")
     else:
-        # to make sure we turn all off
-        window_all_off()
+        logger.debug("cw: another worker is running: %s", getVariable("LOCK").decode())
+
 
 
 def window_all_off():
@@ -395,9 +415,9 @@ if __name__ == "__main__":
 
     actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
     
-    last_state = "close"
-    open = False
-    last_IAQ = 0
+    setVariable("last_state", "close")
+    #open = False
+    setVariable("last_IAQ", 0)
 
     # initally turn off all power
     window_all_off()
