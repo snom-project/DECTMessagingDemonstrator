@@ -377,6 +377,8 @@ def open_window():
         else:
             # to make sure we turn all off
             window_all_off()
+            logger.debug("ow: WINDOWOPEN sensor was %s, we didnt do anything", getVariable("WINDOWOPEN").decode())
+
         setVariable("LOCK", "unlocked")
         logger.debug("ow window now opened LOCK: %s", getVariable("LOCK").decode())
     else:
@@ -399,6 +401,8 @@ def close_window():
         else:
             # to make sure we turn all off
             window_all_off()
+            logger.debug("cw: WINDOWOPEN sensor was %s, we didnt do anything", getVariable("WINDOWOPEN").decode())
+
         setVariable("LOCK", "unlocked")
         logger.debug("cw window now closed LOCK: %s", getVariable("LOCK").decode())
     else:
