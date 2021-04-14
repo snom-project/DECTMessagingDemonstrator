@@ -19,7 +19,6 @@ from beaker.middleware import SessionMiddleware
 from bottle_utils.i18n import I18NPlugin
 from bottle_utils.i18n import lazy_gettext as _
 
-<<<<<<< HEAD
 import redis
 
 POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
@@ -32,8 +31,6 @@ def getVariable(variable_name):
 def setVariable(variable_name, variable_value):
     my_server = redis.Redis(connection_pool=POOL)
     my_server.set(variable_name, variable_value)
-=======
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
 template.settings = {
     "autoescape": True,
@@ -111,21 +108,13 @@ class PrettyFormsDict(FormsDict):
 ## end helper
 
 
-<<<<<<< HEAD
 # define redis shared variables across threads from gunicorn
 setVariable("WINDOWOPEN", "off")
 
-=======
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 TEMPERATURE = 0.0
 IAQACC = 0
 IAQ = 0
 HUMIDITY = 0
-<<<<<<< HEAD
-=======
-# inital state is window closed
-WINDOWOPEN = "off"
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
 
 @bottle.route("/window_open", method=["GET"], no_i18n=True)
@@ -152,14 +141,8 @@ def run_state():
     global IAQACC
     global IAQ
     global HUMIDITY
-<<<<<<< HEAD
     
     return f'TEMPERATURE:{TEMPERATURE} IAQACC:{IAQACC} IAQ:{IAQ} HUMIDITY:{HUMIDITY} WINDOWOPEN:{getVariable("WINDOWOPEN").decode()}'
-=======
-    global WINDOWOPEN
-    
-    return f'TEMPERATURE:{TEMPERATURE} IAQACC:{IAQACC} IAQ:{IAQ} HUMIDITY:{HUMIDITY} WINDOWOPEN:{WINDOWOPEN}'
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
 
 @bottle.route("/airquality", method=["GET", "POST"], no_i18n=True)
@@ -168,10 +151,6 @@ def run_airquality():
     global IAQACC
     global IAQ
     global HUMIDITY
-<<<<<<< HEAD
-=======
-    global WINDOWOPEN
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
     if request.method == "POST":
         d = request.json
@@ -193,11 +172,7 @@ def run_airquality():
         except:
             pass
         try:
-<<<<<<< HEAD
             setVariable("WINDOWOPEN", d["window"])
-=======
-            WINDOWOPEN = d["window"]
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
         except:
             pass
         return d
@@ -216,10 +191,6 @@ def run_snomair():
     global IAQACC
     global HUMIDITY
     global IAQ
-<<<<<<< HEAD
-=======
-    global WINDOWOPEN
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
     global last_state
     global last_IAQ
@@ -272,11 +243,7 @@ def run_snomair():
         switch = True
 
     logger.info("Final State: %s %s %s %s", IAQ, abs(IAQ - last_IAQ), open, last_state)
-<<<<<<< HEAD
     logger.info("Window Open Sensor: %s", getVariable("WINDOWOPEN"))
-=======
-    logger.info("Window Open Sensor: %s", WINDOWOPEN)
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
 
     # check if we should open or close window.
     if switch and open and last_state == "close":
@@ -393,11 +360,7 @@ def run_main():
 
 def open_window():
     # make sure close is powerless
-<<<<<<< HEAD
     if getVariable("WINDOWOPEN").decode() != "on":
-=======
-    if WINDOWOPEN != "on":
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
         actors.set_expert_pc("2", "0")
 
         actors.set_expert_pc("1", "1")
@@ -408,11 +371,7 @@ def open_window():
         window_all_off()
 
 def close_window():
-<<<<<<< HEAD
     if getVariable("WINDOWOPEN").decode() != "off":
-=======
-    if WINDOWOPEN != "off":
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
         # make sure open is powerless
         actors.set_expert_pc("1", "0")
 
@@ -431,28 +390,16 @@ def window_all_off():
 
 if __name__ == "__main__":
 
-<<<<<<< HEAD
     # Homematic connector (A. Thalmann)
     from actors import Actors
 
     actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
     
-=======
-# Homematic connector (A. Thalmann)
-    from actors import Actors
-
-    actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
     last_state = "close"
     open = False
     last_IAQ = 0
 
-<<<<<<< HEAD
     # initally turn off all power
-=======
-
-    # inital turn off all power
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
     window_all_off()
 
     # run web server
@@ -464,12 +411,8 @@ if __name__ == "__main__":
     # HOST = "192.168.55.23"
 
     # quiet=False adds http logs
-<<<<<<< HEAD
     #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
     
-=======
-    # bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
->>>>>>> e4ad297419a0b6a9e9dd2a0cdf69974c664095b2
     bottle.run(
         app=app,
         server="gunicorn",
