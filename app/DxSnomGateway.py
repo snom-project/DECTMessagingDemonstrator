@@ -228,8 +228,8 @@ def run_snomair():
         iaq_text = f'{iaq_text}{iaq_acc_text}'
 
 
-    # we need a switching tolrance to avoid toggling
-    if abs(IAQ - last_IAQ) < 10:
+    # we need a switching tolerance to avoid toggling
+    if abs(IAQ - last_IAQ) >= 10:
         if last_state == "open":
             # do not close, tolerance not reached
             open = False
@@ -237,11 +237,14 @@ def run_snomair():
             if last_state == "close":
                 # do not close, tolerance not reached
                 open = True
-    else:
         # ok to switch, take next threshold
         last_IAQ = IAQ
         switch = True
+    else:
+        switch = False
+        logger.info("tolerance not reached")
 
+    
     logger.info("Final State: %s %s %s %s", IAQ, abs(IAQ - last_IAQ), open, last_state)
     logger.info("Window Open Sensor: %s", getVariable("WINDOWOPEN"))
 
@@ -378,8 +381,7 @@ def open_window():
         setVariable("LOCK", "unlocked")
     else:
         logger.debug("ow: another worker is running: %s", getVariable("LOCK").decode())
-
-        
+     
 
 def close_window():
     logger.debug("cw LOCK: %s", getVariable("LOCK").decode())
@@ -418,6 +420,8 @@ if __name__ == "__main__":
     setVariable("last_state", "close")
     #open = False
     setVariable("last_IAQ", 0)
+    setVariable("LOCK", "unlocked")
+
 
     # initally turn off all power
     window_all_off()
