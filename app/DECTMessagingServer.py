@@ -652,7 +652,8 @@ class MSSeriesMessageHandler:
                                  self.SYSTEMDATA(
                                                  self.NAME("SnomProxy"),
                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                 self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                 #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                 self.TIMESTAMP(format(int(time.time())), 'x'),
                                                  self.STATUS("1"),
                                                  self.STATUSINFO("System running")
                                                  ),
@@ -703,7 +704,8 @@ class MSSeriesMessageHandler:
                                  self.SYSTEMDATA(
                                                  self.NAME("SnomProxy"),
                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                 self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                 #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                 self.TIMESTAMP(format(int(time.time())), 'x'),
                                                  self.STATUS("1"),
                                                  self.STATUSINFO("System running")
                                                  ),
@@ -744,7 +746,8 @@ class MSSeriesMessageHandler:
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                  self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   )
@@ -759,11 +762,12 @@ class MSSeriesMessageHandler:
                                       self.EXTERNALID(externalid),
                                       self.SYSTEMDATA(
                                                       self.NAME("SnomProxy"),
-                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                   self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                       self.STATUS("1"),
-                                                       self.STATUSINFO("System running")
-                                                      ),
+                                                      self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
+                                                      #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                      self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                      self.STATUS("1"),
+                                                      self.STATUSINFO("System running")
+                                                    ),
                                         self.JOBDATA(
                                                      self.PRIORITY(priority),
                                                      self.MESSAGES(
@@ -816,7 +820,8 @@ class MSSeriesMessageHandler:
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                  self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("Accepted by SnomProxy")
                                                   ),
@@ -871,10 +876,11 @@ class MSSeriesMessageHandler:
                                       self.EXTERNALID(externalid),
                                       self.SYSTEMDATA(
                                                       self.NAME("SnomProxy"),
-                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                   self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                       self.STATUS("1"),
-                                                       self.STATUSINFO("Accepted by SnomProxy")
+                                                      self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
+                                                      #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                      self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                      self.STATUS("1"),
+                                                      self.STATUSINFO("Accepted by SnomProxy")
                                                       ),
                                         self.JOBDATA(
                                                      self.PRIORITY("0"),
@@ -920,7 +926,8 @@ class MSSeriesMessageHandler:
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                  self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   )
@@ -935,7 +942,7 @@ class MSSeriesMessageHandler:
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                  self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
+                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   ),
