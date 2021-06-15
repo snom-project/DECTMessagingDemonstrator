@@ -23,13 +23,7 @@ from numpy.linalg import inv
 from DB.DECTMessagingDb import DECTMessagingDb
 from Trilateration import calc_dist
 
-
-# positions in % of viewport
- # x = 83 px = 4.5m  / = 5.42168675 - 1px in cm / = 18,4444 - 1m in px
-    # y = 128 px = 6.5m / = 5.078125 / = 19.6923077 - 1m in px
-#x_ratio = 5.42168675
-#y_ratio = 5.078125
-
+CLEANUP_DEVICES = False
 
 #84x84 pixel entspricht 1x1 m
 x_ratio = 100.0 / 84.0 
@@ -42,37 +36,45 @@ offset6OG = (475.0 * x_ratio, 0 * y_ratio)
 offsetOG = (475.0, 0)
 
 m9bpositions = [
-    # UG
+    # home test 
     {'m9b_IPEI': '0328D7830E','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
     {'m9b_IPEI': '0328D3C918','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
-
     {'m9b_IPEI': '0328D3C922','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C911','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
   
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*2.0 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*2.0 - 42.0) * y_ratio, 'z':0.0},
+    # Belastungsraum
+    {'m9b_IPEI': '0328DD6295','x': (91.0 + 42.0) * x_ratio, 'y':500.0 * y_ratio, 'z':0.0},
+
+    # UG
+    {'m9b_IPEI': '0328DD60A4','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6095','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
+
+    {'m9b_IPEI': '0328DD609C','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD5EA3','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
+  
+    {'m9b_IPEI': '0328DD627A','x': (125.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6097','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':0.0}, # alloy plate -60 NOK
    
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6271','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD628E','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
   
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C921','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD62A2','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6283','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
     
     # OG
-    {'m9b_IPEI': '0328D78303','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328D3C913','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6093','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6091','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
 
-    {'m9b_IPEI': '0328D78303','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328D3C913','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
-  
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*2.0 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*2.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD60EC','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6098','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
+      
+    {'m9b_IPEI': '0328DD609A','x': (130.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD60C7','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':3.0},
    
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6096','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6099','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
   
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328D3C923','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD609D','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD60F0','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
   ]
 
 # Define some colors
@@ -110,7 +112,7 @@ class Active_Area(pygame.sprite.Sprite):
         super().__init__()
 
         # load an alpha image as floorplan mask        
-        self.image = pygame.image.load("./alpha.png").convert_alpha()
+        self.image = pygame.image.load("./alphaF.png").convert_alpha()
         self.mask = pygame.mask.from_surface(self.image)
 
         self.rect = self.image.get_rect()
@@ -147,7 +149,7 @@ class M9B(pygame.sprite.Sprite):
         
         self.rect = self.image.get_rect()
 
-        self.txt_surf = Text(self.name[-4:], 11, RED, 50, 50)
+        self.txt_surf = Text(self.name[-4:], 11, YELLOW, 50, 50)
 
         self.image.blit(self.txt_surf.textSurf, 
                         [width/2- self.txt_surf.W/2, height-self.txt_surf.H])
@@ -321,8 +323,11 @@ def update_all_devices():
     '''
     # kill all previous M9B animations
     global rssi_circle_list
+    global CLEANUP_DEVICES
+
     rssi_circle_list.empty()
-    player_list.empty()
+    if CLEANUP_DEVICES:
+        player_list.empty()
 
     # floorplan alpha mask to check if device is on the floor 
     global floorplan_alpha_mask
@@ -340,6 +345,23 @@ def update_all_devices():
             # get m9b data for btmac
             selected_items = [{k:d[k] for k in d if k!="a"} for d in result if d.get("bt_mac") == btmac]
             #print('selected_items:' , selected_items)
+            
+            # search devices list for known devices.
+            old_player = False
+            for dev in player_list:
+                if dev.name == btmac:
+                    print('already there:', dev.name)
+                    old_player = True
+                    found_device = dev
+            # BTLE devices
+            #print(colors[idx % len(colors)], idx % len(colors))
+            print(len(player_list))
+            if not old_player:
+                btle_device = Device(colors[len(player_list) % len(colors)], 32, 32, name=btmac)
+                player_list.add(btle_device)
+            else:
+                btle_device = found_device
+
             # create list of visible m9bs
             gateway_list = []
             for elem in selected_items:
@@ -347,7 +369,6 @@ def update_all_devices():
                     gateway_list.append({'ipei': elem['beacon_gateway_IPEI'],
                                         'proximity': elem['proximity'],
                                         'rssi': elem['rssi']})
-            #print('Full list::', gateway_list)
 
             for m9b in gateway_list:
                 #print(m9b, colors[idx % len(colors)])
@@ -358,11 +379,6 @@ def update_all_devices():
                     (xcenter, ycenter, zcenter) = toViewport(float(match['x']), float(match['y']), float(match['z']))
                     (radius, _notused, _notused) = toViewport(calc_dist(float(m9b['rssi']), 2) * 100.0, 0.0)
                     create_rssi_circle(xcenter, ycenter, zcenter, radius, colors[idx % len(colors)])
-
-            # BTLE devices
-            #print(colors[idx % len(colors)], idx % len(colors))
-            btle_device = Device(colors[idx % len(colors)], 32, 32)
-            player_list.add(btle_device)
 
             # how many M9Bs detected the current BTLE device
             num_m9bs_see_device = len(gateway_list)
@@ -413,10 +429,10 @@ def update_all_devices():
                             t.add_measure(f'match_best{extra}', 1.0)
                     P.solve()
                     # split floors back
-                    if t.loc.z > 280.0/2.0: # we are in the 2nd floor
+                    if t.loc.z > 2.8/2.0: # we are in the 2nd floor
                         t.loc.x += offset6OG[0]
                         t.loc.y += offset6OG[1]
-
+                    print("ajusted_:", t.loc)
                     # go screen coordinates
                     (xcenter, ycenter, zcenter) = toViewport(t.loc.x, t.loc.y, t.loc.z)
             elif num_m9bs_see_device == 2:
@@ -446,7 +462,8 @@ def update_all_devices():
 
                 P.solve()
                 # split floors back
-                if t.loc.z > 280.0/2.0: # we are in the 2nd floor
+                print(t.loc)
+                if t.loc.z > 2.8/2.0: # we are in the 2nd floor
                     t.loc.x += offset6OG[0]
                     t.loc.y += offset6OG[1]
 
@@ -592,10 +609,6 @@ if __name__ == "__main__":
 
     rssi_circle_list = pygame.sprite.Group()
     player_list = pygame.sprite.Group()
-
-    # Create a RED player block
-    player = M9B(RED, 20, 15)
-    player_list.add(player)
 
     # Loop until the user clicks the close button.
     done = False
