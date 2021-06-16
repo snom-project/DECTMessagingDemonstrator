@@ -185,8 +185,12 @@ class MSSeriesMessageHandler:
                 logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
                 return True
         if beacon_type == "i":
-            if uui[8] == '2':
-                logger.error('iBeacon: uui=%s, not sure if this is correct', uui)
+            # uuid='8b0ca750e7a74e14bd99095477cb3e772C1E1CA1'
+            # 8b0ca750e7a74e14bd99095477cb3e77 relevant production data 2 C1E1CA1
+            # 2 is TAG
+            # last 8 characters 
+            if uui[len(uui)-8] == '2':
+                logger.error('Snom TAG detected, iBeacon: uui=%s', uui)
                 return True
         # else
         return False
@@ -1414,5 +1418,3 @@ if __name__ == "__main__":
                 rc = mqttc.connect_and_subscribe()
         except:
             logger.warning("main: Message could not be understoood or unexpected error %s" % raw_data)
-
-# %%
