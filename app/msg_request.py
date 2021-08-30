@@ -3,7 +3,7 @@ from lxml import etree as ET
 from colorama import init, Fore, Style
 init()
 
-from create_message import * 
+from create_message import *
 
 def msg_request(self, request_type, msg_profile_root):
     """XML request message handler
@@ -289,11 +289,9 @@ def msg_request(self, request_type, msg_profile_root):
                 # we have a beacon gateway, here name tag is not existing
                 name = "Snom M9B XX"
                 address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
-
                 # we cannot know RX or TX
-                # device_type = 'SnomM9BRX'
-
-
+                device_type = 'SnomM9BRX'
+                
             loggedin = self.get_value(msg_profile_root, 'LOGIN_REQUEST_LOGINDATA_STATUS_XPATH')
             if loggedin == "1" :
                 location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
@@ -308,10 +306,9 @@ def msg_request(self, request_type, msg_profile_root):
             senderaddress_ipei = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
             if senderaddress_ipei:
                 self.update_image(address, '/images/SnomM9B.jpg')
-                device_type = 'SnomM9BRX'
-
                 # add, update gateway table
                 self.update_login_gateway(beacon_gateway_IPEI=senderaddress_ipei[0], beacon_gateway_name=senderaddress_ipei[0])
+
 
             # send to location viewer
             self.send_to_location_viewer()

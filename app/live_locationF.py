@@ -22,6 +22,7 @@ from numpy.linalg import inv
 
 from DB.DECTMessagingDb import DECTMessagingDb
 from Trilateration import calc_dist
+from live_path import lifePath
 
 CLEANUP_DEVICES = False
 
@@ -35,47 +36,62 @@ offset6OG = (475.0 * x_ratio, 0 * y_ratio)
 
 offsetOG = (475.0, 0)
 
+last_M9B = '0328DD6295'
+last_M9B = '0328D3C918'
+
+
 m9bpositions = [
     # home test 
-    {'m9b_IPEI': '0328D7830E','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C918','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328D3C922','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328D7830E','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':90.0 * y_ratio, 'z':0.0, 'succ': ['0328D3C918']},
+    {'m9b_IPEI': '0328D3C918','x': (91.0 + 84.0*1.0 + 42.0) * x_ratio, 'y':90.0 * y_ratio, 'z':0.0, 'succ': ['0328D7830E', '0328D3C922']},
+    {'m9b_IPEI': '0328D3C922','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':90.0 * y_ratio, 'z':0.0, 'succ': []},
   
     # Belastungsraum
-    {'m9b_IPEI': '0328DD6295','x': (91.0 + 42.0) * x_ratio, 'y':500.0 * y_ratio, 'z':0.0},
+    # vom hier gibt es immer einen direkten Pfad, um eine Art handset position reset machen zu können.
+    
+    {'m9b_IPEI': '0328DD6295','x': (91.0 + 42.0) * x_ratio, 'y':500.0 * y_ratio, 'z':0.0, 
+    'succ': ['0328DD60A4', '0328DD609C', '0328DD60EC', '0328DD6093', '0328DD6095', '0328DD5EA3', '0328DD6097', '0328DD627A', 
+    '0328DD628E', '0328DD6283', '0328DD609D', '0328DD60F0', '0328DD6099', '0328DD6096', '0328DD609A', '0328DD60C7',
+     '0328DD6091', '0328DD6098', '0328DD609A', '0328DD627A', '0328DD6271', '0328DD62A2']
+    },
+    
 
     # UG
-    {'m9b_IPEI': '0328DD60A4','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328DD6095','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD60A4','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0, 'succ': ['0328DD609C']},
+    {'m9b_IPEI': '0328DD6095','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':118.0 * y_ratio, 'z':0.0, 'succ': ['0328DD5EA3']},
 
-    {'m9b_IPEI': '0328DD609C','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328DD5EA3','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD609C','x': (91.0 + 84.0*0.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0, 'succ': ['0328DD60EC']},
+    {'m9b_IPEI': '0328DD5EA3','x': (91.0 + 84.0*2.0 + 42.0) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':0.0, 'succ': ['0328DD6097']},
   
-    {'m9b_IPEI': '0328DD627A','x': (125.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328DD6097','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':0.0}, # alloy plate -60 NOK
+    {'m9b_IPEI': '0328DD6097','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':0.0, 'succ': ['0328DD627A']}, # alloy plate -60 NOK
+    {'m9b_IPEI': '0328DD627A','x': (125.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':0.0, 'succ': ['0328DD628E', '0328DD6271']},
    
-    {'m9b_IPEI': '0328DD6271','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328DD628E','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6271','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0, 'succ': ['0328DD62A2']},
+    {'m9b_IPEI': '0328DD628E','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':0.0, 'succ': ['0328DD6283']},
   
     {'m9b_IPEI': '0328DD62A2','x': (91.0 + 84.0*3.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
-    {'m9b_IPEI': '0328DD6283','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0},
+    {'m9b_IPEI': '0328DD6283','x': (91.0 + 84.0*4.0) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':0.0, 'succ': ['0328DD609D']},
     
     # OG
-    {'m9b_IPEI': '0328DD6093','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328DD6091','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6093','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0, 'succ': ['0328DD6095']},
+    {'m9b_IPEI': '0328DD6091','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':118.0 * y_ratio, 'z':3.0, 'succ': ['0328DD6098']},
 
-    {'m9b_IPEI': '0328DD60EC','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328DD6098','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD60EC','x': (91.0 + 84.0*0.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0, 'succ': ['0328DD6093']},
+    {'m9b_IPEI': '0328DD6098','x': (91.0 + 84.0*2.0 + 42.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0) * y_ratio, 'z':3.0, 'succ': ['0328DD609A']},
       
-    {'m9b_IPEI': '0328DD609A','x': (130.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328DD60C7','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD60C7','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*1.0 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD6091']},
+    {'m9b_IPEI': '0328DD609A','x': (130.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*2.5 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD60C7', '0328DD627A']},
    
-    {'m9b_IPEI': '0328DD6096','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328DD6099','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD6096','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD609A']},
+    {'m9b_IPEI': '0328DD6099','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*4.0 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD6096']},
   
-    {'m9b_IPEI': '0328DD609D','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
-    {'m9b_IPEI': '0328DD60F0','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0},
+    {'m9b_IPEI': '0328DD609D','x': (91.0 + 84.0*3.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD60F0']},
+    {'m9b_IPEI': '0328DD60F0','x': (91.0 + 84.0*4.0 + offsetOG[0]) * x_ratio, 'y':(118.0 + 84.0*6.0 - 42.0) * y_ratio, 'z':3.0, 'succ': ['0328DD6099']},
   ]
+
+lp = lifePath(m9bpositions)
+# create path graph
+
 
 # Define some colors
 BLACK   = (100, 100, 100)
@@ -324,7 +340,8 @@ def update_all_devices():
     # kill all previous M9B animations
     global rssi_circle_list
     global CLEANUP_DEVICES
-
+    global last_M9B
+    
     rssi_circle_list.empty()
     if CLEANUP_DEVICES:
         player_list.empty()
@@ -366,9 +383,13 @@ def update_all_devices():
             gateway_list = []
             for elem in selected_items:
                 if is_valid_proximity(elem['proximity']) and get_m9bposition(elem['beacon_gateway_IPEI']):
-                    gateway_list.append({'ipei': elem['beacon_gateway_IPEI'],
-                                        'proximity': elem['proximity'],
-                                        'rssi': elem['rssi']})
+                    # check if active beacons are received in M9B on the path
+                    paths = lp.on_path(last_M9B, elem['beacon_gateway_IPEI'], 1)
+                    for path in paths:
+                        print(path)
+                        gateway_list.append({'ipei': elem['beacon_gateway_IPEI'],
+                                            'proximity': elem['proximity'],
+                                            'rssi': elem['rssi']})
 
             for m9b in gateway_list:
                 #print(m9b, colors[idx % len(colors)])
@@ -391,6 +412,8 @@ def update_all_devices():
             match_best = get_m9bposition(m9bs_sorted[0]['ipei'])
             if not match_best:
                 continue
+            # we have a new M9B
+            last_M9B = match_best['m9b_IPEI']
 
             if num_m9bs_see_device >= 3:
                 # trilaterate with best, 2nd best, 3rd best
@@ -486,6 +509,7 @@ def update_all_devices():
             if floorplan_alpha_mask.mask.get_at((int(max(0,xcenter)),int(max(0,ycenter)))):
                 btle_device.rect.center = (xcenter, ycenter)
 
+
 def viewport_transformation(Xwmin, Xwmax, Ywmin, Ywmax, Xvmin, Xvmax, Yvmin, Yvmax):
     '''
     Viewport transformation
@@ -548,6 +572,8 @@ def adjust_floor(x_coord, y_coord, z_coord):
     return (x_coord, y_coord, z_coord)
 
 if __name__ == "__main__":
+    lp.draw_graph()
+
     # prepare logger
     logger = logging.getLogger('LiveLocation')
     logger.setLevel(logging.DEBUG)

@@ -555,6 +555,7 @@ class MSSeriesMessageHandler:
             logger.debug("update_login: added: %s", login_address)
         else:
             # update potentially changed fields
+            matched_address['device_type'] = device_type
             matched_address['device_loggedin'] = login
             matched_address['base_location']   = base_location
             matched_address['base_connection'] = ip_connection
@@ -581,7 +582,7 @@ class MSSeriesMessageHandler:
         if msgDb:
             msgDb.record_alarm_db(**kwargs)
         else:
-            logger.warning("update_login_gateway: No DB, gateway %s not updated", kwargs)
+            logger.warning("update_alarm_table: No DB, gateway %s not updated", kwargs)
 
 
     def mqttc_publish_beacon(self, bt_mac, beacon_type, uuid, d_type, proximity, rssi, name, beacon_gateway):

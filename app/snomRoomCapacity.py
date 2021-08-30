@@ -118,3 +118,6 @@ if __name__ == "__main__":
     while True:
         # check and execute scheduled task
         schedule.run_pending()
+
+        # do not burn cpu!
+        time.sleep(2)

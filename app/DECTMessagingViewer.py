@@ -479,4 +479,6 @@ if __name__ == "__main__":
 
     # quiet=False adds http logs
     #bottle.run(app=app, server="gevent", host=host, port=8081, reloader=False, debug=True, quiet=True)
-    bottle.run(app=app, server='gunicorn', workers=4, host=HOST, port=8081, reloader=False, debug=True, quiet=True)
+    #bottle.run(app=app, server='gunicorn', workers=4, host=HOST, port=8081, reloader=False, debug=True, quiet=True)
+    # windows compatible 
+    bottle.run(app=app, server='waitress', threads=8, host=HOST, port=8081, reloader=False, debug=True, quiet=True)

@@ -77,7 +77,6 @@ class DECTMessagingDb:
                        """)
 
 
-
     def createDB(self):
         self.sqlite = True
         self.db_filename = 'DB/DECTMessaging.db'
@@ -752,7 +751,7 @@ class DECTMessagingDb:
         """ SELECT * from Devices
         """
         sql = list()
-        sql.append("SELECT * FROM Devices WHERE account!='';")
+        sql.append("SELECT * FROM Devices WHERE account!='' ORDER BY device_type DESC, account ASC;")
         sql = "".join(sql)
         #print(sql)
 
