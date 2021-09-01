@@ -290,7 +290,11 @@ class MSSeriesMessageHandler:
             if self.is_TAG(beacon_type, uuid):
                 matched_bt_mac['device_type'] = 'BTLETag'
             else:
-                matched_bt_mac['device_type'] = 'handset'
+                # we should assume that device_type is already correctly set. 
+                # in case it is an unknown beacon device, we leave beacon
+                # in case we found a handset with matching BTLE address, we change the handset state
+                if matched_bt_mac['device_type'] != 'beacon':
+                    matched_bt_mac['device_type'] = 'handset'
             # M9B in TX mode
             if '1122334455667788990011223344' in uuid  or '000102030405060708090A0B0C0' in uuid:
                 matched_bt_mac['device_type'] = 'beacon'
@@ -310,7 +314,7 @@ class MSSeriesMessageHandler:
                 # THIS IS DISABLED: WE CANNOT GET ALL LEAVE MESSAGE BEACONS RECORDED.
                 # we do not overide the device info but instead make sure we record the 0 Beacon
                 # in the database by using proximity and gateway directly.
-                print('%%%%%%%%%%%%%old leave message, ignore', matched_bt_mac)
+                print('%%%%%%%%%%%%% old leave message, ignore', matched_bt_mac)
                 #matched_bt_mac['beacon_gateway'] = matched_bt_mac['beacon_gateway'] + ' left: ' + beacon_gateway
                 # proximity stays the old inside
                 #return True
