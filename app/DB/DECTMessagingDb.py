@@ -7,7 +7,7 @@ import pyodbc
 
 class DECTMessagingDb:
 
-    def __init__(self, beacon_queue_size=3, alarm_queue_size=5, odbc=True, initdb=True, logger=logging.getLogger('DECTMessagingDb')):
+    def __init__(self, beacon_queue_size=3, alarm_queue_size=5, odbc=False, initdb=True, logger=logging.getLogger('DECTMessagingDb')):
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         logger.addHandler(ch)

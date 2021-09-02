@@ -460,7 +460,7 @@ if not MINIMUM_VIEWER:
 
 if __name__ == "__main__":
     # connect DB
-    msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=True)
+    msgDb = DECTMessagingDb(beacon_queue_size=5, odbc=False, initdb=False)
 
     # run web server
     #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)

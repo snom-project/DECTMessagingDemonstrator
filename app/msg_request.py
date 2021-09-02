@@ -174,7 +174,7 @@ def msg_request(self, request_type, msg_profile_root):
                 if senderaddress_ipei:
                     print("personaddress could be empty, the GW IPEI is always there")
 
-                # update the devices DB
+                # update the device in the DB
                 self.update_beacon(messageuui, senderaddress_ipei[0], personaddress)
 
                 # send response on job with beacon
@@ -187,7 +187,8 @@ def msg_request(self, request_type, msg_profile_root):
 
 
                 # send to location viewer
-                self.send_to_location_viewer()
+                # no need, we updated the beacon data and the affected device already.. ???
+                # self.send_to_location_viewer()
             else:
                 #                Job:  <?xml version="1.0" encoding="UTF-8"?>
                 #                <request version="19.8.6.1008" type="job">

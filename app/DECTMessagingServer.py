@@ -364,8 +364,26 @@ class MSSeriesMessageHandler:
 
         # record the beacon
         if msgDb:
-            # we do not overide the device info but instead make sure we record the Beacon
-            # in the database by using proximity and gateway directly.
+            # update the full single device data. There might be a new device beacon
+            msgDb.update_db(account=matched_bt_mac["account"],
+                            device_type=matched_bt_mac['device_type'],
+                            bt_mac=matched_bt_mac["bt_mac"],
+                            name=matched_bt_mac["name"],
+                            rssi=matched_bt_mac["rssi"],
+                            uuid=matched_bt_mac["uuid"],
+                            beacon_type=matched_bt_mac["beacon_type"],
+                            proximity=matched_bt_mac["proximity"],
+                            beacon_gateway=beacon_gateway,
+                            beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
+                            user_image = matched_bt_mac['user_image'],
+                            device_loggedin = matched_bt_mac['device_loggedin'],
+                            base_location = matched_bt_mac['base_location'],
+                            base_connection = str(matched_bt_mac['base_connection']),
+                            time_stamp=matched_bt_mac["time_stamp"], 
+                            tag_time_stamp = matched_bt_mac['tag_time_stamp']
+                            ) 
+
+            # record the Beacon in the database by using proximity and gateway directly.
             msgDb.record_beacon_db(account=matched_bt_mac["account"],
                                    device_type=matched_bt_mac["device_type"],
                                    bt_mac=matched_bt_mac["bt_mac"],
@@ -1237,7 +1255,7 @@ class MSSeriesMessageHandler:
                     self.send_sms_from_post(data)
                 if jobtype == "sms":
                     self.SMSs_MS_send_FP(data)
-
+                # ??? probably not needed!!
                 self.send_to_location_viewer()
             return True
 
