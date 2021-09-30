@@ -1,5 +1,6 @@
 from lxml import etree as ET
 
+import datetime
 from colorama import init, Fore, Style
 init()
 
@@ -58,6 +59,8 @@ def msg_request(self, request_type, msg_profile_root):
             name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
             address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
             base_location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
+            # alarm DB table gets the server time 
+            current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
 
             # update the location of the device
             self.update_login('handset', name, address, "1", base_location)
@@ -104,12 +107,14 @@ def msg_request(self, request_type, msg_profile_root):
             # add, update Alarm table
             self.update_alarm_table(account=address,
                                     name=name,
+                                    externalid=self.externalid,
                                     alarm_type=alarm_type,
                                     beacon_type=beacontype,
                                     beacon_broadcastdata=broadcastdata,
                                     beacon_bdaddr=bdaddr,
                                     rfpi_s=rfpi_s, rfpi_m=rfpi_m, rfpi_w=rfpi_w,
                                     rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w,
+                                    time_stamp=current_datetime,
                                     )
 
             self.send_to_location_viewer(address)
