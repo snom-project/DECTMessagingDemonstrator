@@ -584,8 +584,11 @@ class MSSeriesMessageHandler:
             matched_address['name']            = login_name
             matched_address['time_stamp']      = current_datetime
 
+
         # add/update device on mqtt as well
         mqttc.publish_login(device_type, login_name, login_address, login, base_location)
+        # update device
+        self.send_to_location_viewer(login_address)
 
 
     def update_login_gateway(self, *args, **kwargs):
@@ -1118,7 +1121,7 @@ class MSSeriesMessageHandler:
                     self.request_alarm(element['account'], sms_message_item['account'], sms_status_item['account'])
 
 
-    def send_to_location_viewer(self):
+    def send_to_location_viewer(self, account=None):
         """Synchronise data from:
         - Database Devices Table
         - DECTMessagingViewer - changed btmacs
@@ -1151,11 +1154,21 @@ class MSSeriesMessageHandler:
 
                 return success
             else:
-                # no sync back to viewer
-                success = msgDb.update_devices_db(self.devices)
+                 # no sync back to viewer
+                if account:
+                    matched_account = next((localitem for localitem in self.devices if localitem['account'] == account), False)
+                    if matched_account:
+                        success = msgDb.update_single_device_db(matched_account)
+                        logger.debug("Given account -%s- updated.", account)
+
+                    else:
+                        logger.warning("Given account -%s- not found to update.", account)
+
+                else:    
+                    success = msgDb.update_devices_db(self.devices)
 
                 return True
-
+                
         else:
             # first try to get an update of bt_macs.
             # this overrides the bt_mac, since at the same time we might have added another device..
@@ -1255,7 +1268,7 @@ class MSSeriesMessageHandler:
                     self.send_sms_from_post(data)
                 if jobtype == "sms":
                     self.SMSs_MS_send_FP(data)
-                # ??? probably not needed!!
+                # ??? probably not needed!! only proximity gets rewritten into alarm or sms
                 self.send_to_location_viewer()
             return True
 
@@ -1389,7 +1402,7 @@ if __name__ == "__main__":
     sys.stderr.write('All set.\n')
 
     #send initial devices data
-    # in case device viwer is autonomous, this one syncs the DB again.
+    # in case device viewer is autonomous, this one syncs the DB again.
     amsg.send_to_location_viewer()
 
     logger.debug("main: schedule.every(1).minutes.do(amsg.request_keepalive)")

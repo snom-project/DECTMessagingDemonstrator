@@ -111,23 +111,27 @@ class DECTMessagingDb:
 
 
     '''
-        account        text,
-        device_type     text default "None",
-        bt_mac         text default "",
-        name        text default "no name",
-        ssid        text default "-100",
-        uuid        text default "",
-        beacon_type        text default "None",
-        proximity        text default "0",
-        beacon_gateway    text default "FFFFFFFFFF",
-        user_image        text default "/images/Heidi_MacMoran_small.jpg",
-        device_loggedin    text default "0",
-        base_location    text default "None",
-        base_connection    text default "('127.0.0.1', 4711)",
-        time_stamp        text default "2020-04-01 00:00:01.100000"
-        tag_time_stamp       text default "2020-04-01 00:00:01.100000"
+        uses Device table by default. 
+        account		VARCHAR(255),
+        device_type 	VARCHAR(255) default "None",
+        bt_mac 		VARCHAR(255) default "",
+        name		VARCHAR(255) default "no name",
+        rssi		VARCHAR(255) default "-100",
+        uuid		VARCHAR(255) default "",
+        beacon_type		VARCHAR(255) default "None",
+        proximity		VARCHAR(255) default "0",
+        beacon_gateway	VARCHAR(255) default "FFFFFFFFFF",
+        beacon_gateway_name    VARCHAR(255) default "",
+        user_image		VARCHAR(255) default "/images/Heidi_MacMoran_small.jpg",
+        device_loggedin	VARCHAR(255) default "0",
+        base_location	VARCHAR(255) default "None",
+        base_connection	VARCHAR(255) default "('127.0.0.1', 4711)",
+        time_stamp		VARCHAR(255) default "2020-04-01 00:00:01.100000",
+        tag_time_stamp	VARCHAR(255) default "2020-04-01 00:00:01.100000",
+        UNIQUE(account)
     '''
     def update_db(self, table="Devices", **kwargs):
+        # update nullifies all values not given in key kwargs!
         # account is our key to find the data
         if kwargs.get("account"):
             _account_key = kwargs.get("account")
@@ -135,12 +139,17 @@ class DECTMessagingDb:
             return False
         #print(kwargs)
 
-        """ update/insert rows into objects table (update if the row already exists)
+        """ update/insert ALL rows into objects table (update if the row already exists)
             given the key-value pairs in kwargs
             INSERT OR REPLACE INTO Devices (account, name, rssi) VALUES ('depp_acc', 'depp', '-99');
-            """
+            Note: all other column values will be nullified
+        """
         # prepare the SQL statement
         keys = ["%s" % k for k in kwargs]
+        # temporary extra test on forgotten fields.
+        if len(keys) != 16 and table == "Devices":
+            self.logger.error('update_db: not all columns specified, remaining column-values will be nullified! keys=%s', ",".join(keys))
+
         values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
         #print(kwargs.values())
         sql = list()
@@ -166,6 +175,47 @@ class DECTMessagingDb:
                 # conn.close()
         else:
             self.logger.error('update_db: Connection does not exist, do nothing')
+
+
+    def update_with_key_db(self, table="Devices", **kwargs):
+        # update nullifies all values not given in key kwargs!
+        # account is our key to find the data
+        if kwargs.get("account"):
+            _account_key = kwargs.get("account")
+        else:
+            return False
+        #print(kwargs)
+
+        # prepare the SQL statement
+        keys = ["%s" % k for k in kwargs]
+        
+        values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
+        #print(kwargs.values())
+        sql = list()
+
+        sql.append("UPDATE %s SET " % table)
+        set_list = ["%s = %s" % (a,b) for a, b in zip(keys, values)]
+        sql.append(", ".join(set_list))
+        sql.append(" WHERE ")
+        sql.append("account = '%s'" % _account_key)
+        sql.append(";")
+        sql = "".join(sql)
+        #print(sql)
+
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                cur = conn.cursor()
+                # sqlite in python is below 3.24 version which supports UPSERT
+                # instead use INSERT OR REPLACE INTO
+                cur.execute(sql)
+                conn.commit()
+                cur.close()
+                # conn.close()
+        else:
+            self.logger.error('update_with_key_db: Connection does not exist, do nothing')
 
 
     '''
@@ -802,6 +852,30 @@ class DECTMessagingDb:
         return True
 
 
+    def update_single_device_db(self, device):
+        if device:
+            self.update_db( 
+                            account     = device['account'],
+                            device_type = device['device_type'],
+                            bt_mac = device['bt_mac'],
+                            name = device['name'],
+                            rssi = device['rssi'],
+                            uuid = device['uuid'],
+                            beacon_type = device['beacon_type'],
+                            proximity = device['proximity'],
+                            beacon_gateway = device['beacon_gateway'],
+                            beacon_gateway_name = device['beacon_gateway_name'],
+                            user_image = device['user_image'],
+                            device_loggedin = device['device_loggedin'],
+                            base_location = device['base_location'],
+                            base_connection = str(device['base_connection']),
+                            time_stamp = device['time_stamp'],
+                            tag_time_stamp = device['tag_time_stamp']
+                            )
+
+        return True
+
+
     def is_empty_db(self):
         sql = list()
         sql.append("SELECT count(*) FROM (select 0 FROM Devices limit 1);")
@@ -834,8 +908,10 @@ class DECTMessagingDb:
 if __name__ == "__main__":
     #connect to ODBC datasource DNS
     msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=False, initdb=False)
-
+    # update nullifies all other values not explicitly given!
     msgDb.update_db(table="Beacons", account="test_beacon", beacon_gateway="FFFFF00000")
+    # this one updates selected fields in an existing record with account as key 
+    msgDb.update_with_key_db(table="Beacons", account="test_beacon", name="Test Beacon", rssi="-44")
     result_dict = msgDb.read_devices_db()
     print("Exising devices:", result_dict )
     # fill up queue_size=3

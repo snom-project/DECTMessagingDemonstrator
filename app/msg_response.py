@@ -21,7 +21,7 @@ def msg_response(self, response_type, msg_profile_root):
         if response_type == 'systeminfo':
             # add all existing logged-in devices
             self.add_senderdata(msg_profile_root)
-            self.send_to_location_viewer()
+            # done in update_login in add_senderdata -- self.send_to_location_viewer()
 
             return True
 

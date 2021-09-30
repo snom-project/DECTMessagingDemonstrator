@@ -292,7 +292,7 @@ if not MINIMUM_VIEWER:
                     # save directly in DB
                     # db is changed but not the memory data from Server!?
                     if msgDb:
-                        msgDb.update_db(account=DEVICES[idx]['account'] , bt_mac=DEVICES[idx]['bt_mac'])
+                        msgDb.update_with_key_db(account=DEVICES[idx]['account'] , bt_mac=DEVICES[idx]['bt_mac'])
 
         return bottle.jinja2_template('btmactable', title=_("BT-Mac Table"), devices=DEVICES)
 

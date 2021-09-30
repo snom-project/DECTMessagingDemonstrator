@@ -33,7 +33,7 @@ def msg_request(self, request_type, msg_profile_root):
             if senderdata:
                 # add all existing logged-in devices
                 self.add_senderdata(msg_profile_root)
-                self.send_to_location_viewer()
+                # done in update_login in add_senderdata -- self.send_to_location_viewer()
 
                 self.logger.debug("systeminfo keep_alive: Respond with MS confirm response to FP:")
 
@@ -112,7 +112,7 @@ def msg_request(self, request_type, msg_profile_root):
                                     rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w,
                                     )
 
-            self.send_to_location_viewer()
+            self.send_to_location_viewer(address)
 
 
         #### BEACONS and handsets
@@ -265,8 +265,8 @@ def msg_request(self, request_type, msg_profile_root):
                 self.logger.debug(f'FATAL, beacondata  expected: {Fore.RED}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
 
 
-            # alarm is impotant, we update the viewer
-            self.send_to_location_viewer()
+            # alarm is important, we update the viewer
+            self.send_to_location_viewer(address)
 
             self.mqttc_publish_beacon(bdaddr, "BTLE", broadcastdata, beacontype, eventtype, "-00", address, "HS-Base:%s" % base_location)
 
@@ -311,8 +311,8 @@ def msg_request(self, request_type, msg_profile_root):
                 self.update_login_gateway(beacon_gateway_IPEI=senderaddress_ipei[0], beacon_gateway_name=senderaddress_ipei[0])
 
 
-            # send to location viewer
-            self.send_to_location_viewer()
+            # send to location viewer / update only one device
+            self.send_to_location_viewer(address)
 
             # send response to FP
             status = statusinfo = '' # not used
