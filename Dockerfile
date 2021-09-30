@@ -28,6 +28,7 @@ COPY requirements.txt ./
 COPY start.sh ./start.sh 
 RUN chmod +x ./start.sh
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install sqlite-web
 COPY app/ .
 CMD ["/bin/bash", "./start.sh"]
 

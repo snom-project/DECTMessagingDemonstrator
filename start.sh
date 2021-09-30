@@ -3,6 +3,8 @@
 # turn on bash's job control
 set -m
 
+/usr/local/bin/sqlite_web --host 0.0.0.0 DB/DECTMessaging.db &
+
 # Start the Viewer process and put it in the background
 python ./DECTMessagingViewer.py &
 

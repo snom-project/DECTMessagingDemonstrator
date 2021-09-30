@@ -5,4 +5,4 @@ pushd /home/ubuntu/ssf/ssf-linux-x86_64-3.0.0
 ./ssfd -p 10000&
 popd
 echo "-------- start docker ----------"
-sudo docker run -dit --restart unless-stopped -p 10300:10300/udp -p 8081:8081 snommd 
+sudo docker run -dit --restart unless-stopped -p 8008:8080 -p 10300:10300/udp -p 8081:8081 snommd 
