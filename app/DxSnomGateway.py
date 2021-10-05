@@ -3,12 +3,14 @@
 # -*- Mode: Python -*-
 from gevent import monkey
 
-monkey.patch_all()
+#monkey.patch_all()
 import gevent
 
 import requests
 
 import logging
+
+import paho.mqtt.client as mqtt
 
 import bottle
 from bottle import app, template, request, url, FormsDict
@@ -31,6 +33,21 @@ def getVariable(variable_name):
 def setVariable(variable_name, variable_value):
     my_server = redis.Redis(connection_pool=POOL)
     my_server.set(variable_name, variable_value)
+
+def getKeys(variable_pattern):
+    my_server = redis.Redis(connection_pool=POOL)
+    keylist = []
+    for key in my_server.scan_iter(variable_pattern):
+           keylist.append(key)
+    return keylist
+
+def deleteKeys(variable_pattern):
+    # deleteKeys('homeassistant/binary_sensor/MD/1/*')
+    my_server = redis.Redis(connection_pool=POOL)
+    keylist = []
+    for key in my_server.scan_iter(variable_pattern):
+           my_server.delete(key)
+    return True
 
 template.settings = {
     "autoescape": True,
@@ -350,6 +367,10 @@ def run_json_action():
 
     return snom_xml
 
+# receives full list of DEVICES in json format DEVICES
+@bottle.route("/sss", name="snom sensor service", no_i18n=True, method=["GET", "POST"])
+def run_sss():
+    return render_sss()
 
 @bottle.route("/", name="main", method="GET")
 def run_main():
@@ -370,12 +391,13 @@ def open_window():
         logger.debug("ow: window opening")
 
         if getVariable("WINDOWOPEN").decode() != "on":
-            # make sure close is powerless
-            actors.set_expert_pc("2", "0")
+            if actors is not None:
+                # make sure close is powerless
+                actors.set_expert_pc("2", "0")
 
-            actors.set_expert_pc("1", "1")
-            gevent.sleep(6.0)
-            actors.set_expert_pc("1", "0")
+                actors.set_expert_pc("1", "1")
+                gevent.sleep(6.0)
+                actors.set_expert_pc("1", "0")
         else:
             # to make sure we turn all off
             window_all_off()
@@ -395,12 +417,13 @@ def close_window():
         logger.debug("oc: window closing")
 
         if getVariable("WINDOWOPEN").decode() != "off":
-            # make sure open is powerless
-            actors.set_expert_pc("1", "0")
+            if actors is not None:
+                # make sure open is powerless
+                actors.set_expert_pc("1", "0")
 
-            actors.set_expert_pc("2", "1")
-            gevent.sleep(6.0)
-            actors.set_expert_pc("2", "0")
+                actors.set_expert_pc("2", "1")
+                gevent.sleep(6.0)
+                actors.set_expert_pc("2", "0")
         else:
             # to make sure we turn all off
             window_all_off()
@@ -412,19 +435,92 @@ def close_window():
         logger.debug("cw: another worker is running: %s", getVariable("LOCK").decode())
 
 
-
 def window_all_off():
-    actors.set_expert_pc("1", "0")
-    actors.set_expert_pc("2", "0")
+    if actors is not None:
+        actors.set_expert_pc("1", "0")
+        actors.set_expert_pc("2", "0")
 
+def on_connect(client, userdata, flags, rc):
+    print('MQTT connected', rc)
+
+def on_subscribe(client, userdata, mid, granted_qos):
+    print('topic subscribed', mid)
+
+def on_hanfun_message(client, obj, msg):
+    #print(client)
+    print('HAN-FUN Message:', msg.topic+" "+
+        str(msg.qos)+" "+
+        msg.payload.decode("utf-8") )
+    payload_str = msg.payload.decode("utf-8") 
+    setVariable(msg.topic, payload_str)
+
+'''
+<SnomIPPhoneMenu>
+    <Menu name="name attr menu">
+        <Title>2nd layer title tag</Title>
+        <MenuItem name="2nd,1st menuitem"/>
+        <MenuItem name="2nd,2nd menuitem"/>
+    </Menu>
+    <MenuItem name="name attr menuitem"/>
+    <MenuItem name="name tag menuitem"/>
+</SnomIPPhoneMenu>
+'''
+def render_sss():
+    keys = getKeys('homeassistant/binary_sensor/*')
+    snom_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
+    <SnomIPPhoneMenu>
+        <Title>Snom Sensor Service</Title>
+        '''
+    for key in keys:
+        key = key.decode()
+        h_, s_, stype, sname, c_ = str(key).split('/')
+        if c_ == 'state':
+            key_val = getVariable(key).decode()
+            entry = f'''<Menu name="{str(stype)}:{str(sname)}={str(key_val)}">
+            </Menu>
+            '''
+            snom_xml = snom_xml + entry
+    snom_xml = snom_xml + '</SnomIPPhoneMenu>'
+    return snom_xml
+
+def on_log(client, userdata, level, buff):  # mqtt logs function
+    print(buff)
+    
+def subsribe_mqtt(client):
+    client.on_message = on_hanfun_message
+    client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
+    client.on_log = on_log
+
+
+    #mqttc.message_callback_add('homeassistant/binary_sensor/MD/1/state', on_hanfun_message)
+    #mqttc.message_callback_add('homeassistant/binary_sensor/MD/1/state', on_message)
 
 if __name__ == "__main__":
+    # run mqtt client
+    mqttc = mqtt.Client()
+    # on_xx before connect
+    subsribe_mqtt(mqttc)
 
+    mqttc.loop_start()
+    mqttc.username_pw_set('mqtt_user', 'mqtt_user')
+    rc = mqttc.connect('10.245.0.28', 1883)
+    if rc != 0:
+        print('MQTT could not be started')
+        sys.exit(0)
+    
+    # wait for CONNACK
+    gevent.sleep(5.0)
+    mqttc.subscribe('homeassistant/#')
+    
+    
     # Homematic connector (A. Thalmann)
     from actors import Actors
-
-    actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
     
+    #actors = Actors("NoActorSystem", system_ip_addr='10.110.22.210')
+    print('Homematic not reachable')
+    actors = None
+
     setVariable("last_state", "close")
     #open = False
     setVariable("last_IAQ", 0)
@@ -455,3 +551,6 @@ if __name__ == "__main__":
         debug=True,
         quiet=True,
     )
+ 
+    while True:
+        gevent.sleep(0.1)

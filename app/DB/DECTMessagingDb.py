@@ -534,6 +534,7 @@ class DECTMessagingDb:
         """Function returns Devices.account, Devices.base_connection to re-use to send SMS or alarms to the right base and status information, like
         m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity,
         m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name.
+        Filters only proximity != '0'
 
         Returns:
             [List of dict]: DB result composed
@@ -557,6 +558,36 @@ class DECTMessagingDb:
                 return result
         else:
             self.logger.error('read_m9b_device_status_db_2: Connection does not exist, do nothing')
+            return []
+
+
+    def read_m9b_device_status_3_db(self):
+        """Function returns Devices.account, Devices.base_connection to re-use to send SMS or alarms to the right base and status information, like
+        m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity,
+        m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name.
+
+        Returns:
+            [List of dict]: DB result composed
+        """
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # format needed to convert to dict
+                #conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                '''   mysql
+
+                '''
+                #cur.execute("SELECT Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac WHERE m9bdevicestatus.proximity != 'a0'")                
+                cur.execute("SELECT m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI WHERE m9bdevicestatus.proximity != '0'")
+                # convert to dict / compatible without factory Row
+                result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
+
+                cur.close()
+                # conn.close()
+                return result
+        else:
+            self.logger.error('read_m9b_device_status_db_3: Connection does not exist, do nothing')
             return []
 
 

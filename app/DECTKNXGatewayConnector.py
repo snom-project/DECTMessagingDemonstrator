@@ -6,9 +6,14 @@
     ]
     initialize Connector with:
     KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.66:1234')
+    add actions:
+    KNX_gateway.update_actions(ACTION_URLS)
+
     fire an action:
     KNX_gateway.fire_KNX_action(bt_mac, beacon_gateway, proximity)
-"""
+
+
+""" 
 from gevent import monkey; monkey.patch_all()
 import gevent
 from gevent.pool import Pool
@@ -18,18 +23,6 @@ import requests
 import logging
 import random
 
-## GLOBALS no longer used if DB connection is done
-KNX_URL = 'http://192.168.178.22:1234'
-
-# base is not used, we assume one KNX GW ..
-ACTION_URLS = [
-#snom inhouse
-    {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'},
-    {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '1'},
-    {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '2'},
-    {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '3'},
-    {'m9b_IPEI': '0328D783C6', 'device_bt_mac': '000413B40F91', 'url': '/1/1/10-an' , 'proximity': '2'}
-]
 
 class DECT_KNX_gateway_connector:
     """handles all triggers from DECT messaging server
@@ -39,9 +32,7 @@ class DECT_KNX_gateway_connector:
     Returns:
         OK: in case it could be fired.
     """
-    def __init__(self, knx_url='http://192.168.178.22:1234', maxsize=5, loglevel=logging.DEBUG):
-        global ACTION_URLS
-
+    def __init__(self, knx_url='http://192.168.178.22:1234', maxsize=5, http_timeout=1.0, loglevel=logging.DEBUG):
         # logging
         self.logger = logging.getLogger('DECT_KNX_Gateway')
         self.logger.setLevel(loglevel)
@@ -56,7 +47,8 @@ class DECT_KNX_gateway_connector:
         self.pool = Pool(maxsize)
 
         self.knx_url = knx_url
-        self.action_urls = ACTION_URLS
+        self.action_urls = []
+        self.http_timeout = http_timeout
 
     def update_actions(self, list_of_actions):
         """Adds or updates a list of actions of the fornm
@@ -65,19 +57,17 @@ class DECT_KNX_gateway_connector:
           {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'}
         ]
         """
-        global ACTION_URLS
-
         if len(list_of_actions) > 0:
             # delete actions when existing first
             for action in list_of_actions:
 
                 try:
-                    idx = ACTION_URLS.index(action)
-                    ACTION_URLS.remove(idx)
+                    idx = self.action_urls.index(action)
+                    self.action_urls.remove(idx)
                 except ValueError:
                     pass
                 finally:
-                    ACTION_URLS.append(action)
+                    self.action_urls.append(action)
                     self.logger.debug('update_actions: add action=%s', action)
         else:
             self.logger.warning('update_actions: empty list of actions - do nothing!')
@@ -131,14 +121,14 @@ class DECT_KNX_gateway_connector:
     # the real work
     def _fire_KNX_action(self, device_bt_mac, gateway, trigger):
         """Fires action url base=knx_url action=matched["url"]
-        only when list of Actions contain an action matching
+        only when list of Actions contains an action matching
         an action url for device_bt_mac=000413B5004B, gateway=0328D3C8FC, trigger='2',
         e.g. {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '2'}.
 
         Args:
             device_bt_mac (string): BTLE mac address of the handset
             gateway (string): IPEI of m9b
-            trigger (string): trigger is M9B proximity, 0=outside, 1,2,3=inside
+            trigger (string): trigger is M9B proximity, '0'=outside, '1','2','3'=inside
 
         Returns:
             Boolean: Always True when executed.
@@ -161,7 +151,7 @@ class DECT_KNX_gateway_connector:
                 s = requests.Session()
                 s.mount('http://', requests.adapters.HTTPAdapter(max_retries=3))
 
-                r = s.get(request_url, timeout=1.0)
+                r = s.get(request_url, timeout=self.http_timeout)
                 self.logger.debug('fire_KNX_action: %s, response=%s', request_url, r)
             except:
                 self.logger.debug('fire_KNX_action: cannot connect %s', request_url)
@@ -171,14 +161,43 @@ class DECT_KNX_gateway_connector:
         return True
 
 if __name__ == "__main__":
-    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.DEBUG)
+    # setting up
+    KNX_URL = 'http://192.168.178.22:1234'
+    GATEWAY_URL = 'http://10.110.16.63:8000'
 
-    for p in range(5):
+    # base is not used, we assume one KNX GW ..
+    ACTION_URLS = [
+    #snom inhouse
+        {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'},
+        {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '1'},
+        {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '2'},
+        {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '3'},
+        {'m9b_IPEI': '0328D783C6', 'device_bt_mac': '000413B40F91', 'url': '/1/1/10-an' , 'proximity': '2'},
+
+        {'m9b_IPEI': '0328D783BC', 'device_bt_mac': '000413B40F91', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%200%20255%201%20255' , 'proximity': '0'},
+        {'m9b_IPEI': '0328D783BC', 'device_bt_mac': '000413B40F91', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '1'}
+    ]
+
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL, maxsize=5, loglevel=logging.DEBUG)
+
+    KNX_gateway.update_actions(ACTION_URLS)
+    
+    for p in range(1):
         w = random.randint(1,10)
         print('add', w)
         for i in range(w):
             proximity = str(random.randint(0, 3))
             KNX_gateway.fire_KNX_action('000413B5004B', '0328D3C8FC', proximity)
 
+    # wait until all actions are completed
+    gevent.wait() 
+
+    # use other url DECT ULE test
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url=GATEWAY_URL, maxsize=1, loglevel=logging.DEBUG)
+    KNX_gateway.update_actions(ACTION_URLS)
+
+    KNX_gateway.fire_KNX_action('000413B40F91', '0328D783BC', '0')
+    KNX_gateway.fire_KNX_action('000413B40F91', '0328D783BC', '1')
+    
     # wait until all actions are completed
     gevent.wait()
