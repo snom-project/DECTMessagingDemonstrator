@@ -89,8 +89,10 @@ class DECT_KNX_gateway_connector:
         """
         try:
             worker_task = self.pool.spawn(self.worker)
+            self.logger.debug('Pool add worker: %s', worker_task)
             # queue the parameters for the worker to fetch
             self.queue.put((worker_task, device_bt_mac, gateway, trigger))
+            self.logger.debug('Pool add worker to queue: %s:%s,%s', worker_task, device_bt_mac, gateway)
             # yield to worker
             gevent.sleep(0)
         except:
@@ -115,7 +117,7 @@ class DECT_KNX_gateway_connector:
                 self.queue.task_done()
                 self.pool.killone(wt, block=False)
                 break
-        self.logger.info(f'task {wt} finished, pool_free={self.pool.free_count()}')
+        self.logger.debug(f'task {wt} finished, pool_free={self.pool.free_count()}')
 
 
     # the real work
@@ -154,9 +156,9 @@ class DECT_KNX_gateway_connector:
                 r = s.get(request_url, timeout=self.http_timeout)
                 self.logger.debug('fire_KNX_action: %s, response=%s', request_url, r)
             except:
-                self.logger.debug('fire_KNX_action: cannot connect %s', request_url)
+                self.logger.warning('fire_KNX_action: cannot connect %s', request_url)
         else:
-            self.logger.debug('fire_KNX_action: KXN disabled: %s', request_url)
+            self.logger.error('fire_KNX_action: KXN disabled: %s', request_url)
 
         return True
 

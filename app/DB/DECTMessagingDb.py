@@ -548,7 +548,6 @@ class DECTMessagingDb:
                 '''   mysql
 
                 '''
-                #cur.execute("SELECT Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac WHERE m9bdevicestatus.proximity != '0'")                
                 cur.execute("SELECT m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI WHERE m9bdevicestatus.proximity != '0'")
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
@@ -578,8 +577,7 @@ class DECTMessagingDb:
                 '''   mysql
 
                 '''
-                #cur.execute("SELECT Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac WHERE m9bdevicestatus.proximity != 'a0'")                
-                cur.execute("SELECT m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI WHERE m9bdevicestatus.proximity != '0'")
+                cur.execute("SELECT m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI WHERE m9bdevicestatus.proximity != 'a0'")
                 # convert to dict / compatible without factory Row
                 result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
 

@@ -52,7 +52,7 @@ class snomRoomCapacityClient():
                 selected_items = [{k:d[k] for k in d if k!="a"} for d in result if d.get("beacon_gateway_IPEI") == m9b]
                 logger.debug("%s devices seen by M9B=%s (%s)", len(selected_items), m9b, selected_items[0]["beacon_gateway_name"])
                 
-                if len(selected_items) > selected_items[0]['max_allowed_devices']:
+                if selected_items and len(selected_items) > selected_items[0]['max_allowed_devices']:
                     logger.info("check_rooms_capacity: capacity of %s exceeded.", selected_items[0]["beacon_gateway_IPEI"])
 
                     for elem in selected_items:
@@ -85,7 +85,9 @@ class snomRoomCapacityClient():
                 else: # we have not found any active devices here, or the limit has not been reached. 
                     # force all lamps to green!
                     # green light
-                    logger.info("check_rooms_capacity: enough capacity, only found %s device(s)", len(selected_items))
+                    logger.info("check_rooms_capacity: enough capacity, only found %s device(s), %s are active", 
+                        len(selected_items),
+                        len(selected_items_in))
                     # only valid handset will be checked, 
                     if selected_items[0]["proximity"] == '0':
                         logger.info("Set light to green for %s", selected_items[0]["beacon_gateway_IPEI"])
@@ -96,7 +98,7 @@ if __name__ == "__main__":
 
     # prepare logger
     logger = logging.getLogger('SnomM9BCapacityLight')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s  %(name)s  %(levelname)s: %(message)s')
 
@@ -113,7 +115,7 @@ if __name__ == "__main__":
     #KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.INFO)
     # get access to DECT ULE
     GATEWAY_URL = 'http://10.110.16.63:8000'
-    ULE_gateway = DECT_KNX_gateway_connector(knx_url=GATEWAY_URL, maxsize=1, http_timeout=8.0, loglevel=logging.DEBUG)
+    ULE_gateway = DECT_KNX_gateway_connector(knx_url=GATEWAY_URL, maxsize=1, http_timeout=8.0, loglevel=logging.INFO)
 
     # get a mqtt instance sending data in hass.io form
     rc = snomRoomCapacityClient()
