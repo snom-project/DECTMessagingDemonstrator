@@ -22,6 +22,7 @@ RUN python3 -m pip install wheel
 RUN python3 -m pip install pandas
 RUN python3 -m pip install cython && \
     python3 -m pip install numpy
+RUN python3 -m pip install pygame
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
