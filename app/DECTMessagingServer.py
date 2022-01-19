@@ -167,7 +167,7 @@ class MSSeriesMessageHandler:
         self.ADDRESS = E.address
 
 
-    def is_TAG(self, beacon_type, uui):
+    def is_TAG(self, btmac, beacon_type, uui):
         """Check if uuid is a TAG
            Altbeacon, example DFE707D0-- (2-C3A11B2) --951700087B1B39E10000000073
            2 = TAG
@@ -180,19 +180,22 @@ class MSSeriesMessageHandler:
         Returns:
             [boolean]: True, if TAG is detected
         """
-        if beacon_type == "a":
-            if uui[8] == '2':
-                logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
-                return True
-        if beacon_type == "i":
-            # uuid='8b0ca750e7a74e14bd99095477cb3e772C1E1CA1'
-            # 8b0ca750e7a74e14bd99095477cb3e77 relevant production data 2 C1E1CA1
-            # 2 is TAG
-            # last 8 characters 
-            if uui[len(uui)-8] == '2':
-                logger.error('Snom TAG detected, iBeacon: uui=%s', uui)
-                return True
-        # else
+        # only snom beacons have encoded uuids
+        if btmac[0:6] == '000413':
+            if beacon_type == "a":
+                if uui[8] == '2':
+                    logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
+                    return True
+            if beacon_type == "i":
+                # uuid='8b0ca750e7a74e14bd99095477cb3e772C1E1CA1'
+                # 8b0ca750e7a74e14bd99095477cb3e77 relevant production data 2 C1E1CA1
+                # 2 is TAG
+                # last 8 characters 
+                if uui[len(uui)-8] == '2' and uui != '00112233445566778899AABBCCDDEEFF22334455':
+                    logger.error('Snom TAG detected, iBeacon: uui=%s', uui)
+                    return True
+            # else
+            
         return False
 
 
@@ -262,7 +265,7 @@ class MSSeriesMessageHandler:
         # we found a new device
 
             # we see the device_type in the BT message
-            if self.is_TAG(beacon_type, uuid):
+            if self.is_TAG(bt_mac, beacon_type, uuid):
                 device_type_new = 'BTLETag'
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 logger.debug("update_beacon: added Tag %s %s", bt_mac, uuid)
@@ -287,7 +290,7 @@ class MSSeriesMessageHandler:
         # we found an already existing device
         else:
             # we see the device_type in the BT message
-            if self.is_TAG(beacon_type, uuid):
+            if self.is_TAG(matched_bt_mac['bt_mac'], beacon_type, uuid):
                 matched_bt_mac['device_type'] = 'BTLETag'
             else:
                 # we should assume that device_type is already correctly set. 
@@ -512,6 +515,24 @@ class MSSeriesMessageHandler:
         return rfpi_s, rssi_s, rfpi_m, rssi_m, rfpi_w, rssi_w
 
 
+    def update_rssi_beacon(self, beacontype, broadcastdata, bdaddr, rssi):
+        # beacontype = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
+        #      broadcastdata = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
+        #     bdaddr = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')        
+        b_list = []
+        if len(beacontype) > 1:
+            for idx, element in enumerate(beacontype):
+                logger.debug('beacon=(%s, %s, %s, %s)', element, broadcastdata[idx], bdaddr[idx], rssi[idx])
+                # add to beacon list
+                b_list.append({'beacontype': element, 'broadcastdata': broadcastdata[idx], 'bdaddr': bdaddr[idx], 'rssi': rssi[idx]})
+        else:
+            # we didnt get a list of beacons
+            b_list.append({'beacontype': beacontype[0], 'broadcastdata': broadcastdata[0], 'bdaddr': bdaddr[0], 'rssi': rssi[0]})
+            logger.debug('beacon=(%s, %s, %s, %s)', beacontype[0], broadcastdata[0], bdaddr[0], rssi[0])
+        
+        return b_list
+
+
     def update_image(self, login_address, image):
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
@@ -558,6 +579,9 @@ class MSSeriesMessageHandler:
         if ip_connection is None:
             ip_connection = self.m900_connection
 
+        # new login messages do not give bt_mac info 
+        bt_mac = 'None'
+        
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
         # update timstamp
@@ -576,6 +600,9 @@ class MSSeriesMessageHandler:
 
             logger.debug("update_login: added: %s", login_address)
         else:
+            # get bt_mac - might be updated elsewhere
+            bt_mac = matched_address['bt_mac'] 
+
             # update potentially changed fields
             matched_address['device_type'] = device_type
             matched_address['device_loggedin'] = login
@@ -586,7 +613,7 @@ class MSSeriesMessageHandler:
 
 
         # add/update device on mqtt as well
-        mqttc.publish_login(device_type, login_name, login_address, login, base_location)
+        mqttc.publish_login(device_type, login_name, login_address, login, base_location, bt_mac)
         # update device
         self.send_to_location_viewer(login_address)
 
@@ -748,11 +775,12 @@ class MSSeriesMessageHandler:
                                               self.FLASH("0"),
                                               self.RINGS("2"),
                                               #self.CONFIRMATIONTYPE("2"), # with confirmation
-                                              self.CONFIRMATIONTYPE("2"), # without confirmation
+                                              self.CONFIRMATIONTYPE("0"), # without confirmation
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
-                                                            self.MESSAGEUUID(alarm_txt)
+                                                            # add date and time to the message to distinguish better.
+                                                            self.MESSAGEUUID('%s:%s' % (datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S"), alarm_txt))
                                                             ),
                                               self.STATUS(alarm_status), # delete 10
                                               self.STATUSINFO("")

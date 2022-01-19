@@ -14,7 +14,7 @@ def msg_response(self, response_type, msg_profile_root):
     """
     if response_type:
         response_type = response_type[0]
-        self.self.logger.info('Response:%s', response_type)
+        self.logger.info('Response:%s', response_type)
         self.logger.debug(f'{Fore.YELLOW}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}..')
 
         # check if we got a response on our keepalive

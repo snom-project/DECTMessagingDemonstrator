@@ -70,22 +70,31 @@ def msg_request(self, request_type, msg_profile_root):
             if alarmdata:  # will someday be the best 3 beacons
                 # beacon last position info
                 alarm_type = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_TYPE_XPATH')
-                beacontype = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH')
-                broadcastdata = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH')
-                bdaddr = self.get_value(msg_profile_root, 'ALARM_REQUEST_ALARMDATA_BDADDR_XPATH')
-                if beacontype:
-                    print("alarm beacon info", alarm_type, beacontype, broadcastdata, bdaddr)
+                beacontype    = msg_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_ALARMDATA_BEACONTYPE_XPATH'])
+                broadcastdata = msg_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_ALARMDATA_BROADCASTDATA_XPATH'])
+                bdaddr        = msg_profile_root.xpath(self.msg_xpath_map['ALARM_REQUEST_ALARMDATA_BDADDR_XPATH'])
+                if len(beacontype) != 0:
                     # update the last beacon location
                     # we assume proximity = "1" since this was the last known location
-                    self.update_last_beacon(name, address, bdaddr, base_location, "alarm")
-                # - 0: Man Down
+                    rssi="-99"
+                    b_list = self.update_rssi_beacon(beacontype, broadcastdata, bdaddr, rssi)
+                    self.logger.debug("alarm beacon info: %s,%s,%s,%s,%s", 
+                        alarm_type, b_list[0]['beacontype'], b_list[0]['broadcastdata'], b_list[0]['bdaddr'], b_list[0]['rssi'])
+
+                    self.update_last_beacon(name, address, b_list[0]['bdaddr'], base_location, "alarm")
+                    #self.update_last_beacon(name, address, bdaddr, base_location, "alarm")
+                else:
+                    # no beacon data, set defaults for DB
+                    b_list = [] 
+                    b_list.append({'beacontype': 'None','broadcastdata': 'None', 'bdaddr': 'None', 'rssi': 'None'})
+                # - 0: Man Down«
                 # - 1: No Movement - 2: Running
                 # - 3: Pull Cord
                 # - 4: Red Key
                 # - 5-9 Reserved
                 self.logger.debug('Alarmtype:%s', alarm_type)
             else: # we set defaults for the DB
-                alarm_type = beacontype = broadcastdata = bdaddr = None
+                alarm_type = beacontype = broadcastdata = bdaddr = 'None'
 
             rssidata = msg_profile_root.xpath(self.msg_xpath_map['X_RSSIDATA_XPATH'])
             if rssidata:
@@ -109,9 +118,10 @@ def msg_request(self, request_type, msg_profile_root):
                                     name=name,
                                     externalid=self.externalid,
                                     alarm_type=alarm_type,
-                                    beacon_type=beacontype,
-                                    beacon_broadcastdata=broadcastdata,
-                                    beacon_bdaddr=bdaddr,
+                                    beacon_type=b_list[0]['beacontype'], 
+                                    beacon_broadcastdata=b_list[0]['broadcastdata'],
+                                    beacon_bdaddr=b_list[0]['bdaddr'],
+                                    #beacon_rssi=b_list[0]['rssi'],
                                     rfpi_s=rfpi_s, rfpi_m=rfpi_m, rfpi_w=rfpi_w,
                                     rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w,
                                     time_stamp=current_datetime,
