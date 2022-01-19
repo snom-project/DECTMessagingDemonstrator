@@ -24,7 +24,7 @@ class snomM900MqttClient(mqtt.Client):
         print(string)
 
 
-    def publish_login(self, device_type, login_name, login_address, login, base_location):
+    def publish_login(self, device_type, login_name, login_address, login, base_location, bt_mac):
         if self.enable:
             print('Publish: snomM900/13466A8A/device/login %s to test.mosquitto.org 1883' % device_type)
         
@@ -34,6 +34,7 @@ class snomM900MqttClient(mqtt.Client):
             self.publish("%s/type" % device_topic, device_type)
             self.publish("%s/loggedIn" % device_topic, login)
             self.publish("%s/baseLocation" % device_topic, base_location)
+            self.publish("%s/bt_mac" % device_topic, bt_mac)
 
 
     def publish_beacon(self, bt_mac, beacon_type, uuid, d_type, proximity, rssi, name, beacon_gateway):
