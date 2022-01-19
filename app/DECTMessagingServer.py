@@ -790,7 +790,7 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID('alarm_%s' % str(random.randint(500, 500)))
+                                 self.EXTERNALID('extID_%s' % str(random.randint(100, 999)))
                                  , version="1.0", type="job")
 
         self.send_xml(final_doc)
