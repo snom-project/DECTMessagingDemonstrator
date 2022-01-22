@@ -31,7 +31,7 @@ class snomRoomCapacityClient():
             {'m9b_IPEI': '0328D3C918', 'device_bt_mac': '000413B50038', 'url': '/1/1/10-an' , 'proximity': '2'},
             {'m9b_IPEI': '0328D3C918', 'device_bt_mac': '000413B50038', 'url': '/1/1/10-an' , 'proximity': '3'}
             ]
-            KNX_gateway.update_actions(ACTIONS)
+            KNX_gateway.update_actions(ACTIONS) 
         """
         if msgDb:
             # only proximity != a0
