@@ -13,7 +13,7 @@ from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 class snomRoomCapacityClient():
     """ snomRoomCapacityClient uses M9B Gateways to count all devices (beacons) within the proximity.
     In case a Gateway sees more than MAX_ALLOWED_DEVICES=2 devices an alarm is send to Mxx handsets
-    and KNX actions (Light flashing, open window) is fired. 
+    and KNX actions (Light flashing, open window) is fired.
     """
     def __init__(self, enable=True):
         self.enable = enable
