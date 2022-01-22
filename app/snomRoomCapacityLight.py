@@ -36,7 +36,7 @@ class snomRoomCapacityClient():
         if msgDb:
             # all proximity values 
             result = msgDb.read_m9b_device_status_3_db()
-            print(result)
+            #print(result)
             #[{'account': '000413B50038', 'bt_mac': '000413B50038',
             #'rssi': '-53', 'uuid': 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF90FF',
             #'beacon_type': 'a', 'proximity': '3',
@@ -50,11 +50,18 @@ class snomRoomCapacityClient():
             for m9b in m9bs:
                 # get btmac data for m9b
                 selected_items = [{k:d[k] for k in d if k!="a"} for d in result if d.get("beacon_gateway_IPEI") == m9b]
-                logger.debug("%s devices seen by M9B=%s (%s)", len(selected_items), m9b, selected_items[0]["beacon_gateway_name"])
+                selected_items_inside = [x for x in selected_items if x['proximity'] != '0']
+                logger.debug("%s/%s devices seen/active by M9B=%s (%s)", len(selected_items), len(selected_items_inside), m9b, selected_items[0]["beacon_gateway_name"])
                 
-                if selected_items and len(selected_items) > selected_items[0]['max_allowed_devices']:
-                    logger.info("check_rooms_capacity: capacity of %s exceeded.", selected_items[0]["beacon_gateway_IPEI"])
+                if selected_items and len(selected_items_inside) > selected_items[0]['max_allowed_devices']:
+                    logger.info("check_rooms_capacity: capacity of %s exceeded. Found %s active devices", 
+                        selected_items[0]["beacon_gateway_IPEI"], 
+                        len(selected_items_inside))
 
+                     # red light
+                    logger.info("Set light to red for %s", selected_items[0]["beacon_gateway_IPEI"])
+                    ULE_gateway.fire_KNX_action('lightred', selected_items[0]["beacon_gateway_IPEI"], '1')
+                       
                     for elem in selected_items:
                         # send alarm to all handsets - base_connection is needed from the Devices table
                         logger.info(f'send alarm to {elem["account"]} on base connection {elem["base_connection"]}' )
@@ -63,35 +70,31 @@ class snomRoomCapacityClient():
                         ULE_gateway.fire_KNX_action(elem["bt_mac"], elem["beacon_gateway_IPEI"], "1")
                         # its always proximity !=0 here.
                         if elem["proximity"] != '0':
-                            # red light
-                            logger.info("Set light to red for %s", elem["beacon_gateway_IPEI"])
-                            ULE_gateway.fire_KNX_action(elem["bt_mac"], elem["beacon_gateway_IPEI"], '1')
-                       
-                        # send alarm to handset
-                        message = [
-                            {"name": elem["account"], "account": elem["account"]},
-                            {"name": "FormControlTextarea1", "account": "Corona Alert - %s additional person(s) in room %s!" % (len(selected_items)-2, elem["beacon_gateway_name"])},
-                            {"name": "FormControlStatus1",   "account": "0"},
-                            {"name": "submitbutton", "account": ""}
-                            ]
+                            # send alarm to handset
+                            message = [
+                                {"name": elem["account"], "account": elem["account"]},
+                                {"name": "FormControlTextarea1", "account": "RED: Corona Alert - %s additional person(s) in room %s!" % (len(selected_items_inside)-selected_items[0]['max_allowed_devices'], elem["beacon_gateway_name"])},
+                                {"name": "FormControlStatus1",   "account": "0"},
+                                {"name": "submitbutton", "account": ""}
+                                ]
 
-                        # notify the user with alarm.
-                        try:
-                            # send btmacs updated data back to viewer.
-                            print('alarm sent:: %s' % message)
-                            _r = requests.post('http://127.0.0.1:8081/en_US/alarm', json=message)
-                        except requests.exceptions.Timeout as errt:
-                            print ("Timeout Error location:",errt)
+                            # notify the user with alarm.
+                            try:
+                                # send btmacs updated data back to viewer.
+                                print('alarm sent:: %s' % message)
+                                _r = requests.post('http://127.0.0.1:8081/en_US/alarm', json=message)
+                            except requests.exceptions.Timeout as errt:
+                                print ("Timeout Error location:",errt)
                 else: # we have not found any active devices here, or the limit has not been reached. 
                     # force all lamps to green!
                     # green light
-                    logger.info("check_rooms_capacity: enough capacity, only found %s device(s), %s are active", 
-                        len(selected_items),
-                        len(selected_items_in))
+                    logger.info("check_rooms_capacity: enough capacity, only found %s/%s device(s), allowed=%s", 
+                        len(selected_items), 
+                        len(selected_items_inside), 
+                        selected_items[0]['max_allowed_devices'])
                     # only valid handset will be checked, 
-                    if selected_items[0]["proximity"] == '0':
-                        logger.info("Set light to green for %s", selected_items[0]["beacon_gateway_IPEI"])
-                        ULE_gateway.fire_KNX_action("lightgreen", selected_items[0]["beacon_gateway_IPEI"], '0')
+                    logger.info("Set light to green for %s, m9b=%s", selected_items[0]["beacon_gateway_IPEI"], m9b)
+                    ULE_gateway.fire_KNX_action("lightgreen", selected_items[0]["beacon_gateway_IPEI"], '0')
 
 
 if __name__ == "__main__":
@@ -127,13 +130,15 @@ if __name__ == "__main__":
         {'m9b_IPEI': '0328D3C918', 'device_bt_mac': '000413B50038', 'url': '/1/1/10-an' , 'proximity': '3'},
         # ULE only  
         # Light is red, room occupied
-        {'m9b_IPEI': '0328D783BC', 'device_bt_mac': '000413B40F91', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '1'},
-        {'m9b_IPEI': '0328D78490', 'device_bt_mac': '000413B40F91', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '1'},
-        {'m9b_IPEI': '0328D783BC', 'device_bt_mac': '000413B40034', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '1'},
-        {'m9b_IPEI': '0328D78490', 'device_bt_mac': '000413B40034', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '1'},
+        {'m9b_IPEI': '0328D783BC', 'device_bt_mac': 'lightred', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%200%20255%201%20255' , 'proximity': '1'},
+        {'m9b_IPEI': '0328D78490', 'device_bt_mac': 'lightred', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%209%200%20255%201%20255' , 'proximity': '1'},
+        #{'m9b_IPEI': '0328D783BC', 'device_bt_mac': '000413B40034', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%200%20255%201%20255' , 'proximity': '1'},
+        #{'m9b_IPEI': '0328D78490', 'device_bt_mac': '000413B40034', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%209%200%20255%201%20255' , 'proximity': '1'},
+        {'m9b_IPEI': '0328D7848F', 'device_bt_mac': 'lightred', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%2010%200%20255%201%20255' , 'proximity': '1'},
         # Light is green, room not crowded  
         {'m9b_IPEI': '0328D783BC', 'device_bt_mac': 'lightgreen', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '0'},
-        {'m9b_IPEI': '0328D78490', 'device_bt_mac': 'lightgreen', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%208%20100%20255%201%20255' , 'proximity': '0'},
+        {'m9b_IPEI': '0328D78490', 'device_bt_mac': 'lightgreen', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%209%20100%20255%201%20255' , 'proximity': '0'},
+        {'m9b_IPEI': '0328D7848F', 'device_bt_mac': 'lightgreen', 'url': '/knx/dect-ule/?cmd=han_app.py%20send_bulb_color%2010%20100%20255%201%20255' , 'proximity': '0'},
     ]
     #KNX_gateway.update_actions(ACTIONS)
     ULE_gateway.update_actions(ACTIONS)
