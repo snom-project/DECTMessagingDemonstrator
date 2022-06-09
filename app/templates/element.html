@@ -40,7 +40,7 @@
 {% elif i['proximity'] == "alarm_confirmed" %}
 {% set prox_color = "text-white bg-success flashit" %}
 {% set prox_back = "rgba(50, 200, 100, 0.4);" %}
-{% set prox_txt ="Save" %}
+{% set prox_txt ="OK" %}
 {% set prox_badge ="badge-danger" %}
 
 {% elif i['proximity'] == "alarm_rejected" %}
@@ -53,6 +53,18 @@
 {% set prox_color = "text-white bg-dark flashit" %}
 {% set prox_back = "rgba(200, 100, 100, 0.4);" %}
 {% set prox_txt ="Cancel" %}
+{% set prox_badge ="badge-danger" %}
+
+{% elif i['proximity'] == "alarm_busy" %}
+{% set prox_color = "text-white bg-dark flashit" %}
+{% set prox_back = "rgba(200, 200, 200, 0.4);" %}
+{% set prox_txt ="Busy" %}
+{% set prox_badge ="badge-danger" %}
+
+{% elif i['proximity'] == "alarm_notdelivered" %}
+{% set prox_color = "text-white bg-dark flashit" %}
+{% set prox_back = "rgba(200, 100, 100, 0.4);" %}
+{% set prox_txt ="NotDelivered" %}
 {% set prox_badge ="badge-danger" %}
 
 {% elif i['proximity'] == "sms" %}

@@ -771,11 +771,13 @@ class MSSeriesMessageHandler:
                                               # repeated alarms with same reference will show only last alarm
                                               #self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 100))),
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
-                                              self.PRIORITY("2"),
+                                              self.PRIORITY(str(random.randint(1, 9))),
+                                              #self.PRIORITY("7"),
                                               self.FLASH("0"),
                                               self.RINGS("2"),
-                                              #self.CONFIRMATIONTYPE("2"), # with confirmation
-                                              self.CONFIRMATIONTYPE("0"), # without confirmation
+                                              self.CONFIRMATIONTYPE("2"), # with DECT and user confirmation
+                                              #self.CONFIRMATIONTYPE("1"), # with DECT confirmation
+                                              #self.CONFIRMATIONTYPE("0"), # without confirmation
                                               self.MESSAGES(
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
@@ -1229,7 +1231,7 @@ class MSSeriesMessageHandler:
 
 
     def update_proximity(self, address, alarm_type):
-        logger.info('update_proximity:')
+        logger.info('update_proximity: %s=%s' % (address, alarm_type))
         matched_address = next((localitem for localitem in self.devices if localitem['account'] == address), False)
         matched_address['proximity'] = alarm_type
 

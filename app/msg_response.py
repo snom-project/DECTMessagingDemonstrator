@@ -57,6 +57,12 @@ def msg_response(self, response_type, msg_profile_root):
                 if alarm_job_status == "10":
                     self.logger.debug("message canceled")
                     self.update_proximity(alarm_job_address, "alarm_canceled")
+                if alarm_job_status == "2":
+                    self.logger.debug("message discarded / busy")
+                    self.update_proximity(alarm_job_address, "alarm_busy")
+                if alarm_job_status == "11":
+                    self.logger.debug("message user unavailable / not delivered")
+                    self.update_proximity(alarm_job_address, "alarm_notdelivered")
 
             if alarm_job_status == '1':
                 self.response_forward_sms(msg_profile_root)

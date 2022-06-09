@@ -8,7 +8,7 @@ python ./DECTMessagingViewer.py &
 
 sleep 5
 
-/usr/local/bin/sqlite_web --host 0.0.0.0 DB/DECTMessaging.db &
+/usr/local/bin/sqlite_web -p 8088 --host 0.0.0.0 DB/DECTMessaging.db &
 
 # Start the Messaging Server process
 python -u DECTMessagingServer.py 10300 -log debug
