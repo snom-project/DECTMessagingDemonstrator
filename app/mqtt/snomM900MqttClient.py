@@ -22,8 +22,8 @@ class snomM900MqttClient(mqtt.Client):
     def on_message(self, mqttc, obj, msg):
         print('Message:', msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
 
-    def on_publish(self, mqttc, obj, mid):
-        print("mid: "+str(mid))
+    #def on_publish(self, mqttc, obj, mid):
+    #    print("mid: "+str(mid))
 
     def on_subscribe(self, mqttc, obj, mid, granted_qos):
         print("Subscribed: "+str(mid)+" "+str(granted_qos))
@@ -39,7 +39,6 @@ class snomM900MqttClient(mqtt.Client):
 
     def on_log(self, mqttc, obj, level, string):
         print(string)
-
 
     def publish_login(self, device_type, login_name, login_address, login, base_location, ip_connection, bt_mac):
         if self.enable:
@@ -60,7 +59,7 @@ class snomM900MqttClient(mqtt.Client):
     def publish_beacon(self, bt_mac, beacon_type, uuid, d_type, proximity, rssi, name, beacon_gateway):
         if self.enable:
             #print('Publish: snomM900/{RFPI}/beacon %s to test.mosquitto.org 1883' % bt_mac)
-            print(f'Publish: snomM900/{RFPI}/beacons/login {bt_mac}')
+            print(f'Publish: snomM900/{RFPI}/beacons/{bt_mac}')
 
             device_topic = f"snomM900/{RFPI}/beacons/{bt_mac}"
             
@@ -94,14 +93,11 @@ class snomM900MqttClient(mqtt.Client):
             self.message_callback_add("site/+/heartbeat_ind", self.on_message_cloudservice)
 
         return 0
-        #self.subscribe("$SYS/#", 0)
-        #self.subscribe("snomM900/{RFPI}/device/login")
-
+    # not used in async mode
     def run(self):
         if self.enable:
             rc = 0
-            time.sleep(0.1)
-            #rc = self.loop()
+            rc = self.loop()
             return rc
         else:
             print('MQTT disabled!')
