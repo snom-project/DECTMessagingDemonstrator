@@ -6,7 +6,7 @@ set -m
 # Start the Viewer process and put it in the background
 python ./DECTMessagingViewer.py &
 
-sleep 10 
+sleep 10
 
 /usr/local/bin/sqlite_web -p 8088 --host 0.0.0.0 DB/DECTMessaging.db &
 
