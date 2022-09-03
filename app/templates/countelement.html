@@ -40,7 +40,7 @@
     }
 
     var req;
-    req = "http://localhost:8081/en_US/outsideAllTAGs/{{ i['beacon_gateway_IPEI'] }}"
+    req = "http://{{host}}/en_US/outsideAllTAGs/{{ i['beacon_gateway_IPEI'] }}"
 
     httpRequest.onreadystatechange = alertContents;
     httpRequest.open('GET', req);

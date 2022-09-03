@@ -181,9 +181,8 @@
       alert('Giving up :( Cannot create an HTTP instance');
       return false;
     }
-
     var req;
-    req = "http://localhost:8081/en_US/removeDevice/{{ i['account'] }}"
+    req = "http://{{host}}/en_US/removeDevice/{{ i['account'] }}"
 
     httpRequest.onreadystatechange = alertContents;
     httpRequest.open('GET', req);

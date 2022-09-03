@@ -200,6 +200,9 @@ def count():
 def run_countelement(deviceIdx,search_term):
     global COUNTDEVICES
 
+    # the data will be locally accesed, we need to know our server host
+    current_host = request.get_header('host')
+
     if msgDb:
         # MAX(time_stamp) is hard coded
         COUNTDEVICES = msgDb.read_m9b_device_status_4_db(search_term)
@@ -214,7 +217,7 @@ def run_countelement(deviceIdx,search_term):
         return ""
     # yield to greenlet queue
     gevent.sleep(0)
-    return bottle.jinja2_template('countelement', title=_("M9B # Element"), i=device_count_element, search_term=search_term)
+    return bottle.jinja2_template('countelement', title=_("M9B # Element"), i=device_count_element, search_term=search_term, host=current_host)
 
 @route('/m9b_count_devices',method=['GET','POST'], no_i18n = True)
 def m9b_count_devices():
@@ -493,6 +496,9 @@ if not MINIMUM_VIEWER:
     def run_element(deviceIdx):
         global DEVICES
 
+        # the data will be locally accesed, we need to know our server host
+        current_host = request.get_header('host')
+
         try:
             device = DEVICES[int(deviceIdx)]
         except IndexError:
@@ -501,7 +507,7 @@ if not MINIMUM_VIEWER:
         #print('vorher:', datetime.datetime.today())
         # yield to greenlet queue
         gevent.sleep(0)
-        return bottle.jinja2_template('element', title=_("Element View"), i=device)
+        return bottle.jinja2_template('element', title=_("Element View"), i=device, host=current_host)
 
 
     @bottle.route('/removeDevice/<account>', name='removeDevice', method=['GET'], no_i18n = True)
@@ -521,6 +527,9 @@ if not MINIMUM_VIEWER:
     def run_tagelement(deviceIdx):
         global DEVICES
 
+        # the data will be locally accesed, we need to know our server host
+        current_host = request.get_header('host')
+
          # filter devices for TAGs only /// for each tag its way to often!
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
 
@@ -532,7 +541,7 @@ if not MINIMUM_VIEWER:
         #print('vorher:', datetime.datetime.today())
         # yield to greenlet queue
         gevent.sleep(0)
-        return bottle.jinja2_template('tagelement', title=_("Tag Element"), i=device)
+        return bottle.jinja2_template('tagelement', title=_("Tag Element"), i=device, host=current_host)
 
     @bottle.route('/resetTAG/<deviceAccount>', name='resetTAG', method=['GET'], no_i18n = True)
     def run_resetTAG(deviceAccount):
