@@ -6,12 +6,12 @@ set -m
 # Start the Viewer process and put it in the background
 python ./DECTMessagingViewer.py &
 
-sleep 5
+sleep 10 
 
 /usr/local/bin/sqlite_web -p 8088 --host 0.0.0.0 DB/DECTMessaging.db &
 
 # Start the Messaging Server process
-python -u DECTMessagingServer.py 10300 -log debug
+python -u DECTMessagingServer.py 10300
 
 # now we bring the primary process back into the foreground
 # and leave it there
