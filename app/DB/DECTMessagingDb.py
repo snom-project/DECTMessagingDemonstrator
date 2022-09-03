@@ -507,6 +507,24 @@ class DECTMessagingDb:
             return []
 
 
+    def remove_all_devices_from_m9b_db(self, m9bIPEI):
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # format needed to convert to dict
+                #conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                print ("DELETE FROM m9bdevicestatus where beacon_gateway_IPEI = '{}'".format(m9bIPEI))
+                cur.execute("DELETE FROM m9bdevicestatus where beacon_gateway_IPEI = '{}'".format(m9bIPEI))
+                conn.commit()
+                cur.close()
+                # conn.close()
+                return True
+        else:
+            self.logger.error('remove_all_devices_from_m9b_db: Connection does not exist, do nothing')
+            return []
+
+
     def read_m9b_device_status_db(self):
         connection = self.connection
         if connection:
@@ -586,6 +604,57 @@ class DECTMessagingDb:
                 return result
         else:
             self.logger.error('read_m9b_device_status_db_3: Connection does not exist, do nothing')
+            return []
+
+
+    def read_m9b_device_status_4_db(self, search_term):
+        """Function returns count of Devices per M9B. 
+        Only nearest device location is returned.
+        
+        Returns:
+            [List of dict]: DB result composed
+        """
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                # format needed to convert to dict
+                #conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                '''   mysql
+
+                '''
+                """
+                cur.execute(f'''SELECT count(), m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.time_stamp, m9bdevicestatus.beacon_type, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name 
+                                FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI 
+                                WHERE m9bdevicestatus.beacon_gateway_IPEI like '%{search_term}%' and (Devices.device_type = 'BTLETag' or m9bdevicestatus.proximity != '0') 
+                                GROUP BY m9bdevicestatus.beacon_gateway_IPEI'''
+                            )
+                """
+                cur.execute(f'''SELECT count(), account, rssi, beacon_gateway_IPEI, beacon_gateway_name, max_allowed_devices, base_location, time_stamp FROM 
+                                (
+                                    SELECT  account, rssi, beacon_gateway_IPEI, beacon_gateway_name, max_allowed_devices, base_location, time_stamp
+                                    FROM (
+                                        SELECT * FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac 
+                                        INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI 
+                                        WHERE  m9bdevicestatus.beacon_gateway_IPEI like '%{search_term}%'  
+                                        AND (Devices.device_type = 'BTLETag' 
+                                        OR m9bdevicestatus.proximity != '0'
+                                        ) 
+                                    ORDER BY account, rssi , time_stamp DESC )
+                                    GROUP BY
+                                    account
+                                )
+                                GROUP BY beacon_gateway_IPEI'''
+                            )
+                            
+                # convert to dict / compatible without factory Row
+                result = [dict(zip([column[0] for column in cur.description], row)) for row in cur.fetchall()]
+
+                cur.close()
+                # conn.close()
+                return result
+        else:
+            self.logger.error('read_m9b_device_status_db_4: Connection does not exist, do nothing')
             return []
 
 
@@ -671,6 +740,7 @@ class DECTMessagingDb:
 
 
     def delete_db(self, table="Devices", **kwargs):
+        time.sleep(0)
         # we take any given when condition
         if len(kwargs) > 0:
             # delete selected rows

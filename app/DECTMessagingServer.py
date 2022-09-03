@@ -275,12 +275,18 @@ class MSSeriesMessageHandler:
                 # we use only the common part for all beacon types
                 if '1122334455667788990011223344' in uuid or '000102030405060708090A0B0C0' in uuid :
                     logger.debug("device is a M9B in TX mode")
+                    M9B_beacon = True
+                else:
+                    M9B_beacon = False
 
                 device_type_new = 'beacon'
                 # add a new bt_mac
                 self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'M9B %s' % personaddress, 'account': bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': proximity, 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/beacon.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'beacon ping', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 self.btmacaddresses.append({'account': bt_mac, 'bt_mac': bt_mac})
-                logger.debug("added: beacon?M9B %s %s %s", personaddress, bt_mac, uuid)
+                if M9B_beacon:
+                    logger.debug("added: M9B TX beacon  %s %s %s", personaddress, bt_mac, uuid)
+                else:
+                    logger.debug("added: beacon seen by M9B RX  %s %s %s", personaddress, bt_mac, uuid)
 
             # we have added a new device, now match it to process further
             matched_bt_mac = next((item for item in self.devices if item['bt_mac'] == bt_mac), False)
@@ -433,8 +439,9 @@ class MSSeriesMessageHandler:
                     d['tag_time_stamp'] = current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
                     #print('found d:', d, current_timestamp.strftime("%Y-%m-%d %H:%M:%S.%f"))
                     mqttc.publish_beacon(d["bt_mac"], "", "", "", d["proximity"], -0, d["name"], d["beacon_gateway"])
-                    # Update the m9b tag status from moving for all gateways
+                    # Update the m9b tag status and device from moving for all gateways
                     msgDb.update_m9b_tag_status_db(bt_mac=d["bt_mac"], proximity=d["proximity"])
+                    msgDb.update_single_device_db(d)
                     # !!! update the beacon status from moving for all affected entries? bt_mac !!!
 
 
@@ -613,7 +620,8 @@ class MSSeriesMessageHandler:
 
 
         # add/update device on mqtt as well
-        mqttc.publish_login(device_type, login_name, login_address, login, base_location, bt_mac)
+        ip, port = ip_connection
+        mqttc.publish_login(device_type, login_name, login_address, login, base_location, f'{ip}:{port}', bt_mac)
         # update device
         self.send_to_location_viewer(login_address)
 
@@ -747,7 +755,10 @@ class MSSeriesMessageHandler:
         elif int(alarm_status) == 110 or int(alarm_status) == 100:
             # 100 and 110, we use another refnum and correct status..
             print(alarm_status)
-            refnum = 101
+            #refnum = 101
+            #random refnum 
+            refnum = str(random.randint(100, 999))
+
             if int(alarm_status) == 100:
                 alarm_status = '0'
             if int(alarm_status) == 110:
@@ -772,9 +783,9 @@ class MSSeriesMessageHandler:
                                               #self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 100))),
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
                                               self.PRIORITY(str(random.randint(1, 9))),
-                                              #self.PRIORITY("7"),
+                                              #self.PRIORITY("1"),
                                               self.FLASH("0"),
-                                              self.RINGS("2"),
+                                              self.RINGS("1"),
                                               self.CONFIRMATIONTYPE("2"), # with DECT and user confirmation
                                               #self.CONFIRMATIONTYPE("1"), # with DECT confirmation
                                               #self.CONFIRMATIONTYPE("0"), # without confirmation
@@ -1478,9 +1489,9 @@ if __name__ == "__main__":
             gevent.sleep(0)
 
             # mqtt publish needs to be sent as well
-            rc = mqttc.run()
-            if rc != 0:
-                logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
-                rc = mqttc.connect_and_subscribe()
+            # rc = mqttc.run()
+            # if rc != 0:
+            #     logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
+            #     rc = mqttc.connect_and_subscribe()
         except:
             logger.warning("main: Message could not be understoood or unexpected error %s" % raw_data)

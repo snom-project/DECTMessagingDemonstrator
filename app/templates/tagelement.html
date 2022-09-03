@@ -17,10 +17,16 @@
 {% set prox_txt ="RSSI" %}
 {% set prox_badge ="badge-success" %}
 
+{% elif i['proximity'] == "moving" %}
+{% set prox_color = "text-white bg-danger flashit" %}
+{% set prox_back = "rgba(250, 10, 10, 0.4);" %}
+{% set prox_txt ="Alarm / Theft" %}
+{% set prox_badge ="badge-danger" %}
+
 {% elif i['proximity'] == "holding" %}
 {% set prox_color = "text-white bg-success" %}
-{% set prox_back = "rgba(0, 100, 100, 0.4);" %}
-{% set prox_txt ="Inside" %}
+{% set prox_back = "rgba(0, 200, 0, 0.4);" %}
+{% set prox_txt ="In place" %}
 {% set prox_badge ="badge-success" %}
 
 <!-- scheduled report from M9B -->
@@ -30,11 +36,6 @@
 {% set prox_txt ="Report" %}
 {% set prox_badge ="badge-success" %}
 
-{% elif i['proximity'] == "alarm" %}
-{% set prox_color = "text-white bg-danger flashit" %}
-{% set prox_back = "rgba(250, 10, 10, 0.4);" %}
-{% set prox_txt ="Alarm" %}
-{% set prox_badge ="badge-danger" %}
 <!--  {% set prox_class ="flashit" %} -->
 
 {% elif i['proximity'] == "alarm_confirmed" %}
@@ -73,42 +74,6 @@
 {% set prox_txt ="SMS" %}
 {% set prox_badge ="badge-danger" %}
 
-<!-- alarm triggered by handset     -->
-<!-- - 0: Man Down                  -->
-<!-- - 1: No Movement               -->
-<!-- - 2: Running                   -->
-<!-- - 3: Pull Cord                 -->
-<!-- - 4: Red Key                   -->
-<!-- - 5-9 Reserved                 -->
-{% elif i['proximity'] == "alarm_handset_4" %}
-{% set prox_color = "text-white bg-danger flashit" %}
-{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
-{% set prox_txt ="Button" %}
-{% set prox_badge ="badge-danger" %}
-{% set prox_backgroundimage = "/images/button.png" %}
-
-
-{% elif i['proximity'] == "alarm_handset_0" %}
-{% set prox_color = "text-white bg-danger flashit" %}
-{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
-{% set prox_txt ="Down" %}
-{% set prox_badge ="badge-danger" %}
-{% set prox_backgroundimage = "/images/mandown.png" %}
-
-{% elif i['proximity'] == "alarm_handset_3" %}
-{% set prox_color = "text-white bg-danger flashit" %}
-{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
-{% set prox_txt ="Cord" %}
-{% set prox_badge ="badge-danger" %}
-{% set prox_backgroundimage = "/images/pullcord.jpeg" %}
-
-
-{% elif i['proximity'] == "alarm_handset_1" %}
-{% set prox_color = "text-white bg-danger flashit" %}
-{% set prox_back = "rgba(250, 50, 10, 0.6);" %}
-{% set prox_txt ="move" %}
-{% set prox_badge ="badge-danger" %}
-{% set prox_backgroundimage = "/images/nomovement.png" %}
 
 {% else %}
 {% set prox_color = "text-white bg-secondary" %}
@@ -117,11 +82,39 @@
 {% set prox_badge ="badge-danger" %}
 {% endif %}
 
-{% if i['device_type'] == "SnomM9BTX" %}
-{% set prox_back = "rgba(20, 20, 200, 0.4);" %}
-{% elif i['device_type'] == "SnomM9BRX" %}
-{% set prox_back = "rgba(50, 50, 230, 0.4);" %}
-{% endif %}
+<script>
+(function() {
+  var httpRequest;
+  document.getElementById("ajaxButton{{ i['account'] }}").addEventListener('click', makeRequest);
+
+  function makeRequest() {
+    httpRequest = new XMLHttpRequest();
+
+    if (!httpRequest) {
+      alert('Giving up :( Cannot create an HTTP instance');
+      return false;
+    }
+
+    var req;
+    req = "http://localhost:8081/en_US/resetTAG/{{ i['account'] }}"
+
+    httpRequest.onreadystatechange = alertContents;
+    httpRequest.open('GET', req);
+    httpRequest.send();
+  }
+
+  function alertContents() {
+    var x;
+    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+      if (httpRequest.status === 200) {
+        x=0;
+      } else {
+        alert('There was a problem with the request.');
+      }
+    }
+  }
+})();
+</script>
 
 <style>
 .nobr {
@@ -138,8 +131,8 @@
 
 /* Flash class and keyframe animation */
 .flashit{
-    -webkit-animation: flash linear 1s 3;
-    animation: flash linear 1s 3;
+    -webkit-animation: flash linear 2s 3;
+    animation: flash linear 2s 3;
 }
 @-webkit-keyframes flash {
     25% { opacity: 1; }
@@ -166,59 +159,24 @@
     50% { width:340px; }
     100% { width:200px; }
 }
+
 </style>
 
 
-<script>
-(function() {
-  var httpRequest;
-  document.getElementById("ajaxButton{{ i['account'] }}").addEventListener('click', makeRequest);
-
-  function makeRequest() {
-    httpRequest = new XMLHttpRequest();
-
-    if (!httpRequest) {
-      alert('Giving up :( Cannot create an HTTP instance');
-      return false;
-    }
-
-    var req;
-    req = "http://localhost:8081/en_US/removeDevice/{{ i['account'] }}"
-
-    httpRequest.onreadystatechange = alertContents;
-    httpRequest.open('GET', req);
-    httpRequest.send();
-  }
-
-  function alertContents() {
-    var x;
-    if (httpRequest.readyState === XMLHttpRequest.DONE) {
-      if (httpRequest.status === 200) {
-        x=0;
-      } else {
-        alert('There was a problem with the request.');
-      }
-    }
-  }
-})();
-</script>
-
 <div class="card {{prox_color}} {{prox_class}}">
-    <h4 class="card-header d-flex justify-content-between align-items-center px-2 py-2 ">
-        {{ i['name'] }}
-        <button id="ajaxButton{{ i['account'] }}" class="btn btn-outline-dark btn-sm" type="button">X</button>
-    </h4>
+    <div class="card-header px-2 py-2">
+        <p class="h4 my-0 font-weight-normal">{{ i['name'] }}</p>
+    </div>
     <div class="card-body px-0 py-0" style="background-image: url( {{prox_backgroundimage}} );">
         <div class="card-transparent px-0 py-0">
             <div class="card-block special-card px-0 py-0" style="background-color: {{prox_back}}">
                 <ul class="list-unstyled margin-block-end:0px; margin-block-start: 0px">
                     <li>
-                        <a href="{{ i['link'] }}"> <img class="rounded-circle px-2 py-2" height="95%" width="95%" src="{{ i['user_image'] }}"></a>
+                        <a href="{{ i['link'] }}"> <img class="rounded-circle px-2 py-2" width="95%" src="{{ i['user_image'] }}"></a>
                         <p class="h4 my-0 font-weight-normal">{{ i['account'] }}</p>
                     </li>
                     <li>{{ i['bt_mac'] }}</li>
-                    <li>
-                        <p class="h4 mb-0">
+                    <li><p class="h1 mb-0">
                             <a class="badge {{prox_badge}} mb-2">{{ prox_txt }} {{ i['beacon_gateway_name'] }}
                                 <span class="nobr">:
                                     <span class="supsub">{{ i['rssi'] }}<br/>{{ i['beacon_type'] }}</span>
@@ -226,15 +184,16 @@
                             </a>
                         </p>
                     </li>
-                    <!-- <li><p class="h4 mb-0"><a class="badge badge-info mb-2"> {{ i['last_beacon'] }}</a></p></li>-->
                     <li><p class="h5 mb-0">
-                        <a class="badge badge-info mb-2"> Base: {{ i['base_location'] }}</a> 
-                        <a class="h6 badge badge-info mb-2"> {{ i['base_connection'] }}</a> 
-                    </p></li>
+                            <a class="badge badge-info mb-2"> Base: {{ i['base_location'] }}</a> 
+                            <a class="h6 badge badge-info mb-2"> {{ i['base_connection'] }}</a> 
+                        </p>
+                    </li>
                     <li>
                         <a class="h6 mb-0 badge {{prox_badge}}  mb-2"> Time: {{ i['time_stamp'] }}</a>
                     </li>
                 </ul>
+                <button id="ajaxButton{{ i['account'] }}" class="btn btn-secondary btn-block" type="button">Reset State</button>
             </div>
         </div>
     </div>

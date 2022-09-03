@@ -1,0 +1,162 @@
+<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+
+<script src="/css/jquery.fittext.js"></script>
+<script>
+  jQuery("#responsive_headline{{ i['beacon_gateway_IPEI'] }}").fitText();
+</script>
+
+
+<!-- default background -->
+{% set prox_backgroundimage = "/images/snom_logo_gray_60.png" %}
+
+<!-- i represents a full device profile -->
+{% set a = i['count()']|int %}
+{% set b = i['max_allowed_devices']|int %}
+{% set diff = b - a %}
+
+{% if a > b %}
+{% set prox_color = "text-white bg-danger" %}
+{% set prox_back = "rgba(200, 50, 50, 0.4);" %}
+{% set prox_txt = "Full" %}
+{% set prox_badge = "badge-danger" %}
+{% else %}
+{% set prox_color = "text-white bg-success" %}
+{% set prox_back = "rgba(50, 100, 50, 0.4);" %}
+{% set prox_txt = "seats left" %}
+{% set prox_badge = "badge-success" %}
+{% endif %}
+
+<script>
+(function() {
+  var httpRequest;
+  document.getElementById("ajaxButton{{ i['beacon_gateway_IPEI'] }}").addEventListener('click', makeRequest);
+
+  function makeRequest() {
+    httpRequest = new XMLHttpRequest();
+
+    if (!httpRequest) {
+      alert('Giving up :( Cannot create an HTTP instance');
+      return false;
+    }
+
+    var req;
+    req = "http://localhost:8081/en_US/outsideAllTAGs/{{ i['beacon_gateway_IPEI'] }}"
+
+    httpRequest.onreadystatechange = alertContents;
+    httpRequest.open('GET', req);
+    httpRequest.send();
+  }
+
+  function alertContents() {
+    var x;
+    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+      if (httpRequest.status === 200) {
+        x=0;
+      } else {
+        alert('There was a problem with the request.');
+      }
+    }
+  }
+})();
+</script>
+
+<style>
+.nobr {
+   white-space: nowrap;
+}
+.supsub {
+   display: inline-block;
+   margin: -9em 0;
+   vertical-align: -0.2em;
+   line-height: 0.8em;
+   font-size: 70%;
+   text-align: left;
+}
+
+/* Flash class and keyframe animation */
+.flashit{
+    -webkit-animation: flash linear 2s 3;
+    animation: flash linear 2s 3;
+}
+@-webkit-keyframes flash {
+    25% { opacity: 1; }
+    50% { opacity: .1; }
+    100% { opacity: 1; }
+}
+@keyframes flash {
+    25% { opacity: 1; }
+    50% { opacity: .1; }
+    100% { opacity: 1; }
+}
+/* Pulse class and keyframe animation */
+.pulseit{
+    -webkit-animation: pulse linear .5s infinite;
+    animation: pulse linear .5s infinite;
+}
+@-webkit-keyframes pulse {
+    0% { width:200px; }
+    50% { width:340px; }
+    100% { width:200px; }
+}
+@keyframes pulse {
+    0% { width:200px; }
+    50% { width:340px; }
+    100% { width:200px; }
+}
+</style>
+
+<style>
+/* Container holding the image and the text */
+.container {
+  position: relative;
+  text-align: center;
+  color: white;
+}
+/* Centered text */
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+img {
+  opacity: 0.5;
+}
+</style>
+
+
+<div class="card {{prox_color}} {{prox_class}}">
+    <div class="card-header px-2 py-2">
+        <p class="h4 my-0 font-weight-normal">{{ i['beacon_gateway_IPEI'] }}</p>
+    </div>
+
+    <div class="card-body px-0 py-0" style="background-image: url( {{prox_backgroundimage}} );">         
+        <div class="card-transparent px-0 py-0">
+          <div class="card-block special-card px-0 py-0" style="background-color: {{prox_back}}">
+              <ul class="list-unstyled margin-block-end:0px; margin-block-start: 0px">
+                  <li>
+                      <p class="h2 mb-0">
+                          <span class="badge {{prox_badge}} mb-2"> {{ i['beacon_gateway_name'] }} </span>
+                      </p>
+                  </li>
+                  <li>
+                      <div class="container">
+                          <img class="rounded-circle px-1 py-1" width="100%" height="100%" src="/images/tag.png" alt="Tag" />
+                          <div class="centered" id="responsive_headline{{ i['beacon_gateway_IPEI'] }}" style="width:800%;">{{ i['count()'] }}</div>
+                      </div>
+                  </li>
+                  <li>
+                      <div class="h2 mb-0">
+                          <span class="badge {{prox_badge}} mb-1">{{ diff }} {{ prox_txt }} </span> 
+                      </div>
+                  </li>
+                  <li>
+                    <p class="h5 mb-0"><a class="badge badge-info mb-2">Base: {{ i['base_location'] }} {{ i['base_connection'] }}</a></p>
+                    <p class="h5 mb-0"><a class="badge badge-info mb-2">Time: {{ i['time_stamp'] }}</a></p>
+                  </li>
+              </ul>
+              <button id="ajaxButton{{ i['beacon_gateway_IPEI'] }}" class="btn btn-secondary btn-block" type="button">Reset State</button>
+          </div>
+        </div>
+      </div>
+ </div>

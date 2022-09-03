@@ -186,8 +186,8 @@ def msg_request(self, request_type, msg_profile_root):
                 #     </senderdata>
                 senderaddress_ipei = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
                 #print("We have a GW sending device proximity identified by its BT mac ", senderaddress_ipei, messageuui)
-                if senderaddress_ipei:
-                    print("personaddress could be empty, the GW IPEI is always there")
+                #if senderaddress_ipei:
+                #    print("personaddress could be empty, the GW IPEI is always there")
 
                 # update the device in the DB
                 self.update_beacon(messageuui, senderaddress_ipei[0], personaddress)
