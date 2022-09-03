@@ -205,7 +205,7 @@ def run_countelement(deviceIdx,search_term):
         COUNTDEVICES = msgDb.read_m9b_device_status_4_db(search_term)
   
         # filter is prepared as POST from the page.. 
-        # COUNTDEVUCES need to be reduced in this case. 
+        # COUNTDEVICES need to be reduced in this case. 
    
     try:
         device_count_element = COUNTDEVICES[int(deviceIdx)]
@@ -243,9 +243,7 @@ def get_m9b_device_status():
     if msgDb:
         # MAX(time_stamp) is hard coded
         result = msgDb.read_m9b_device_status_db()
-        #print("M9B Status Count:")
-        #print(result)
-
+                
     return dict(data=result)
 
 

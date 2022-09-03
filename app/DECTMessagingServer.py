@@ -1488,7 +1488,7 @@ if __name__ == "__main__":
             # yield to worker
             gevent.sleep(0)
 
-            # mqtt publish needs to be sent as well
+            # mqtt is async now
             # rc = mqttc.run()
             # if rc != 0:
             #     logger.debug("MQTT: We have a problem rc=%s -- reconnnect" % rc)
