@@ -6,7 +6,6 @@ import schedule
 import time
 import socket
 import requests
-from requests.adapters import HTTPAdapter
 
 import json
 import logging
@@ -180,8 +179,8 @@ class MSSeriesMessageHandler:
         Returns:
             [boolean]: True, if TAG is detected
         """
-        # only snom beacons have encoded uuids
-        if btmac[0:6] == '000413':
+        # only snom and RTX beacons have encoded uuids
+        if btmac[0:6] == '000413' or btmac[0:6] == '00087B':
             if beacon_type == "a":
                 if uui[8] == '2':
                     logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
@@ -749,24 +748,22 @@ class MSSeriesMessageHandler:
 
 
     # test alarm
-    def request_alarm(self, account, alarm_txt, alarm_status='0'):
+    def request_alarm(self, account, alarm_txt, alarm_prio='1', alarm_conf_type='2', alarm_status='0'):
         if int(alarm_status) == 10 or int(alarm_status) == 0:
             refnum = 100
         elif int(alarm_status) == 110 or int(alarm_status) == 100:
-            # 100 and 110, we use another refnum and correct status..
+            # 100 and 110, we use 50 random refnums
             print(alarm_status)
-            #refnum = 101
-            #random refnum 
-            refnum = str(random.randint(100, 999))
+            #50 random refnum 
+            refnum = str(random.randint(100, 149))
 
             if int(alarm_status) == 100:
                 alarm_status = '0'
             if int(alarm_status) == 110:
                 alarm_status = '10'
-        else: # randomm
+        else: # 899 random refnums
             refnum = str(random.randint(100, 999))
             alarm_status = '0'
-        #print(f'corr:{alarm_status},{refnum}')
 
         final_doc = self.REQUEST(
                                  self.SYSTEMDATA(
@@ -780,13 +777,13 @@ class MSSeriesMessageHandler:
                                  self.JOBDATA(
                                               self.ALARMNUMBER("5"),
                                               # repeated alarms with same reference will show only last alarm
-                                              #self.REFERENCENUMBER('alarm_%s' % str(random.randint(100, 100))),
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
-                                              self.PRIORITY(str(random.randint(1, 9))),
-                                              #self.PRIORITY("1"),
+                                              #self.PRIORITY(str(random.randint(1, 9))),
+                                              self.PRIORITY(alarm_prio),
                                               self.FLASH("0"),
                                               self.RINGS("1"),
-                                              self.CONFIRMATIONTYPE("2"), # with DECT and user confirmation
+                                              self.CONFIRMATIONTYPE(alarm_conf_type), 
+                                              #self.CONFIRMATIONTYPE("2"), # with DECT and user confirmation
                                               #self.CONFIRMATIONTYPE("1"), # with DECT confirmation
                                               #self.CONFIRMATIONTYPE("0"), # without confirmation
                                               self.MESSAGES(
@@ -1143,23 +1140,42 @@ class MSSeriesMessageHandler:
     def alarms_MS_send_FP(self, data):
         logger.info('alarms_MS_send_FP:')
         # get the message text
-        # message is added to the name,account data, name=FormControlTextarea1 equals the form element of sms.html
+        # message is added to the name,account data
         if not data:
             return
 
-        sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
-        sms_status_item = next((item for item in data if item['name'] == 'FormControlStatus1'), False)
-
+        # set default for all parameters
+        sms_message_item = {"account": 'empty'}
+        sms_prio_item = {"account": '1'}
+        sms_conf_type_item = {"account": '2'} # DECT and user confirmation
+        sms_status_item = {"account": '1'}
+        
+        # get submitted data, if available
+        sms_message_item_t = next((item for item in data if item['name'] == 'MessageTextarea1'), False)
+        if sms_message_item_t:
+            sms_message_item = sms_message_item_t
+        
+        sms_prio_item_t= next((item for item in data if item['name'] == 'SelectPrio'), False)
+        if sms_prio_item_t:
+            sms_prio_item = sms_prio_item_t
+       
+        sms_conf_type_item_t= next((item for item in data if item['name'] == 'SelectConfType'), False)
+        if sms_conf_type_item_t:
+            sms_conf_type_item = sms_conf_type_item_t
+       
+        sms_status_item_t = next((item for item in data if item['name'] == 'SelectMsgType'), False)
+        if sms_status_item_t:
+            sms_status_item = sms_status_item_t
+      
         for element in data:
-            if element['name'] != 'FormControlTextarea1' and element['name'] != 'FormControlStatus1' and element['account'] != '' and sms_message_item['account'] != '':
-
+            if element['name'] not in ['MessageTextarea1', 'SelectPrio', 'SelectConfType', 'SelectMsgType', '']:
                 # request goes directly to any Mx00 base, we need to enquire for one..
                 self.m900_connection = self.get_base_connection(element['account'])
                 # mark the handset and send
-                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account'] and localitem['device_type'] == 'handset'), False)
                 if matched_account:
                     matched_account['proximity'] = 'alarm'
-                    self.request_alarm(element['account'], sms_message_item['account'], sms_status_item['account'])
+                    self.request_alarm(element['account'], sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
 
 
     def send_to_location_viewer(self, account=None):

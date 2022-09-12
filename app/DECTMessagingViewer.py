@@ -5,6 +5,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 import logging
+import requests
 
 import bottle
 from bottle import route, app, static_file, template, request, url, FormsDict
@@ -20,6 +21,9 @@ from DB.DECTMessagingDb import DECTMessagingDb
 
 # schedule the DB updates
 import schedule
+import time
+
+from action import *
 
 VIEWER_AUTONOMOUS = True
 MINIMUM_VIEWER = False
@@ -458,11 +462,14 @@ if not MINIMUM_VIEWER:
     def alarm():
         global DEVICES
 
+        # select only devices able to receive alarms.
+        alarmDevices = [d for d in DEVICES if d['device_type'] == "handset"]
+
         if request.method == 'POST':
             ip = '127.0.0.1'
             port = 10300
 
-            print('init socket...')
+            #print('init socket...')
 
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -471,8 +478,7 @@ if not MINIMUM_VIEWER:
             except socket.error as exc:
                 print('Caught exception socket.error: {0}'.format(exc))
                 sys.exit(0)
-            print("init socket successfull")
-
+            #print("init socket successfull")
 
             d = json.dumps(request.json).encode("ascii")
             #print('data:', d)
@@ -486,9 +492,9 @@ if not MINIMUM_VIEWER:
 
             s.close()
         else:
-            print('GET request of the page, do nothing')
+            print('show alarm page')
 
-        return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=DEVICES)
+        return bottle.jinja2_template('alarm', title=_("Alarm View"), devices=alarmDevices)
 
 
     # the content of the element triggered by AJAX reload
@@ -517,11 +523,13 @@ if not MINIMUM_VIEWER:
         logger.debug("removeDevice: Delete device with account %s from DB", account)
 
         if msgDb and account:
+            # if we get a permanent update from account via e.g. beacon, we cannot really delete
             msgDb.delete_db(table='Devices', account=account)
             msgDb.delete_db(table='Alarms', account=account)
             msgDb.delete_db(table='Beacons', account=account)
             msgDb.delete_db(table='m9bdevicestatus', account=account)
-
+  
+  
     # the content of the element triggered by AJAX reload
     @bottle.route('/tagelement/<deviceIdx>', name='element', method=['GET','POST'], no_i18n = True)
     def run_tagelement(deviceIdx):
@@ -532,9 +540,12 @@ if not MINIMUM_VIEWER:
 
          # filter devices for TAGs only /// for each tag its way to often!
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
-
+        
         try:
             device = tagDevices[int(deviceIdx)]
+
+            # do some action based on TAG data
+            action_on_TAG_data(device, deviceIdx, DEVICES)
         except IndexError:
             #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
             return ""
@@ -542,6 +553,7 @@ if not MINIMUM_VIEWER:
         # yield to greenlet queue
         gevent.sleep(0)
         return bottle.jinja2_template('tagelement', title=_("Tag Element"), i=device, host=current_host)
+
 
     @bottle.route('/resetTAG/<deviceAccount>', name='resetTAG', method=['GET'], no_i18n = True)
     def run_resetTAG(deviceAccount):
@@ -562,14 +574,12 @@ if not MINIMUM_VIEWER:
         global DEVICES
         global msgDb
 
-        print(m9bIPEI)
         logger.debug("outsideAllTAGs: Delete all devices from M9B:%s", m9bIPEI)
-
         if msgDb and m9bIPEI:
             msgDb.remove_all_devices_from_m9b_db(m9bIPEI)
 
     
-    @bottle.route('/tags', name='tags', method='GET')
+    @bottle.route('/tags', name='tags', method=['GET','POST'], no_i18n = False)
     def run_tags():
         global DEVICES
 
@@ -579,7 +589,7 @@ if not MINIMUM_VIEWER:
         return bottle.jinja2_template('tagview', title=_("Tag View"), devices=tagDevices)
 
 
-    @bottle.route('/', name='main', method='GET')
+    @bottle.route('/', name='main', method=['GET','POST'])
     def run_main():
         request.session['test'] = request.session.get('test',0) + 1
         request.session.save()

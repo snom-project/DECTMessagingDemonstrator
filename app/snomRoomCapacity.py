@@ -69,10 +69,11 @@ class snomRoomCapacityClient():
                        
                         # send alarm to handset
                         message = [
-                            {"name": elem["account"], "account": elem["account"]},
-                            {"name": "FormControlTextarea1", "account": "Corona Alert - %s additional person(s) in room %s!" % (len(selected_items)-2, elem["beacon_gateway_name"])},
-                            {"name": "FormControlStatus1",   "account": "0"},
-                            {"name": "submitbutton", "account": ""}
+                            {"name": elem["account"],    "account": elem["account"]},
+                            {"name": "MessageTextarea1", "account": "Corona Alert - %s additional person(s) in room %s!" % (len(selected_items)-2, elem["beacon_gateway_name"])},
+                            {"name": "SelectPrio",       "account": "4"}, # medium
+                            {"name": "SelectConfType",   "account": "0"}, # no confirmation
+                            {"name": "SelectMsgType",    "account": "0"},
                             ]
 
                         # notify the user with alarm.
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     msgDb = DECTMessagingDb(odbc=ODBC, initdb=INITDB)
 
     # get access to KXN
-    #KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.INFO)
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.INFO)
     # get access to DECT ULE
     GATEWAY_URL = 'http://10.110.16.63:8000'
     ULE_gateway = DECT_KNX_gateway_connector(knx_url=GATEWAY_URL, maxsize=2, http_timeout=8.0, loglevel=logging.DEBUG)

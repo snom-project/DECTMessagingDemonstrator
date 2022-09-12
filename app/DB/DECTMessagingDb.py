@@ -514,7 +514,6 @@ class DECTMessagingDb:
                 # format needed to convert to dict
                 #conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                print ("DELETE FROM m9bdevicestatus where beacon_gateway_IPEI = '{}'".format(m9bIPEI))
                 cur.execute("DELETE FROM m9bdevicestatus where beacon_gateway_IPEI = '{}'".format(m9bIPEI))
                 conn.commit()
                 cur.close()

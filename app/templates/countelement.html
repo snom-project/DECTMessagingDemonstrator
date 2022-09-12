@@ -125,18 +125,18 @@ img {
 </style>
 
 
-<div class="card {{prox_color}} {{prox_class}}">
+<div class="card {{ prox_color }} {{ prox_class }}">
     <div class="card-header px-2 py-2">
         <p class="h4 my-0 font-weight-normal">{{ i['beacon_gateway_IPEI'] }}</p>
     </div>
 
-    <div class="card-body px-0 py-0" style="background-image: url( {{prox_backgroundimage}} );">         
+    <div class="card-body px-0 py-0" style="background-image: url( {{ prox_backgroundimage }} );">         
         <div class="card-transparent px-0 py-0">
-          <div class="card-block special-card px-0 py-0" style="background-color: {{prox_back}}">
+          <div class="card-block special-card px-0 py-0" style="background-color: {{ prox_back }}">
               <ul class="list-unstyled margin-block-end:0px; margin-block-start: 0px">
                   <li>
                       <p class="h2 mb-0">
-                          <span class="badge {{prox_badge}} mb-2"> {{ i['beacon_gateway_name'] }} </span>
+                          <span class="badge {{ prox_badge }} mb-2"> {{ i['beacon_gateway_name'] }} </span>
                       </p>
                   </li>
                   <li>
@@ -147,7 +147,7 @@ img {
                   </li>
                   <li>
                       <div class="h2 mb-0">
-                          <span class="badge {{prox_badge}} mb-1">{{ diff }} {{ prox_txt }} </span> 
+                          <span class="badge {{ prox_badge }} mb-1">{{ diff }} {{ prox_txt }} </span> 
                       </div>
                   </li>
                   <li>
@@ -155,7 +155,7 @@ img {
                     <p class="h5 mb-0"><a class="badge badge-info mb-2">Time: {{ i['time_stamp'] }}</a></p>
                   </li>
               </ul>
-              <button id="ajaxButton{{ i['beacon_gateway_IPEI'] }}" class="btn btn-secondary btn-block" type="button">Reset State</button>
+              <button id="ajaxButton{{ i['beacon_gateway_IPEI'] }}" class="btn btn-secondary btn-block" type="button">{{ _('Remove all devices') }}</button>
           </div>
         </div>
       </div>

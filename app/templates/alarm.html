@@ -1,41 +1,61 @@
 {% include 'header.tpl' %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>jQuery transfer</title>
-    <link rel="stylesheet" type="text/css" href="/css/icon_font.css" />
-    <link rel="stylesheet" type="text/css" href="css/jquery.transfer.css?v=0.0.2" />
-    <style>
-        .transfer-demo {
-            width: 640px;
-            height: 400px;
-            margin: 0 auto;
-        }
-    </style>
-</head>
+<style>
+    .alarm-select {
+        width: 640px;
+        height: 400px;
+        margin: 0 auto;
+    }
+    .select-input.form-control[readonly]:not([disabled]) {
+}
+</style>
 
-<body>
-    <div>
-        <div id="transfer1" class="transfer-demo"></div>
+<div class="container">
+    <div id="DeviceSelector" class="form-floating form-control">
+        <label class="h5" for="DeviceSelector">{{_('Choose Handset(s)')}}</label>
+        <div id="transfer1" class="alarm-select"></div>
     </div>
+    
+    <div id="myform">
+        <div class="form-floating form-control">
+            <label class="h5" for="MessageTextarea1">{{_('Message Text')}}</label>
+            <textarea class="form-control" id="MessageTextarea1" cols="70" rows="1" wrap="hard">replace me</textarea>
+        </div>
 
-    <form id="myform" action="/alarm" method="post">
-      <div class="form-group">
-        <label for="FormControlTextarea1">Example textarea</label>
-        <textarea class="form-control" id="FormControlTextarea1" cols="70" rows="1" wrap="hard">replace me</textarea>
-        <label for="FormControlStatus1">Message Status (10 = delete)</label>
-        <textarea class="form-control" id="FormControlStatus1" cols="70" rows="1" wrap="hard">0</textarea>
-      </div>
-      <button id="submitbutton" type="submit" class="btn btn-primary mb-2">Send</button>
-    </form>
+        <div class="form-floating form-control">
+            <label class="h5" for="SelectPrio">{{_('Choose Priority')}}</label>
+            <select class="form-control form-select form-select-lg mb-3" id="SelectPrio">
+                <option selected value="7">{{_('Low priority')}}</option>
+                <option value="4">{{_('Medium priority')}}</option>
+                <option value="1">{{_('High priority')}}</option>
+            </select>
 
+            <label class="h5" for="SelectConfType">{{_('Choose Confirmation')}}</label>
+            <select class="form-control form-select" id="SelectConfType">
+                <option selected value="2">{{_('User and DECT Confirmation')}}</option>
+                <option value="1">{{_('DECT delivery confirmation')}}</option>
+                <option value="0">{{_('No Confirmation')}}</option>
+            </select>
+        </div>
 
-</body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <div class="form-floating form-control">
+            <label class="h5" for="SelectMsgType">{{_('Choose Message Type and Reference Number handling')}}</label>
+            <div class="form-floating">
+                <select class="form-control form-select" id="SelectMsgType">
+                    <option selected value="0">{{_('Fixed Reference: 100')}}</option>
+                    <option value="100">{{_('Reference 50 random entries')}}</option>
+                    <option value="10">{{_('Delete fixed Reference: 100')}}</option>
+                    <option value="110">{{_('Delete Reference out of 50 random entries)')}}</option>
+                </select>
+            </div>
+            <!-- <button id="submitbutton" type="submit" class="btn btn-primary mb-2">Send</button> --->
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript" src="css/jquery.transfer.js?v=0.0.2"></script>
 <script type="text/javascript">
-    var dataArray1 = [
-                      
+    var dataArray1 = [                  
         {% for i in devices %}
         {
             "name": "{{i['name']}}",
@@ -48,6 +68,7 @@
         {% endfor %}
        
     ];
+
     var settings1 = {
         "dataArray": dataArray1,
         "itemName": "name",
@@ -84,7 +105,6 @@
             var myJson = JSON.stringify(json_items);
             console.dir(myJson)
 
-        
             var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
             var theUrl = "/en_US/alarm";
             xmlhttp.open("POST", theUrl);
@@ -99,6 +119,5 @@
     };
     $("#transfer1").transfer(settings1);
 </script>
-
 
 {% include 'footer.tpl' %}

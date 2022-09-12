@@ -2,25 +2,45 @@
 <!--<meta http-equiv="Cache-Control" content="no-cache">-->
 
 {% if devices|length > 0 %}
-<meta http-equiv="refresh" content="600">
+<meta http-equiv="refresh" content="600"/>
 {% else %}
-<meta http-equiv="refresh" content="10">
+<meta http-equiv="refresh" content="10"/>
 {% endif %}
 
-<script type="text/javascript"
-    src="http://code.jquery.com/jquery-1.10.1.min.js">
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.auto-refresher').autoRefresher({
+            //  This is the amount of time, in seconds, before the refresh takes place.
+            //  Value must be a positive integer.
+            seconds: 600,
+            //  You can provide any function to callback to once the amount of time to wait
+            //  has been reached if you'd rather it do something other than refresh the page.
+            //  If nothing is provided however, the page is just refreshed.
+            callback: function () {
+                var a = '2';
+            },
+            //  The height of the progress bar. Values must be a positive number + css unit
+            //  of measurement (e.g. %, px, em, rem). Default is 7px
+            progressBarHeight: '3px',
+            //  If showControls is true, then the stop and start buttons are added
+            showControls: false,
+        });
+    })
 </script>
-    
+
 
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-    <h1 class="display-4">{{_('Device Monitor')}}</h1>
-    <p class="lead">{{_('Search and filter devices.')}}</p>
+    <h1 class="display-4">{{ _('Device Monitor') }}</h1>
+    <p class="lead">{{ _('Search and filter devices.') }}</p>
 </div>
   <div class="container">
-    <form class="form-horizontal" action="/en_US/locationview" autocomplete="on" method="POST">
+    <form class="form-horizontal" action="/" autocomplete="on" method="POST">
       <div class="form-group">
-        <label for="myDeviceSearch">{{_('Search and filter devices')}}</label>
-        <input class="form-control input-lg" id="myDeviceSearch" type="text" placeholder="Search..">
+        <label for="myDeviceSearch">{{ _('Search and filter devices') }}</label>
+        <!-- timer bar -->
+        <div class="auto-refresher"></div>
+
+        <input class="form-control input-lg" id="myDeviceSearch" type="text" placeholder="Search.."/>
       </div>
     </form>
 

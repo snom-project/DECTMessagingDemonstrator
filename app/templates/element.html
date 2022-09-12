@@ -87,7 +87,6 @@
 {% set prox_badge ="badge-danger" %}
 {% set prox_backgroundimage = "/images/button.png" %}
 
-
 {% elif i['proximity'] == "alarm_handset_0" %}
 {% set prox_color = "text-white bg-danger flashit" %}
 {% set prox_back = "rgba(250, 50, 10, 0.6);" %}
@@ -101,7 +100,6 @@
 {% set prox_txt ="Cord" %}
 {% set prox_badge ="badge-danger" %}
 {% set prox_backgroundimage = "/images/pullcord.jpeg" %}
-
 
 {% elif i['proximity'] == "alarm_handset_1" %}
 {% set prox_color = "text-white bg-danger flashit" %}
@@ -168,7 +166,6 @@
 }
 </style>
 
-
 <script>
 (function() {
   var httpRequest;
@@ -202,11 +199,14 @@
 })();
 </script>
 
+
 <div class="card {{prox_color}} {{prox_class}}">
+
     <h4 class="card-header d-flex justify-content-between align-items-center px-2 py-2 ">
         {{ i['name'] }}
         <button id="ajaxButton{{ i['account'] }}" class="btn btn-outline-dark btn-sm" type="button">X</button>
     </h4>
+
     <div class="card-body px-0 py-0" style="background-image: url( {{prox_backgroundimage}} );">
         <div class="card-transparent px-0 py-0">
             <div class="card-block special-card px-0 py-0" style="background-color: {{prox_back}}">

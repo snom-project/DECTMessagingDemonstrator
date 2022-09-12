@@ -2,9 +2,9 @@
 <!--<meta http-equiv="Cache-Control" content="no-cache">-->
 
 {% if devices|length > 0 %}
-<meta http-equiv="refresh" content="600">
+<meta http-equiv="refresh" content="600"/>
 {% else %}
-<meta http-equiv="refresh" content="10">
+<meta http-equiv="refresh" content="10"/>
 {% endif %}
 
 <script type="text/javascript"
@@ -13,67 +13,58 @@
     
 
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-    <h1 class="display-4">{{_('Tag Monitor')}}</h1>
-    <p class="lead">{{_('Search and filter snom Tags. Inactive and active Tags are shown.')}}</p>
+    <h1 class="display-4">{{ _('Tag Monitor') }}</h1>
+    <p class="lead">{{ _('Search and filter snom Tags. Inactive and active Tags are shown.') }}</p>
 </div>
 
 <style>
-.grid-container--fill {
-  grid-template-columns: repeat(auto-fill, minmax(50%, 1fr));
-}
+  .grid-container--fill {
+    grid-template-columns: repeat(auto-fill, minmax(50%, 1fr));
+  }
 </style>
 
 <div class="container">
 
+  <form class="form-horizontal" action="/en_US/tags" autocomplete="on" method="POST">
+      <div class="form-group">
+          <label for="myDeviceSearch">{{ _('Search and filter devices') }}</label>
+          <input class="form-control input-lg" id="myDeviceSearch" type="text" placeholder="{{ _('Search..') }}"/>
+      </div>
+  </form>
 
-    <form class="form-horizontal" action="/en_US/tagview" autocomplete="on" method="POST">
-        <div class="form-group">
-            <label for="myDeviceSearch">{{_('Search and filter devices')}}</label>
-            <input class="form-control input-lg" id="myDeviceSearch" type="text" placeholder="Search..">
-        </div>
-    </form>
+  <div class="grid-container card-deck grid-container--fill mx-auto text-center w-100" id="myGrids">
+    {% for i in devices %}
+      <script type="text/javascript">
 
-        <div class="grid-container card-deck grid-container--fill mx-auto text-center w-100" id="myGrids">
-<!--    <div class="grid-container grid-container-fill card-deck mb-2 text-center ">-->
-
-        <!--    <div class="card-deck mb-3 text-center">-->
-        {% for i in devices %}
-        
-        <script type="text/javascript">
-
-            var elementURL{{loop.index0}} = '/tagelement/' + {{loop.index0}}
-            $(document).ready(
-                              function() {
-                              var randomnumber = Math.floor((Math.random()-0.5) * 1000);
-                              setInterval(function() {
-                                  $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn(0);
-                                          }, 1000 + randomnumber);
-                              });
-            </script>
-        
-        
-        <div id="show{{loop.index0}}" align="center"></div>
-
-        {% endfor %}
-</div>
-</div>
+        var elementURL{{ loop.index0 }} = '/tagelement/' + {{loop.index0}}
+        $(document).ready(
+                          function() {
+                          var randomnumber = Math.floor((Math.random()-0.5) * 1000);
+                          setInterval(function() {
+                              $('#show{{ loop.index0 }}').load(elementURL{{loop.index0}}).hide().fadeIn(0);
+                                      }, 1000 + randomnumber);
+                          });
+      </script>      
+      <div id="show{{ loop.index0 }}" align="center"></div>
+    {% endfor %}
+  </div>
 </div>
 
 <script>
-$(document).ready(function(){
-  $("#myDeviceSearch").on("keyup", function() {
-    var value = $(this).val().toLowerCase();
-    $("#myGrids div div p").filter(function() {
-      var hiderow = false
-                                   <!--   alert($(this).toString().toLowerCase())-->
-                                   if ($(this).text().toLowerCase().indexOf(value) > -1) {
-        hiderow=true
-      }
-    $(this).parent().parent().parent().toggle(hiderow);
-                               
+  $(document).ready(function(){
+    $("#myDeviceSearch").on("keyup", function() {
+      var value = $(this).val().toLowerCase();
+      $("#myGrids div div p").filter(function() {
+        var hiderow = false
+        <!--   alert($(this).toString().toLowerCase())-->
+        if ($(this).text().toLowerCase().indexOf(value) > -1) {
+          hiderow=true
+        }
+      $(this).parent().parent().parent().toggle(hiderow);
+                                
+      });
     });
   });
-});
 </script>
 
 {% include 'footer.tpl' %}

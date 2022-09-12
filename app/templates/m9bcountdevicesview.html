@@ -2,9 +2,9 @@
 <!--<meta http-equiv="Cache-Control" content="no-cache">-->
 
 {% if devices|length > 0 %}
-<meta http-equiv="refresh" content="600">
+<meta http-equiv="refresh" content="600"/>
 {% else %}
-<meta http-equiv="refresh" content="10">
+<meta http-equiv="refresh" content="10"/>
 {% endif %}
 
 <!--
@@ -19,57 +19,50 @@
 
     
 <div class="pricing-header mx-auto text-center">
-    <h1 class="display-4">{{_('Devices # Monitor')}}</h1>
-    <p class="lead">{{_('Shows number of devices received by M9B Gateway. Only the nearest location is shown per device.')}}</p>
+    <h1 class="display-4"> {{ _('Devices # Monitor') }}</h1>
+    <p class="lead">{{ _('Shows number of devices received by M9B Gateway. Only the nearest location is shown per device.') }}</p>
 </div>
 
 <style>
-
-.grid-container--fill {
-  grid-template-columns: repeat(auto-fill, minmax(50%, 1fr));
-}
+  .grid-container--fill {
+    grid-template-columns: repeat(auto-fill, minmax(50%, 1fr));
+  }
 </style>
 
-<div class="container" align="center" >
+  <div class="container" align="center" >
 
     <a class="btn btn-primary" href="/count" role="button">All device details</a>  
 
     <form action="/m9b_count_devices" method="POST" role="form" class="form-horizontal" align="left">
-
         <div class="form-group">
-            <label for="myDeviceSearch">{{_('Search and filter devices')}}</label>
-            <input class="form-control input-lg" id="myDeviceSearch" name="myDeviceSearch" type="text" placeholder=" {{search_term}}">
+            <label for="myDeviceSearch">{{ _('Search and filter devices') }}</label>
+            <input class="form-control input-lg" id="myDeviceSearch" name="myDeviceSearch" type="text" placeholder=" {{ search_term }}"/>
         </div>
     </form>
 
-        <div class="grid-container card-deck grid-container--fill mx-auto text-center w-100" id="myGrids">
-<!--    <div class="grid-container grid-container-fill card-deck mb-2 text-center ">-->
+    <div class="grid-container card-deck grid-container--fill mx-auto text-center w-100" id="myGrids">
 
-        <!--    <div class="card-deck mb-3 text-center">-->
-        {% if  search_term == '' %}
-          {% set search_term = '%' %}
-        {% endif %}
-        {% for i in devices %}
-        
-        <script type="text/javascript">
+      {% if search_term == '' %}
+        {% set search_term = '%' %}
+      {% endif %}
 
-            var elementURL{{loop.index0}} = '/countelement/' + {{loop.index0}} + '/' + '{{search_term}}'
-            $(document).ready(
-                              function() {
-                              var randomnumber = Math.floor((Math.random()-0.5) * 1000);
-                              setInterval(function() {
-                                  $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn(1.0);
-                                          }, 6000 + randomnumber);
-                              });
-            </script>
-        
-        
-        <div id="show{{loop.index0}}" align="center"></div>
+      {% for i in devices %} 
+      <script type="text/javascript">
 
-        {% endfor %}
-</div>
-</div>
-</div>
+          var elementURL{{loop.index0}} = '/countelement/' + {{loop.index0}} + '/' + '{{search_term}}'
+          $(document).ready(
+                            function() {
+                            var randomnumber = Math.floor((Math.random()-0.5) * 1000);
+                            setInterval(function() {
+                                $('#show{{loop.index0}}').load(elementURL{{loop.index0}}).hide().fadeIn(1.0);
+                                        }, 6000 + randomnumber);
+                            });
+      </script>
+
+      <div id="show{{ loop.index0 }}" align="center"></div>
+      {% endfor %}
+    </div>
+  </div>
 
 <script>
 $(document).ready(function(){
@@ -77,12 +70,11 @@ $(document).ready(function(){
     var value = $(this).val().toLowerCase();
     $("#myGrids div div p").filter(function() {
       var hiderow = false
-                                   <!--   alert($(this).toString().toLowerCase())-->
-                                   if ($(this).text().toLowerCase().indexOf(value) > -1) {
+      <!--   alert($(this).toString().toLowerCase())-->
+      if ($(this).text().toLowerCase().indexOf(value) > -1) {
         hiderow=true
       }
-    $(this).parent().parent().parent().toggle(hiderow);
-                               
+      $(this).parent().parent().parent().toggle(hiderow);                         
     });
   });
 });
