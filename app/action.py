@@ -32,6 +32,9 @@ TAG_NAME_DICT = { "000413BA0029" : "Kaffeemuehle",
                 }
 WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
+HTTP_D7DIR = 'D7C_XML'
+HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
+
 def send_stolen_alarm(handsets_list):
     for elem in handsets_list:
         # send alarm to all handsets - base_connection is needed from the Devices table
@@ -137,12 +140,12 @@ def action_on_TAG_data(tag, idx, all_devices):
             logger.debug("send to phone: %s",xml_payload)
 
             # save xml to file 
-            f = open(f"/Users/oliver.wittig/Public/htdocs/LAB/TAG{name}_{idx}.xml", "w")
+            f = open(f"{HTTP_ROOT}/TAG{name}_{idx}.xml", "w")
             f.write(xml_payload)
             f.close()
 
             # send to phone
-            request = f'http://{PHONE_IP}/minibrowser.htm?url=http://{XML_SERVER_IP}/LAB/TAG{name}_{idx}.xml'
+            request = f'http://{PHONE_IP}/minibrowser.htm?url=http://{XML_SERVER_IP}/{HTTP_D7DIR}/TAG{name}_{idx}.xml'
             logger.debug("send to phone: %s",request)
             request2 = f'http://{PHONE_IP}/settings.htm?settings=save&fkey_label{int(idx) + LED_OFFSET - 5}={label}&fkey_short_label{int(idx) + LED_OFFSET -5}={label}'
             logger.debug("send to phone: %s",request2)
