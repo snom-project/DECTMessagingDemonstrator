@@ -15,12 +15,17 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # disbale actions entirely. 
-ACTIONS = False
+ACTIONS = True
 
 PHONE_IP = '10.110.16.102'
 XML_SERVER_IP = '10.110.16.101'
+SERVER_IP = XML_SERVER_IP
+
+DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
+DECT_MESSAGING_VIEWER_URL = 'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US/'
+
 LED_OFFSET = 37 # snomD735
-OLD_TAG_STATE = ['moving', 'holding_still', 'holding_still', 'holding_still', 'holding_still', 
+OLD_TAG_STATE = ['holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still', 
                     'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
                     'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
                     'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
@@ -34,6 +39,9 @@ WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
 HTTP_D7DIR = 'D7C_XML'
 HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
+
+KNX_GATEWAY_URL = 'http://{SERVER_IP}:1234'
+GATEWAY_URL = 'http://{SERVER_IP}:8000'
 
 def send_stolen_alarm(handsets_list):
     for elem in handsets_list:

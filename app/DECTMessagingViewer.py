@@ -288,6 +288,7 @@ def get_beacons(bt_mac_key):
 
     return dict(data=result)
 
+
 @route('/get_alarms/<account>', no_i18n = True)
 def get_alarms(account):
     global DEVICES
@@ -322,6 +323,7 @@ def get_device_locations(bt_mac_key):
                                time_stamp='', server_time_stamp='')
 
     return dict(data=result)
+
 
 # receives full list of DEVICES in json format DEVICES
 @bottle.route('/location', name='location', no_i18n = True, method=['GET','POST'])
@@ -610,10 +612,6 @@ if __name__ == "__main__":
     #host = "10.245.0.28"
     HOST = "0.0.0.0"
     #HOST = "10.110.11.132"
-
-    #HOST = "10.110.16.75"
-    #HOST = "192.168.188.21"
-    #HOST = "192.168.55.23"
 
     if VIEWER_AUTONOMOUS:
         # schedule db re_read

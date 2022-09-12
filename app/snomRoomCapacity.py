@@ -10,6 +10,9 @@ import requests
 from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
+# server and URL configs
+from action import *
+
 class snomRoomCapacityClient():
     """ snomRoomCapacityClient uses M9B Gateways to count all devices (beacons) within the proximity.
     In case a Gateway sees more than MAX_ALLOWED_DEVICES=2 devices an alarm is send to Mxx handsets
@@ -80,7 +83,7 @@ class snomRoomCapacityClient():
                         try:
                             # send btmacs updated data back to viewer.
                             print('alarm sent:: %s' % message)
-                            _r = requests.post('http://127.0.0.1:8081/en_US/alarm', json=message)
+                            _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
                         except requests.exceptions.Timeout as errt:
                             print ("Timeout Error location:",errt)
                 else: # we have not found any active devices here, or the limit has not been reached. 
@@ -111,9 +114,8 @@ if __name__ == "__main__":
     msgDb = DECTMessagingDb(odbc=ODBC, initdb=INITDB)
 
     # get access to KXN
-    KNX_gateway = DECT_KNX_gateway_connector(knx_url='http://10.110.16.63:1234', maxsize=5, loglevel=logging.INFO)
+    KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_GATEWAY_URL, maxsize=5, loglevel=logging.INFO)
     # get access to DECT ULE
-    GATEWAY_URL = 'http://10.110.16.63:8000'
     ULE_gateway = DECT_KNX_gateway_connector(knx_url=GATEWAY_URL, maxsize=2, http_timeout=8.0, loglevel=logging.DEBUG)
 
     # get a mqtt instance sending data in hass.io form

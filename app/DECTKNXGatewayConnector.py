@@ -164,7 +164,7 @@ class DECT_KNX_gateway_connector:
 
 if __name__ == "__main__":
     # setting up
-    KNX_URL = 'http://192.168.178.22:1234'
+    KNX_URL = 'http://10.110.16.63:1234'
     GATEWAY_URL = 'http://10.110.16.63:8000'
 
     # base is not used, we assume one KNX GW ..

@@ -26,6 +26,8 @@ import subprocess # it's usable from multiple greenlets now
 from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
+from action import *
+
 # DB reuse and type
 ODBC=False
 INITDB=False
@@ -1204,7 +1206,7 @@ class MSSeriesMessageHandler:
                 # notify the viewer for now.
                 try:
                     # send btmacs updated data back to viewer.
-                    _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.btmacaddresses)
+                    _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/location', json=self.btmacaddresses)
                 except requests.exceptions.Timeout as errt:
                     logger.warning("Timeout Error location:%s", errt)
 
@@ -1231,7 +1233,7 @@ class MSSeriesMessageHandler:
             # this overrides the bt_mac, since at the same time we might have added another device..
             # enumerate cannot work..
             try:
-                response = requests.get('http://127.0.0.1:8081/en_US/devicessync', timeout=3)
+                response = requests.get(f'{DECT_MESSAGING_VIEWER_URL}/devicessync', timeout=3)
                 if response:
                     json_data = json.loads(response.text)
                     if json_data is not None:
@@ -1250,7 +1252,7 @@ class MSSeriesMessageHandler:
 
             try:
                 # send btmacs updated data back to viewer.
-                _r = requests.post('http://127.0.0.1:8081/en_US/location', json=self.devices+self.btmacaddresses)
+                _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/location', json=self.devices+self.btmacaddresses)
             except requests.exceptions.Timeout as errt:
                 logger.error("Timeout Error location:%s",errt)
 
@@ -1417,7 +1419,7 @@ if __name__ == "__main__":
     # initiate message handler
     # assume KNX is on same host
     host_name = socket.gethostbyname(socket.gethostname())
-    KNX_URL = f'http://{host_name}:1234'
+    KNX_URL = f'{KNX_GATEWAY_URL}'
     #KNX_URL = 'http://10.110.16.66:1234'
     KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL)
 
