@@ -7,6 +7,10 @@ import time
 import socket
 import requests
 
+import socketserver
+
+
+
 import json
 import logging
 import random
@@ -37,6 +41,44 @@ msgDb = DECTMessagingDb(beacon_queue_size=3, odbc=ODBC, initdb=INITDB)
 viewer_autonomous = True
 KNX_ACTION = False
 
+'''
+class MyUDPHandler(socketserver.BaseRequestHandler):
+    """
+    This class works similar to the TCP handler class, except that
+    self.request consists of a pair of data and client socket, and since
+    there is no connection the client address must be given explicitly
+    when sending data back via sendto().
+    """
+
+    def handle(self):
+        raw_data = self.request[0].strip()
+        socket = self.request[1]
+        #print("{} wrote:".format(self.client_address[0]))
+        #print(data)
+        #socket.sendto(data.upper(), self.client_address)
+
+        amsg.m900_connection = self.client_address
+
+        ## queue needs to know, where to send the answer
+        ##         #socket.sendto(my_answer_xml, self.client_address)
+        ## needs to be called from everywhere 
+        ## a proper class send routine would do
+
+        try:
+            # quick check if data is valid missing
+            xmldata = raw_data.decode('utf-8')
+            print(xmldata)
+            # process message
+            #amsg.msg_process(xmldata)
+            gevent.spawn(worker)
+            q.put(xmldata)
+
+            # yield to worker
+            gevent.sleep(0)
+
+        except:
+            logger.warning("main: Message could not be understoood or unexpected error %s" % raw_data)
+'''
 
 class MSSeriesMessageHandler:
     """Main M700,M900 Messaging class
@@ -1354,6 +1396,12 @@ def worker():
     gevent.kill(gevent.getcurrent())
 
 
+
+import gevent.queue
+from gevent.queue import JoinableQueue
+
+q = JoinableQueue(maxsize=5)
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='DECTMessagingServer')
@@ -1442,9 +1490,18 @@ if __name__ == "__main__":
     # start the UDP protocol channel #
     ##################################
 
+
     import sys, socket
 
     localPort = args.udp_port
+
+    ''' later?!
+    HOST, PORT = "0.0.0.0", localPort
+    with socketserver.UDPServer((HOST, PORT), MyUDPHandler) as server:
+        server.serve_forever()
+
+    print('server started')        
+    '''
 
     try:
         localPort = int(localPort)
@@ -1480,11 +1537,7 @@ if __name__ == "__main__":
     ###################################
     # UDP protocol listen and process #
     ###################################
-    import gevent.queue
-    from gevent.queue import JoinableQueue
-
-    q = JoinableQueue(maxsize=5)
-
+  
     while True:
         # check and execute scheduled task
         schedule.run_pending()

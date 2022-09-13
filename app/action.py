@@ -18,7 +18,7 @@ logger.addHandler(ch)
 ACTIONS = True
 
 PHONE_IP = '10.110.16.102'
-XML_SERVER_IP = '10.110.16.101'
+XML_SERVER_IP = '10.110.16.63'
 SERVER_IP = XML_SERVER_IP
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
@@ -69,7 +69,7 @@ def send_stolen_alarm(handsets_list):
         try:
             # send btmacs updated data back to viewer.
             print('alarm sent:: %s' % message)
-            _r = requests.post('http://127.0.0.1:8081/en_US/alarm', json=message)
+            _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
         except requests.exceptions.Timeout as errt:
             print ("Timeout Error location:",errt)
 
@@ -102,7 +102,7 @@ def send_returned_alarm(handsets_list):
         try:
             # send btmacs updated data back to viewer.
             print('alarm sent:: %s' % message)
-            _r = requests.post('http://127.0.0.1:8081/en_US/alarm', json=message)
+            _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/en_US/alarm', json=message)
         except requests.exceptions.Timeout as errt:
             print ("Timeout Error location:",errt)
 
