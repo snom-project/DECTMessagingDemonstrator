@@ -22,7 +22,7 @@ XML_SERVER_IP = '10.110.16.63'
 SERVER_IP = XML_SERVER_IP
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
-DECT_MESSAGING_VIEWER_URL = 'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US/'
+DECT_MESSAGING_VIEWER_URL = 'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
 
 LED_OFFSET = 37 # snomD735
 OLD_TAG_STATE = ['holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still', 
