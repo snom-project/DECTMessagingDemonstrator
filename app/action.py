@@ -25,10 +25,10 @@ DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
 DECT_MESSAGING_VIEWER_URL = f'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
 
 LED_OFFSET = 37 # snomD735
-OLD_TAG_STATE = ['holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still', 
-                    'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
-                    'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
-                    'holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still',
+OLD_TAG_STATE = ['holding', 'holding', 'holding', 'holding', 'holding', 
+                    'holding', 'holding', 'holding', 'holding', 'holding',
+                    'holding', 'holding', 'holding', 'holding', 'holding',
+                    'holding', 'holding', 'holding', 'holding', 'holding',
                     ]
 TAG_NAME_DICT = { "000413BA0029" : "Kaffeemuehle",
                     "000413BA0059" : "Bild",
@@ -123,7 +123,7 @@ def action_on_TAG_data(tag, idx, all_devices):
     
             # send a colored led and label to key
             # send alarm to available handsets
-            if tag['proximity'] != 'holding_still':
+            if tag['proximity'] != 'holding':
                 color = 'red'
                 effect = 'blinkfast'
                 label = f'{tag["beacon_gateway_name"]}: {TAG_NAME_DICT.get(tag["bt_mac"],"not found")} weg'
