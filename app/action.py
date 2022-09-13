@@ -70,8 +70,8 @@ def send_stolen_alarm(handsets_list):
             # send btmacs updated data back to viewer.
             print('alarm red sent:: %s' % message)
             _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
-        except requests.exceptions.Timeout as errt:
-            logger.("Timeout Error location:",errt)
+        except requests.exceptions.Timeout:
+            logger.exception("Timeout Error location:")
 
 
 def send_returned_alarm(handsets_list):
