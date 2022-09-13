@@ -22,7 +22,7 @@ XML_SERVER_IP = '10.110.16.63'
 SERVER_IP = XML_SERVER_IP
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
-DECT_MESSAGING_VIEWER_URL = 'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
+DECT_MESSAGING_VIEWER_URL = f'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
 
 LED_OFFSET = 37 # snomD735
 OLD_TAG_STATE = ['holding_still', 'holding_still', 'holding_still', 'holding_still', 'holding_still', 
@@ -40,8 +40,8 @@ WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 HTTP_D7DIR = 'D7C_XML'
 HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
 
-KNX_GATEWAY_URL = 'http://{SERVER_IP}:1234'
-GATEWAY_URL = 'http://{SERVER_IP}:8000'
+KNX_GATEWAY_URL = f'http://{SERVER_IP}:1234'
+GATEWAY_URL = f'http://{SERVER_IP}:8000'
 
 def send_stolen_alarm(handsets_list):
     for elem in handsets_list:
@@ -71,9 +71,7 @@ def send_stolen_alarm(handsets_list):
             print('alarm sent:: %s' % message)
             _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
         except requests.exceptions.Timeout as errt:
-            print ("Timeout Error location:",errt)
-
-            action_on_TAGs_data(device, deviceIdx, DEVICES)
+            logger.("Timeout Error location:",errt)
 
 
 def send_returned_alarm(handsets_list):
@@ -101,10 +99,10 @@ def send_returned_alarm(handsets_list):
         # notify the user with alarm.
         try:
             # send btmacs updated data back to viewer.
-            print('alarm sent:: %s' % message)
+            logger.debug('alarm sent:: %s', message)
             _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/en_US/alarm', json=message)
-        except requests.exceptions.Timeout as errt:
-            print ("Timeout Error location:",errt)
+        except requests.exceptions.Timeout:
+            logger.exception("Timeout Error location (send_returned_alarm):")
 
     
 def action_on_TAG_data(tag, idx, all_devices):
@@ -159,10 +157,12 @@ def action_on_TAG_data(tag, idx, all_devices):
             logger.debug("send to phone: %s",request2)
 
             try:
-                response = requests.get(request2, timeout=5)
-                response = requests.get(request, timeout=5)
-            except requests.exceptions.Timeout as errt:
-                logger.error("Timeout Error action_on_TAG_data:%s",errt)
+                _response = requests.get(request2, timeout=5)
+                logger.debug(_response)
+                _response = requests.get(request, timeout=5)
+                logger.debug(_response)
+            except requests.exceptions.Timeout:
+                logger.exception("Timeout Error action_on_TAG_data:")
         else:
             #print(f'TAG {idx} didnt change')
             color = 'grey'
