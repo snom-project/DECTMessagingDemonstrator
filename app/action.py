@@ -68,7 +68,7 @@ def send_stolen_alarm(handsets_list):
         # notify the user with alarm.
         try:
             # send btmacs updated data back to viewer.
-            print('alarm sent:: %s' % message)
+            print('alarm red sent:: %s' % message)
             _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
         except requests.exceptions.Timeout as errt:
             logger.("Timeout Error location:",errt)
@@ -99,7 +99,7 @@ def send_returned_alarm(handsets_list):
         # notify the user with alarm.
         try:
             # send btmacs updated data back to viewer.
-            logger.debug('alarm sent:: %s', message)
+            logger.debug('alarm green sent:: %s', message)
             _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/en_US/alarm', json=message)
         except requests.exceptions.Timeout:
             logger.exception("Timeout Error location (send_returned_alarm):")
@@ -118,6 +118,7 @@ def action_on_TAG_data(tag, idx, all_devices):
     try: 
         if OLD_TAG_STATE[int(idx)] != tag['proximity']:
             OLD_TAG_STATE[int(idx)] = tag['proximity']
+            logger.debug(OLD_TAG_STATE)
             name = tag['account']
     
             # send a colored led and label to key
