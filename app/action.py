@@ -34,7 +34,7 @@ TAG_NAME_DICT = { "000413BA0029" : "Kaffeemuehle",
                     "000413BA0059" : "Bild",
                     "000413BA00E4" : "Laptop",
                     "000413BA0021" : "Defi",
-                    "000413BA001F" : "Oma",
+                    "000413BA001F" : "Oma", 
                 }
 WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
@@ -44,7 +44,7 @@ HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
 KNX_GATEWAY_URL = f'http://{SERVER_IP}:1234'
 GATEWAY_URL = f'http://{SERVER_IP}:8000'
 
-def send_stolen_alarm(handsets_list):
+def send_stolen_alarm(handsets_list, tag):
     for elem in handsets_list:
         # send alarm to all handsets - base_connection is needed from the Devices table
         logger.info(f'send alarm to {elem["account"]} on base connection {elem["base_connection"]}' )
@@ -60,7 +60,7 @@ def send_stolen_alarm(handsets_list):
 
         message = [
             {"name": elem["account"],    "account": elem["account"]},
-            {"name": "MessageTextarea1", "account": "Alert near %s, %s moved!" % (elem["beacon_gateway_name"], TAG_NAME_DICT.get(elem["bt_mac"],"not found"))},
+            {"name": "MessageTextarea1", "account": "Alert near %s, %s moved!" % (elem["beacon_gateway_name"], TAG_NAME_DICT.get(tag["bt_mac"],"not found"))},
             {"name": "SelectPrio",       "account": "1"}, # highest
             {"name": "SelectConfType",   "account": "2"}, # with confirmation
             {"name": "SelectMsgType",    "account": "0"}, # use 100 as reference
@@ -75,7 +75,7 @@ def send_stolen_alarm(handsets_list):
             logger.exception("Timeout Error location:")
 
 
-def send_returned_alarm(handsets_list):
+def send_returned_alarm(handsets_list, tag):
     for elem in handsets_list:
         # send alarm to all handsets - base_connection is needed from the Devices table
         logger.info(f'send alarm to {elem["account"]} on base connection {elem["base_connection"]}' )
@@ -91,7 +91,7 @@ def send_returned_alarm(handsets_list):
 
         message = [
             {"name": elem["account"],    "account": elem["account"]},
-            {"name": "MessageTextarea1", "account": "%s near %s save" % (TAG_NAME_DICT.get(elem["bt_mac"],"not found"), elem["beacon_gateway_name"])},
+            {"name": "MessageTextarea1", "account": "%s near %s save" % (TAG_NAME_DICT.get(tag["bt_mac"],"not found"), elem["beacon_gateway_name"])},
             {"name": "SelectPrio",       "account": "7"}, # lowest
             {"name": "SelectConfType",   "account": "0"}, # no confirmation
             {"name": "SelectMsgType",    "account": "0"}, # use 100 as reference
@@ -130,14 +130,14 @@ def action_on_TAG_data(tag, idx, all_devices):
                 label = f'{tag["beacon_gateway_name"]}: {TAG_NAME_DICT.get(tag["bt_mac"],"not found")} weg'
                 #send red alarm
                 handset_list = [d for d in all_devices if d['device_type'] == "handset" and d['beacon_gateway'] == tag["beacon_gateway"] ]
-                send_stolen_alarm(handset_list)
+                send_stolen_alarm(handset_list, tag)
             else:
                 color = 'green'
                 effect = 'on'
                 label = f'{tag["beacon_gateway_name"]}: {TAG_NAME_DICT.get(tag["bt_mac"],"not found")} da'
                 #send green alarm
                 handset_list = [d for d in all_devices if d['device_type'] == "handset" and d['beacon_gateway'] == tag["beacon_gateway"] ]
-                send_returned_alarm(handset_list)
+                send_returned_alarm(handset_list, tag)
             
             xml_payload = f'''<?xml version="1.0" encoding="UTF-8"?>
     <SnomIPPhoneText>
