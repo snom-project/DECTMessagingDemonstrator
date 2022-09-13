@@ -32,8 +32,9 @@ OLD_TAG_STATE = ['holding', 'holding', 'holding', 'holding', 'holding',
                     ]
 TAG_NAME_DICT = { "000413BA0029" : "Kaffeemuehle",
                     "000413BA0059" : "Bild",
-                    "000413BA0059" : "Laptop",
+                    "000413BA00E4" : "Laptop",
                     "000413BA0021" : "Defi",
+                    "000413BA001F" : "Oma",
                 }
 WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
@@ -100,7 +101,7 @@ def send_returned_alarm(handsets_list):
         try:
             # send btmacs updated data back to viewer.
             logger.debug('alarm green sent:: %s', message)
-            _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/en_US/alarm', json=message)
+            _r = requests.post(f'{DECT_MESSAGING_VIEWER_URL}/alarm', json=message)
         except requests.exceptions.Timeout:
             logger.exception("Timeout Error location (send_returned_alarm):")
 
