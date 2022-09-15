@@ -622,13 +622,6 @@ class DECTMessagingDb:
                 '''   mysql
 
                 '''
-                """
-                cur.execute(f'''SELECT count(), m9bIPEI.max_allowed_devices, Devices.account, Devices.base_connection, m9bdevicestatus.bt_mac, m9bdevicestatus.time_stamp, m9bdevicestatus.beacon_type, m9bdevicestatus.rssi, m9bdevicestatus.proximity, m9bdevicestatus.beacon_gateway_IPEI, m9bdevicestatus.beacon_gateway_name 
-                                FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI 
-                                WHERE m9bdevicestatus.beacon_gateway_IPEI like '%{search_term}%' and (Devices.device_type = 'BTLETag' or m9bdevicestatus.proximity != '0') 
-                                GROUP BY m9bdevicestatus.beacon_gateway_IPEI'''
-                            )
-                """
                 cur.execute(f'''SELECT count(), account, rssi, beacon_gateway_IPEI, beacon_gateway_name, max_allowed_devices, base_location, time_stamp FROM 
                                 (
                                     SELECT  account, rssi, beacon_gateway_IPEI, beacon_gateway_name, max_allowed_devices, base_location, time_stamp
@@ -636,9 +629,10 @@ class DECTMessagingDb:
                                         SELECT * FROM m9bdevicestatus INNER JOIN Devices on Devices.bt_mac = m9bdevicestatus.bt_mac 
                                         INNER JOIN m9bIPEI on m9bdevicestatus.beacon_gateway_IPEI = m9bIPEI.beacon_gateway_IPEI 
                                         WHERE  m9bdevicestatus.beacon_gateway_IPEI like '%{search_term}%'  
-                                        AND (Devices.device_type = 'BTLETag' 
-                                        OR m9bdevicestatus.proximity != '0'
-                                        ) 
+                                               AND Devices.device_loggedin = '1'
+                                               AND (Devices.device_type = 'BTLETag'  
+                                                    OR m9bdevicestatus.proximity != '0'
+                                                    ) 
                                     ORDER BY account, rssi , time_stamp DESC )
                                     GROUP BY
                                     account
