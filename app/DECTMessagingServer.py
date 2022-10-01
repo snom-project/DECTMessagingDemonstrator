@@ -30,7 +30,7 @@ import subprocess # it's usable from multiple greenlets now
 from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
-from action import *
+from DECTMessagingConfig import *
 
 # DB reuse and type
 ODBC=False
@@ -235,7 +235,7 @@ class MSSeriesMessageHandler:
                 # 2 is TAG
                 # last 8 characters 
                 if uui[len(uui)-8] == '2' and uui != '00112233445566778899AABBCCDDEEFF22334455':
-                    logger.error('Snom TAG detected, iBeacon: uui=%s', uui)
+                    logger.debug('Snom TAG detected, iBeacon: uui=%s', uui)
                     return True
             # else
             
@@ -310,7 +310,7 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if self.is_TAG(bt_mac, beacon_type, uuid):
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime, 'tag_last_state': 'unknown'} )
                 logger.debug("update_beacon: added Tag %s %s", bt_mac, uuid)
             else:
                 # alt beacon M9b TX have payload default e.g. 001122334455667788990011223344556677889000
@@ -432,7 +432,8 @@ class MSSeriesMessageHandler:
                             base_location = matched_bt_mac['base_location'],
                             base_connection = str(matched_bt_mac['base_connection']),
                             time_stamp=matched_bt_mac["time_stamp"], 
-                            tag_time_stamp = matched_bt_mac['tag_time_stamp']
+                            tag_time_stamp = matched_bt_mac['tag_time_stamp'],
+                            tag_last_state = matched_bt_mac['tag_last_state']
                             ) 
 
             # record the Beacon in the database by using proximity and gateway directly.
@@ -594,7 +595,7 @@ class MSSeriesMessageHandler:
         else:
             matched_address['user_image'] = image
 
-
+    '''
     def update_last_beacon(self, login_name, login_address, last_beacon, base_location, eventtype):
         #print("update_last_beacon:", login_name, login_address, last_beacon, eventtype)
 
@@ -621,7 +622,7 @@ class MSSeriesMessageHandler:
             # would be best to hold this info for a while
             if eventtype == "alarm":
                 matched_address['proximity'] = 'alarm'
-
+    '''
 
     def update_login(self, device_type, login_name, login_address, login, base_location, ip_connection = None):
         #print('update_login:',device_type, login_name, login_address, login, base_location)
@@ -799,7 +800,7 @@ class MSSeriesMessageHandler:
             # 100 and 110, we use 50 random refnums
             print(alarm_status)
             #50 random refnum 
-            refnum = str(random.randint(100, 149))
+            refnum = str(random.randint(100, 999))
 
             if int(alarm_status) == 100:
                 alarm_status = '0'
@@ -1381,15 +1382,23 @@ class MSSeriesMessageHandler:
         # done
 
 
+import timeit
+
 # gevent greenlet queue
 def worker():
     while True:
         gevent.sleep(0.0)
+        starttime = timeit.default_timer()
         xmldata = q.get()
         try:
+            logger.debug('#### task started')
             amsg.msg_process(xmldata)
         finally:
+            elapsed = 1000 * (timeit.default_timer() - starttime)
             q.task_done()
+            logger.debug(f'#### Queue of size {q.qsize()}: current task took {elapsed:.2f}ms')
+        
+            #logger.debug('Worker took %s ns', elapsed)
             break
     #print(gevent.getcurrent())
     # kill greenlet - otherwise mem leak

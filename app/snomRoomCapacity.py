@@ -11,7 +11,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
 # server and URL configs
-from action import *
+from DECTMessagingConfig import *
 
 class snomRoomCapacityClient():
     """ snomRoomCapacityClient uses M9B Gateways to count all devices (beacons) within the proximity.

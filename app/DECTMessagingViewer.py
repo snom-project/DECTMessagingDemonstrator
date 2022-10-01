@@ -23,7 +23,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 import schedule
 import time
 
-from action import *
+from DECTMessagingConfig import *
 
 VIEWER_AUTONOMOUS = True
 MINIMUM_VIEWER = False
@@ -539,19 +539,22 @@ if not MINIMUM_VIEWER:
 
         # the data will be locally accesed, we need to know our server host
         current_host = request.get_header('host')
-
+        
          # filter devices for TAGs only /// for each tag its way to often!
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
         
         try:
             device = tagDevices[int(deviceIdx)]
 
-            # do some action based on TAG data
-            action_on_TAG_data(device, deviceIdx, DEVICES)
+            '''
+            # do some action based on TAG data, return the changed state.
+            device['tag_last_state'] = action_on_TAG_data(device, deviceIdx, DEVICES)
+            # change the DB here... not in action
+            '''
         except IndexError:
             #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
             return ""
-        #print('vorher:', datetime.datetime.today())
+        
         # yield to greenlet queue
         gevent.sleep(0)
         return bottle.jinja2_template('tagelement', title=_("Tag Element"), i=device, host=current_host)
@@ -584,6 +587,8 @@ if not MINIMUM_VIEWER:
     @bottle.route('/tags', name='tags', method=['GET','POST'], no_i18n = False)
     def run_tags():
         global DEVICES
+        # get the latest 
+        # DEVICES = msgDb.read_devices_db()
 
         # filter devices for TAGs only 
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
@@ -611,7 +616,6 @@ if __name__ == "__main__":
     #bottle.run(app=app, host="10.245.0.28", port=8080, reloader=True, debug=True)
     #host = "10.245.0.28"
     HOST = "0.0.0.0"
-    #HOST = "10.110.11.132"
 
     if VIEWER_AUTONOMOUS:
         # schedule db re_read
