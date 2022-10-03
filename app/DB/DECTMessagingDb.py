@@ -947,13 +947,6 @@ class DECTMessagingDb:
 
     def update_single_device_db(self, device):
         if device:
-            # read tag_last_state from DB, its always the newest
-            current_device_from_db = self.read_db(account=device['account'], tag_last_state='')
-            if len(current_device_from_db) == 1:
-                tag_last_state = str(current_device_from_db[0]['tag_last_state'])
-            else:
-                tag_last_state = device.get('tag_last_state', 'unknown')
-
             self.update_db( 
                             account     = device['account'],
                             device_type = device['device_type'],
@@ -971,7 +964,7 @@ class DECTMessagingDb:
                             base_connection = str(device['base_connection']),
                             time_stamp = device['time_stamp'],
                             tag_time_stamp = device['tag_time_stamp'],
-                            tag_last_state = tag_last_state
+                            tag_last_state = 'nothing'
                             )
 
         return True

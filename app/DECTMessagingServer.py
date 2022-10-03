@@ -399,6 +399,13 @@ class MSSeriesMessageHandler:
         # rssi change
         if proximity == '2' and matched_bt_mac:
             matched_bt_mac["rssi"] = rssi
+            logger.debug("beacon rssi change received from M9B RX  rssi=%s", matched_bt_mac["rssi"])
+        # rssi report
+        if proximity == '3' and matched_bt_mac:
+            matched_bt_mac["rssi"] = rssi
+            logger.debug("beacon report received from M9B RX  rssi=%s", matched_bt_mac["rssi"])
+
+
 
         # translate IPEI into clear name
         beacon_gateway_name = beacon_gateway
@@ -425,7 +432,7 @@ class MSSeriesMessageHandler:
                             uuid=matched_bt_mac["uuid"],
                             beacon_type=matched_bt_mac["beacon_type"],
                             proximity=matched_bt_mac["proximity"],
-                            beacon_gateway=beacon_gateway,
+                            beacon_gateway=matched_bt_mac['beacon_gateway'],
                             beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
                             user_image = matched_bt_mac['user_image'],
                             device_loggedin = matched_bt_mac['device_loggedin'],
@@ -445,7 +452,7 @@ class MSSeriesMessageHandler:
                                    uuid=matched_bt_mac["uuid"],
                                    beacon_type=matched_bt_mac["beacon_type"],
                                    proximity=matched_bt_mac["proximity"],
-                                   beacon_gateway=beacon_gateway,
+                                   beacon_gateway=matched_bt_mac['beacon_gateway'],
                                    beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
                                    time_stamp=matched_bt_mac["time_stamp"]
                                    )
@@ -455,7 +462,7 @@ class MSSeriesMessageHandler:
                        uuid=matched_bt_mac["uuid"],
                        beacon_type=matched_bt_mac["beacon_type"],
                        proximity=matched_bt_mac["proximity"],
-                       beacon_gateway_IPEI=beacon_gateway,
+                       beacon_gateway_IPEI=matched_bt_mac['beacon_gateway'],
                        beacon_gateway_name=matched_bt_mac["beacon_gateway_name"],
                        time_stamp=matched_bt_mac["time_stamp"]
                        )
@@ -529,7 +536,8 @@ class MSSeriesMessageHandler:
         if delta.total_seconds() <= 20:
             tag_device['name'] = 'moving'
             tag_device['proximity'] = 'moving'
-
+        # write updated TAG to db
+        msgDb.update_single_device_db(tag_device)
         return True
 
 
@@ -1409,7 +1417,7 @@ def worker():
 import gevent.queue
 from gevent.queue import JoinableQueue
 
-q = JoinableQueue(maxsize=5)
+q = JoinableQueue(maxsize=1)
 
 if __name__ == "__main__":
     import argparse
@@ -1562,8 +1570,8 @@ if __name__ == "__main__":
             xmldata = raw_data.decode('utf-8')
             # process message
             #amsg.msg_process(xmldata)
-            gevent.spawn(worker)
             q.put(xmldata)
+            gevent.spawn(worker)
 
             # yield to worker
             gevent.sleep(0)

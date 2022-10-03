@@ -72,3 +72,9 @@ create table Alarms (
     time_stamp              VARCHAR(255) default "2020-04-01 00:00:01.100000",
     server_time_stamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+create table States (
+    account		            VARCHAR(255),
+    tag_last_state	        VARCHAR(255) default "unknown",
+    UNIQUE(account)
+);

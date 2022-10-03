@@ -15,9 +15,10 @@ ACTIONS = True
 # from DECTMessagingConfig import *
 
 PHONE_IP = '192.168.178.20'
-PHONE_IP = '10.110.16.59'
+# laptop ip
 XML_SERVER_IP = '192.168.178.25'
-SERVER_IP = XML_SERVER_IP
+# knx ip
+SERVER_IP = '192.168.178.25'
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
 DECT_MESSAGING_VIEWER_URL = f'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
@@ -33,6 +34,7 @@ WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
 HTTP_D7DIR = 'D7C_XML'
 HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
+#HTTP_ROOT = f'/Users/oliver.wittig/Public/htdocs/{HTTP_D7DIR}'
 
 KNX_GATEWAY_URL = f'http://{SERVER_IP}:1234'
 GATEWAY_URL = f'http://{SERVER_IP}:8000'
@@ -52,7 +54,7 @@ def background(f):
     except:
         logger.exception('background task %s failed!', str(f))
 
-@background
+#@background
 def send_stolen_alarm(handsets_list, tag):
     print('entered send_stolen_alarm')
     for elem in handsets_list:
@@ -84,7 +86,7 @@ def send_stolen_alarm(handsets_list, tag):
         except requests.exceptions.Timeout:
             logger.exception("Timeout Error location:")
 
-@background
+#@background
 def send_returned_alarm(handsets_list, tag):
     for elem in handsets_list:
         # send alarm to all handsets - base_connection is needed from the Devices table
@@ -116,7 +118,7 @@ def send_returned_alarm(handsets_list, tag):
             logger.exception("Timeout Error location (send_returned_alarm):")
 
 
-@background
+#@background
 def send_action_to_phone(name, idx, color, effect, label):
     print('entered send_action_to_phone')
 
@@ -124,7 +126,7 @@ def send_action_to_phone(name, idx, color, effect, label):
 
     xml_payload = f'''<?xml version="1.0" encoding="UTF-8"?>
 <SnomIPPhoneText>
-<fetch mil="100">snom://mb_exit</fetch>
+<fetch mil="1000">snom://mb_exit</fetch>
 <led number="{int(idx) + LED_OFFSET}" color="{color}">{effect}</led>
 </SnomIPPhoneText>  
                     '''
@@ -140,7 +142,7 @@ def send_action_to_phone(name, idx, color, effect, label):
     
     #urls = []
     # send to phone
-    request = f'http://{PHONE_IP}/minibrowser.htm?url=http://{XML_SERVER_IP}/{HTTP_D7DIR}/TAG{name}_{idx}.xml'
+    request = f'http://{PHONE_IP}/minibrowser.htm?url=http://{XML_SERVER_IP}/{HTTP_D7DIR}/{name}_{idx}.xml'
     logger.debug("send to phone: %s",request)
     request2 = f'http://{PHONE_IP}/settings.htm?settings=save&fkey_label{int(idx) + LED_OFFSET - 5}={label}&fkey_short_label{int(idx) + LED_OFFSET -5}={label}'
     logger.debug("send to phone: %s",request2)
@@ -160,7 +162,7 @@ def send_action_to_phone(name, idx, color, effect, label):
         logger.exception("Timeout Error action_on_TAG_data:")
 
 
-def action_on_TAG_data(tag, idx, all_devices):
+def action_on_TAG_data(tag, tag_last_state, idx, all_devices):
     global PHONE_IP
     global XML_SERVER_IP
     global LED_OFFSET
@@ -170,9 +172,9 @@ def action_on_TAG_data(tag, idx, all_devices):
         return True
 
     try: 
-        if str(tag['tag_last_state']) != str(tag['proximity']):
+        if str(tag_last_state) != str(tag['proximity']):
             # update the device old state in the DB
-            msgDb.update_with_key_db(account=tag['account'], 
+            msgDb.update_db(table='States', account=tag['account'], 
                                     tag_last_state=tag['proximity']
             )
             logger.debug("TAG old_state changed to:%s", str(tag['proximity']))
@@ -180,6 +182,9 @@ def action_on_TAG_data(tag, idx, all_devices):
     
             # send a colored led and label to key
             # send alarm to available handsets
+            color = 'grey'
+            effect = 'off'
+            label = 'not defined'
             if str(tag['proximity']) == 'moving':
                 color = 'red'
                 effect = 'blinkfast'
@@ -236,11 +241,20 @@ if __name__ == "__main__":
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
         
         for idx, tag in enumerate(tagDevices):
+            # read last state
+            tag_last_state = 'unknown'
+            record_list = msgDb.read_db(table='States', account=tag['account'], 
+                            tag_last_state=None
+            )
+            #print(record_list)
+            if  len(record_list) >= 1:
+                tag_last_state = record_list[0].get('tag_last_state', 'unknown')
+                
             #logger.debug('working on TAG:%s', tag)
-            logger.debug('new:%s->old:%s', tag['proximity'], tag['tag_last_state'])
+            logger.debug('new:%s->old:%s', tag['proximity'], tag_last_state)
         
             # check and execute scheduled task, return true on action success
-            if not action_on_TAG_data(tag, idx, DEVICES):
+            if not action_on_TAG_data(tag, tag_last_state, idx, DEVICES):
                 logger.debug('no state change on %s', idx)
 
         # do not burn cpu!
