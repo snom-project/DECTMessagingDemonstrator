@@ -310,7 +310,7 @@ class MSSeriesMessageHandler:
             # we see the device_type in the BT message
             if self.is_TAG(bt_mac, beacon_type, uuid):
                 device_type_new = 'BTLETag'
-                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime, 'tag_last_state': 'unknown'} )
+                self.devices.append({'device_type': device_type_new, 'bt_mac': bt_mac, 'name': 'moving', 'account': 'Tag_%s' % bt_mac, 'rssi': rssi, 'uuid': uuid, 'beacon_type': beacon_type, 'proximity': 'moving', 'beacon_gateway' : beacon_gateway, 'beacon_gateway_name' : '', 'user_image': '/images/tag.png', 'device_loggedin' : '1', 'base_location': 'None', 'base_connection': self.m900_connection, 'last_beacon': 'Tag', 'time_stamp': current_datetime, 'tag_time_stamp': current_datetime} )
                 logger.debug("update_beacon: added Tag %s %s", bt_mac, uuid)
             else:
                 # alt beacon M9b TX have payload default e.g. 001122334455667788990011223344556677889000
@@ -439,8 +439,7 @@ class MSSeriesMessageHandler:
                             base_location = matched_bt_mac['base_location'],
                             base_connection = str(matched_bt_mac['base_connection']),
                             time_stamp=matched_bt_mac["time_stamp"], 
-                            tag_time_stamp = matched_bt_mac['tag_time_stamp'],
-                            tag_last_state = matched_bt_mac['tag_last_state']
+                            tag_time_stamp = matched_bt_mac['tag_time_stamp']
                             ) 
 
             # record the Beacon in the database by using proximity and gateway directly.
@@ -1417,7 +1416,7 @@ def worker():
 import gevent.queue
 from gevent.queue import JoinableQueue
 
-q = JoinableQueue(maxsize=1)
+q = JoinableQueue(maxsize=5)
 
 if __name__ == "__main__":
     import argparse

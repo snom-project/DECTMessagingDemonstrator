@@ -19,7 +19,6 @@ create table Devices (
     base_connection	VARCHAR(255) default "('127.0.0.1', 4711)",
     time_stamp		VARCHAR(255) default "2020-04-01 00:00:01.100000",
     tag_time_stamp	VARCHAR(255) default "2020-04-01 00:00:01.100000",
-    tag_last_state	VARCHAR(255) default "unknown",
     UNIQUE(account)
 );
 
@@ -61,4 +60,10 @@ create table Alarms (
     rssi_w                  VARCHAR(255) default "-100",
     time_stamp              VARCHAR(255) default "2020-04-01 00:00:01.100000",
     server_time_stamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+create table States (
+    account		            VARCHAR(255),
+    tag_last_state	        VARCHAR(255) default "unknown",
+    UNIQUE(account)
 );

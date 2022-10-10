@@ -147,7 +147,7 @@ class DECTMessagingDb:
         # prepare the SQL statement
         keys = ["%s" % k for k in kwargs]
         # temporary extra test on forgotten fields.
-        if len(keys) != 17 and table == "Devices":
+        if len(keys) != 16 and table == "Devices":
             self.logger.error('update_db: not all columns specified, remaining column-values will be nullified! keys=%s', ",".join(keys))
 
         values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
@@ -938,8 +938,7 @@ class DECTMessagingDb:
                             base_location = device['base_location'],
                             base_connection = str(device['base_connection']),
                             time_stamp = device['time_stamp'],
-                            tag_time_stamp = device['tag_time_stamp'],
-                            tag_last_state = device['tag_last_state']
+                            tag_time_stamp = device['tag_time_stamp']
                             )
 
         return True
@@ -963,8 +962,7 @@ class DECTMessagingDb:
                             base_location = device['base_location'],
                             base_connection = str(device['base_connection']),
                             time_stamp = device['time_stamp'],
-                            tag_time_stamp = device['tag_time_stamp'],
-                            tag_last_state = 'nothing'
+                            tag_time_stamp = device['tag_time_stamp']
                             )
 
         return True

@@ -545,12 +545,6 @@ if not MINIMUM_VIEWER:
         
         try:
             device = tagDevices[int(deviceIdx)]
-
-            '''
-            # do some action based on TAG data, return the changed state.
-            device['tag_last_state'] = action_on_TAG_data(device, deviceIdx, DEVICES)
-            # change the DB here... not in action
-            '''
         except IndexError:
             #logger.debug("deviceIdx:%s unknown, refresh browser" % deviceIdx)
             return ""
@@ -588,7 +582,7 @@ if not MINIMUM_VIEWER:
     def run_tags():
         global DEVICES
         # get the latest 
-        # DEVICES = msgDb.read_devices_db()
+        DEVICES = msgDb.read_devices_db()
 
         # filter devices for TAGs only 
         tagDevices = [d for d in DEVICES if d['device_type'] == "BTLETag"]
