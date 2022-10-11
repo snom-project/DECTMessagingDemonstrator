@@ -10,7 +10,7 @@ run inside DECTMessagingDemonstrator folder:
 fully automated build and run:
 **source runAll.sh**
 
-
+***
 Build step by step:
 build with:
 docker build -t snommd .
@@ -24,7 +24,7 @@ A script to install all the necessary packages you can run in your python enviro
 
 source install_packages.sh
 
-
+***
 1. start the viewer in app directory:
 
 python DECTMessagingViewer.py 
