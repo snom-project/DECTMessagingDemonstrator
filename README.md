@@ -5,10 +5,10 @@ install with:
 git clone https://github.com/snom-project/DECTMessagingDemonstrator.git
 
 run inside DECTMessagingDemonstrator folder:
-git submodule update --init --recursive
+**git submodule update --init --recursive**
 
 fully automated build and run:
-source runAll.sh
+**source runAll.sh**
 
 
 Build step by step:
