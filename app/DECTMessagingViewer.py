@@ -259,7 +259,7 @@ def get_m9b_device_status_count():
     global DEVICES
     if msgDb:
         # MAX(time_stamp) is hard coded
-        result = msgDb.read_m9b_device_status_db_3()
+        result = msgDb.read_m9b_device_status_3_db()
         #print("M9B Status Count:")
         #print(result)
 
