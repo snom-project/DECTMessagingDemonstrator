@@ -224,6 +224,14 @@ class MSSeriesMessageHandler:
             [boolean]: True, if TAG is detected
         """
         # only snom and RTX beacons have encoded uuids
+        if btmac[0:6] == 'E4E112':
+            logger.debug('Blukii TAG detected, type:{beacon_type} uui=%s', uui)
+            return True
+
+        if btmac[0:6] == 'E07DEA':
+            logger.debug('Safectory TAG detected, type:{beacon_type} uui=%s', uui)
+            return True
+
         if btmac[0:6] == '000413' or btmac[0:6] == '00087B':
             if beacon_type == "a":
                 if uui[8] == '2':

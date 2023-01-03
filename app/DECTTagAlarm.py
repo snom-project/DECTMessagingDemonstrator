@@ -12,13 +12,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 ACTIONS = True
 
 # could be done by importing 
-# from DECTMessagingConfig import *
-
-PHONE_IP = '192.168.178.20'
-# laptop ip
-XML_SERVER_IP = '192.168.178.25'
-# knx ip
-SERVER_IP = '192.168.178.25'
+from DECTMessagingConfig import *
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
 DECT_MESSAGING_VIEWER_URL = f'http://{DECT_MESSAGING_VIEWER_IP_AND_PORT}/en_US'
@@ -29,6 +23,10 @@ TAG_NAME_DICT = { "000413BA0029" : "Kaffeemuehle",
                     "000413BA00E4" : "Laptop",
                     "000413BA0021" : "Defi",
                     "000413BA001F" : "Oma", 
+                    "000413BA00B6" : "Bild", 
+                    "000413BA00CC" : "Muehle", 
+                    "000413BA00B2" : "Defi", 
+                    
                 }
 WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 
@@ -118,7 +116,7 @@ def send_returned_alarm(handsets_list, tag):
             logger.exception("Timeout Error location (send_returned_alarm):")
 
 
-#@background
+@background
 def send_action_to_phone(name, idx, color, effect, label):
     print('entered send_action_to_phone')
 
@@ -258,5 +256,5 @@ if __name__ == "__main__":
                 logger.debug('no state change on %s', idx)
 
         # do not burn cpu!
-        time.sleep(10)
+        time.sleep(2)
         
