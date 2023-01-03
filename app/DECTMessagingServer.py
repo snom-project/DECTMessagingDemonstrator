@@ -1489,10 +1489,7 @@ if __name__ == "__main__":
             logger.debug('no devices found to import')
 
     # initiate message handler
-    # assume KNX is on same host
-    host_name = socket.gethostbyname(socket.gethostname())
     KNX_URL = f'{KNX_GATEWAY_URL}'
-    #KNX_URL = 'http://10.110.16.66:1234'
     KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL)
 
     # add dummy devices for load testing

@@ -1,16 +1,32 @@
 # vi:si:et:sw=4:sts=4:ts=4
 # -*- coding: UTF-8 -*-
 # -*- Mode: Python -*-
+import io, socket
+
+def get_local_ip():
+    local_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        local_socket.connect(('10.255.255.255', 1))
+        local_ip = local_socket.getsockname()[0]
+    except Exception:
+        local_ip = '127.0.0.1'
+    finally:
+        local_socket.close()
+    return local_ip
 
 # disbale actions entirely. 
 ACTIONS = True
 
 PHONE_IP = '192.168.178.20'
 PHONE_IP = '192.168.178.20'
+
 XML_SERVER_IP = '192.168.178.25'
 XML_SERVER_IP = '10.110.16.101'
+XML_SERVER_IP = get_local_ip()
+
 # knx ip
-SERVER_IP = '192.168.178.25'
+SERVER_IP = '192.168.178.53'
 SERVER_IP = '10.110.16.112'
 
 
