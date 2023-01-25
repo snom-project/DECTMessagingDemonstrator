@@ -397,7 +397,7 @@ class MSSeriesMessageHandler:
                 # Tags keep sending bursts and a final before they stop. We do not count the bursts
                 # instead we assume that after the last burst in the next 30s nothing will come.
                 # The Tag rests
-                # each TAG has its own scheduler.
+                # each TAG has its own scheduler. 
                 schedule.clear(f"TAGHold{matched_bt_mac['bt_mac']}")
                 schedule.every(30).seconds.do(self.update_all_tags).tag(f"TAGHold{matched_bt_mac['bt_mac']}")
 
