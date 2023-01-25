@@ -39,7 +39,6 @@ msgDb = DECTMessagingDb(beacon_queue_size=3, odbc=ODBC, initdb=INITDB)
 
 #msgDb.delete_db()
 viewer_autonomous = True
-KNX_ACTION = False
 
 '''
 class MyUDPHandler(socketserver.BaseRequestHandler):
@@ -398,8 +397,9 @@ class MSSeriesMessageHandler:
                 # Tags keep sending bursts and a final before they stop. We do not count the bursts
                 # instead we assume that after the last burst in the next 30s nothing will come.
                 # The Tag rests
-                schedule.clear('TAGHold')
-                schedule.every(30).seconds.do(self.update_all_tags).tag('TAGHold')
+                # each TAG has its own scheduler.
+                schedule.clear(f"TAGHold{matched_bt_mac['bt_mac']}")
+                schedule.every(30).seconds.do(self.update_all_tags).tag(f"TAGHold{matched_bt_mac['bt_mac']}")
 
 
         # at this point we have appended a new device and have a matched_bt_mac
@@ -1488,9 +1488,30 @@ if __name__ == "__main__":
             my_devices = []
             logger.debug('no devices found to import')
 
+    ''' 
+    ACTIONS
+    '''
     # initiate message handler
     KNX_URL = f'{KNX_GATEWAY_URL}'
+    # we use DECT ULE instead of KNX for the plug.
+    KNX_URL = f'{ULE_GATEWAY_URL}'
     KNX_gateway = DECT_KNX_gateway_connector(knx_url=KNX_URL)
+
+    # add all the capacity overflow actions
+    ACTIONS = [
+        # ULE only 
+        {'m9b_IPEI': '0328DD60EE', 'device_bt_mac': '000413BA0029', 'url': '/snom_ule_cmd/snom_set_cmd_attribute_value%209%201%20514%201%201%20%22Hue%200-359%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%200', 
+         'proximity': '0'},
+        {'m9b_IPEI': '0328DD60EE', 'device_bt_mac': '000413BA0029', 'url': '/snom_ule_cmd/snom_set_cmd_attribute_value%209%201%20514%201%201%20%22Hue%200-359%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%200', 
+         'proximity': 'moving'},
+        {'m9b_IPEI': '0328DD60EE', 'device_bt_mac': '000413BA0029', 'url': '/snom_ule_cmd/snom_set_cmd_attribute_value%209%201%20514%201%201%20%22Hue%200-359%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%20120', 
+         'proximity': 'holding_still'},
+        {'m9b_IPEI': '0328DD60EE', 'device_bt_mac': '000413BA0029', 'url': '/snom_ule_cmd/snom_set_cmd_attribute_value%209%201%20514%201%201%20%22Hue%200-359%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%20120', 
+         'proximity': '1'},
+    ]
+    KNX_gateway.update_actions(ACTIONS)
+
+
 
     # add dummy devices for load testing
     for i in range(0):

@@ -23,6 +23,7 @@ import requests
 import logging
 import random
 
+from DECTMessagingConfig import *
 
 class DECT_KNX_gateway_connector:
     """handles all triggers from DECT messaging server
@@ -32,7 +33,7 @@ class DECT_KNX_gateway_connector:
     Returns:
         OK: in case it could be fired.
     """
-    def __init__(self, knx_url='http://192.168.178.22:1234', maxsize=5, http_timeout=1.0, loglevel=logging.DEBUG):
+    def __init__(self, knx_url=KNX_GATEWAY_URL, maxsize=5, http_timeout=1.0, loglevel=logging.DEBUG):
         # logging
         self.logger = logging.getLogger('DECT_KNX_Gateway')
         self.logger.setLevel(loglevel)
@@ -169,7 +170,7 @@ if __name__ == "__main__":
 
     # base is not used, we assume one KNX GW ..
     ACTION_URLS = [
-    #snom inhouse
+    #snom inhouse 
         {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-aus', 'proximity': '0'},
         {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '1'},
         {'m9b_IPEI': '0328D3C8FC', 'device_bt_mac': '000413B5004B', 'url': '/1/1/10-an' , 'proximity': '2'},

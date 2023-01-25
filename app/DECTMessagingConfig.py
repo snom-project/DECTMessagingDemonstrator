@@ -17,6 +17,9 @@ def get_local_ip():
 
 # disbale actions entirely. 
 ACTIONS = True
+# actions only for TAGs
+KNX_ACTION = True
+
 
 PHONE_IP = '192.168.178.20'
 PHONE_IP = '192.168.178.20'
@@ -26,8 +29,13 @@ XML_SERVER_IP = '10.110.16.101'
 XML_SERVER_IP = get_local_ip()
 
 # knx ip
-SERVER_IP = '192.168.178.53'
-SERVER_IP = '10.110.16.112'
+KNX_SERVER_IP = '192.168.178.53'
+KNX_SERVER_IP = '10.110.16.112'
+
+# ULE server IP
+ULE_SERVER_IP = XML_SERVER_IP 
+#### testing
+ULE_SERVER_IP = '10.110.16.101'
 
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'
@@ -50,5 +58,6 @@ WAVE_URL = f'http://{XML_SERVER_IP}/IO/test1.wav'
 HTTP_D7DIR = 'D7C_XML'
 HTTP_ROOT = f'/var/www/html/{HTTP_D7DIR}'
 
-KNX_GATEWAY_URL = f'http://{SERVER_IP}:1234'
-GATEWAY_URL = f'http://{SERVER_IP}:8000'
+KNX_GATEWAY_URL = f'http://{KNX_SERVER_IP}:1234'
+GATEWAY_URL = f'http://{KNX_SERVER_IP}:8000'
+ULE_GATEWAY_URL = f'http://{ULE_SERVER_IP}:8881'
