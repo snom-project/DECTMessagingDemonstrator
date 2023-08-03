@@ -1,4 +1,4 @@
-FROM python:3.7.2-slim
+FROM python:3.7.7-slim
 RUN apt-get update
 RUN apt-get install -y libxml2-dev libxslt1-dev python-dev
 RUN apt-get install -y protobuf-compiler
