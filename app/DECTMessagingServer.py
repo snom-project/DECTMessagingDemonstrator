@@ -193,6 +193,7 @@ class MSSeriesMessageHandler:
         self.JOBDATA = E.jobdata
         self.ALARMNUMBER = E.alarmnumber
         self.REFERENCENUMBER = E.referencenumber
+        self.CALLBACKNUMBER = E.callbacknumber
         self.PRIORITY = E.priority
         self.FLASH = E.flash
         self.RINGS = E.rings
@@ -295,6 +296,7 @@ class MSSeriesMessageHandler:
         #print('update_beacon')
         logger.debug('messageuui from %s:%s', beacon_gateway, messageuui)
 
+        rssi = "-111"
         if messageuui.split(';',1)[0] == '!BT':
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
         else:
@@ -777,7 +779,7 @@ class MSSeriesMessageHandler:
                                                  self.NAME("SnomProxy"),
                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                  #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                 self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                 self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                  self.STATUS("1"),
                                                  self.STATUSINFO("System running")
                                                  ),
@@ -830,7 +832,7 @@ class MSSeriesMessageHandler:
                                                  self.NAME("SnomProxy"),
                                                  self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                  #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                 self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                 self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                  self.STATUS("1"),
                                                  self.STATUSINFO("System running")
                                                  ),
@@ -838,6 +840,7 @@ class MSSeriesMessageHandler:
                                               self.ALARMNUMBER("5"),
                                               # repeated alarms with same reference will show only last alarm
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
+                                              self.CALLBACKNUMBER('592'),
                                               #self.PRIORITY(str(random.randint(1, 9))),
                                               self.PRIORITY(alarm_prio),
                                               self.FLASH("0"),
@@ -875,7 +878,7 @@ class MSSeriesMessageHandler:
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                   #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                  self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   )
@@ -892,7 +895,7 @@ class MSSeriesMessageHandler:
                                                       self.NAME("SnomProxy"),
                                                       self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                       #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                      self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                      self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                       self.STATUS("1"),
                                                       self.STATUSINFO("System running")
                                                     ),
@@ -949,7 +952,7 @@ class MSSeriesMessageHandler:
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                   #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                  self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("Accepted by SnomProxy")
                                                   ),
@@ -1006,7 +1009,7 @@ class MSSeriesMessageHandler:
                                                       self.NAME("SnomProxy"),
                                                       self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                       #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                      self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                      self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                       self.STATUS("1"),
                                                       self.STATUSINFO("Accepted by SnomProxy")
                                                       ),
@@ -1055,7 +1058,7 @@ class MSSeriesMessageHandler:
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
                                                   #self.TIMESTAMP(format(int(datetime.datetime.utcnow().strftime("%s")), 'x')),
-                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                  self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   )
@@ -1070,7 +1073,7 @@ class MSSeriesMessageHandler:
                                   self.SYSTEMDATA(
                                                   self.NAME("SnomProxy"),
                                                   self.DATETIME(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")),
-                                                  self.TIMESTAMP(format(int(time.time())), 'x'),
+                                                  self.TIMESTAMP(f'{int(time.time()):0>8X}'.lower()),
                                                   self.STATUS("1"),
                                                   self.STATUSINFO("System running")
                                                   ),

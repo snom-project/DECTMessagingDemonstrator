@@ -26,16 +26,15 @@ PHONE_IP = '192.168.178.20'
 
 XML_SERVER_IP = '192.168.178.25'
 XML_SERVER_IP = '10.110.16.101'
+# results in localhost on raspi
 XML_SERVER_IP = get_local_ip()
 
 # knx ip
 KNX_SERVER_IP = '192.168.178.53'
 KNX_SERVER_IP = '10.110.16.112'
 
-# ULE server IP
-ULE_SERVER_IP = XML_SERVER_IP 
-#### testing
-ULE_SERVER_IP = '10.110.16.101'
+# ULE server IP needs a real IP - not localhost. It is used on web browsers and minibrowser
+ULE_SERVER_IP = '192.168.188.126'
 
 
 DECT_MESSAGING_VIEWER_IP_AND_PORT = '127.0.0.1:8081'

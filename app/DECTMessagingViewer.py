@@ -4,12 +4,16 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
+import os
+
 import logging
 import requests
 
 import bottle
 from bottle import route, app, static_file, template, request, url, FormsDict
 from bottle import Jinja2Template
+from bottle import response
+
 from beaker.middleware import SessionMiddleware
 
 
@@ -137,6 +141,41 @@ def setup_request():
     # check if the session is still valid / check login status
 
 
+import subprocess
+import shlex
+
+@route('/restart', method=['GET'], no_i18n = True)
+def do_restart():
+    subprocess.call(shlex.split('./restart_all.sh 10 no'))
+    return 'restarting... wait approx. 1min'
+ 
+
+@route('/upload', method=['GET','POST'], no_i18n = True)
+def do_upload():
+    if request.method == 'POST':
+        category = request.forms.get('category')
+        upload = request.files.get('upload')
+        name, ext = os.path.splitext(upload.filename)
+        if ext not in ('.py'):
+            return "File extension not allowed."
+
+        save_path = save_root_path
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        file_path = "{path}/{file}".format(path=save_path, file=upload.filename)
+        upload.save(file_path)
+        return "File successfully saved to '{0}'.".format(save_path)
+
+    else:
+       return '''<form action="/upload" method="post" enctype="multipart/form-data">
+  Category:      <input type="text" name="category" />
+  Select a file: <input type="file" name="upload" />
+  <input type="submit" value="Start upload" />
+</form>'''
+    
+
+
 # absolute path to tabular
 @bottle.get('/tabulator/<filename:path>', no_i18n = True)
 def load_tabulator(filename):
@@ -171,6 +210,61 @@ def load_image(filename):
 import socket
 import json
 import sys
+
+
+# XML Minibrowser server simulation
+# http://ipphones.onenet.acs.vodafone.gr:7548/provision.xml?mac=000413907100
+@route('/sim/<provision>', no_i18n = True)
+def handle_provision(provision):
+    if provision=='provision.xml':
+        userid=''
+        mac = request.GET.get('mac', '').strip()
+        userid = request.GET.get('userid', '').strip()
+        print(mac, userid)
+        
+        if request.method == 'GET':
+            if mac == '000413907100' and userid=='':
+                response.status = 200
+                print(f'ALLOWED={mac}')
+                return '''<SnomIPPhoneInput>
+    <Title>Enter ID</Title>
+    <Promt></Promt>
+    <URL>http://52.29.201.238:8081/sim/provision2.xml</URL>
+    <InputItem>
+    <DisplayName>Enter Login ID</DisplayName>
+    <QueryStringParam>mac=000413907100&amp;type=password&amp;userid</QueryStringParam>
+    <InputFlags>n</InputFlags>
+    </InputItem>
+    </SnomIPPhoneInput>
+                '''
+            else:
+                response.status = 404
+                return 'fail - no mac specified, use ?mac=000413907100'
+    
+    elif provision=='provision2.xml':
+        password=''
+        userid=''
+        mac = request.GET.get('mac', '').strip()
+        type = request.GET.get('type', '').strip()
+        userid = request.GET.get('userid', '').strip()
+        password = request.GET.get('password', '').strip()
+        print(mac, userid)
+        
+        if request.method == 'GET':
+            if mac == '000413907100' and userid!='' and type=='password' and password=='':
+                response.status = 200
+                print(f'ALLOWED=MAC={mac}, userID={userid} -> request password')
+                return f'<SnomIPPhoneInput><Title></Title><Promt></Promt><URL>http://52.29.201.238:8081/sim/provision2.xml?</URL><InputItem><DisplayName>Enter Login PIN</DisplayName><QueryStringParam>mac=000413907100&userid={userid}&password</QueryStringParam><InputFlags>pn</InputFlags></InputItem></SnomIPPhoneInput>'
+            elif mac == '000413907100' and userid!='' and password!='':
+                response.status = 200
+                print(f'ALLOWED={mac}, {userid}, {password}')
+                return f'<SnomIPPhoneText><Title>Demo</Title><Text>Welcome to Snom!<br/>user:{userid} -> Connection granted!</Text></SnomIPPhoneText>'
+            else:
+                response.status = 404
+                return 'fail - no password specified'
+    else:
+        return 'fail, wrong xml requested'
+               
 
 @route('/devicessync', no_i18n = True)
 def devicessync():

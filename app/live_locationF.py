@@ -37,7 +37,7 @@ offset6OG = (475.0 * x_ratio, 0 * y_ratio)
 offsetOG = (475.0, 0)
 
 last_M9B = '0328DD6295'
-last_M9B = '0328D3C918'
+#last_M9B = '0328D3C918'
 
 
 m9bpositions = [
