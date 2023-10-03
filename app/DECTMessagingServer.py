@@ -887,7 +887,7 @@ class MSSeriesMessageHandler:
         self.send_xml(final_doc)
 
 
-    # sms: MS forwards sms via request to to FP:
+    # sms: MS forwards sms via request to FP:
     def request_forward_sms(self, externalid, fromaddress, fromname, fromlocation, toaddress, priority, message1, message2, uuid):
         final_doc = self.REQUEST(
                                       self.EXTERNALID(externalid),
@@ -1431,6 +1431,7 @@ q = JoinableQueue(maxsize=5)
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description='DECTMessagingServer')
     parser.add_argument('udp_port', metavar='udp_port', type=int, default=10300,
                    help='UDP port to send and receive XML messages.')
@@ -1576,7 +1577,7 @@ if __name__ == "__main__":
 
 
     # MQTT Interface / False to disable temporarily..
-    mqttc = snomM900MqttClient(False)
+    mqttc = snomM900MqttClient(True)
     rc = mqttc.connect_and_subscribe()
 
     ###################################

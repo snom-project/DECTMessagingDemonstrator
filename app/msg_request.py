@@ -226,7 +226,7 @@ def msg_request(self, request_type, msg_profile_root):
                 #                <statusinfo></statusinfo>
                 #                </jobdata>
                 #                <senderdata>
-                #                <address>+4925518638088002</address>
+                #                <address>+492551000</address>
                 #                <name>025518638088</name>
                 #                <location>M700DataMaster</location>
                 #                </senderdata>
