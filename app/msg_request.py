@@ -81,8 +81,8 @@ def msg_request(self, request_type, msg_profile_root):
                     self.logger.debug("alarm beacon info: %s,%s,%s,%s,%s", 
                         alarm_type, b_list[0]['beacontype'], b_list[0]['broadcastdata'], b_list[0]['bdaddr'], b_list[0]['rssi'])
 
-                    self.update_last_beacon(name, address, b_list[0]['bdaddr'], base_location, "alarm")
-                    #self.update_last_beacon(name, address, bdaddr, base_location, "alarm")
+                    # This was only for viewing purposes. No use with DB anymore
+                    #self.update_last_beacon(name, address, b_list[0]['bdaddr'], base_location, "alarm")
                 else:
                     # no beacon data, set defaults for DB
                     b_list = [] 
@@ -126,7 +126,18 @@ def msg_request(self, request_type, msg_profile_root):
                                     rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w,
                                     time_stamp=current_datetime,
                                     )
-
+            self.mqttc_publish_alarm(account=address,
+                                    name=name,
+                                    externalid=self.externalid,
+                                    alarm_type=alarm_type,
+                                    beacon_type=b_list[0]['beacontype'], 
+                                    beacon_broadcastdata=b_list[0]['broadcastdata'],
+                                    beacon_bdaddr=b_list[0]['bdaddr'],
+                                    #beacon_rssi=b_list[0]['rssi'],
+                                    rfpi_s=rfpi_s, rfpi_m=rfpi_m, rfpi_w=rfpi_w,
+                                    rssi_s=rssi_s, rssi_m=rssi_m, rssi_w=rssi_w,
+                                    time_stamp=current_datetime)
+                
             self.send_to_location_viewer(address)
 
 

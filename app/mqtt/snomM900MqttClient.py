@@ -50,7 +50,7 @@ class snomM900MqttClient(mqtt.Client):
 
             self.publish("%s/name" % device_topic, login_name)
             self.publish("%s/type" % device_topic, device_type)
-            self.publish("%s/loggedIn" % device_topic, login)
+            self.publish("%s/loggedIn" % device_topic, int(login))
             self.publish("%s/baseLocation" % device_topic, base_location)
             self.publish("%s/baseConnection" % device_topic, ip_connection)
             self.publish("%s/bt_mac" % device_topic, bt_mac)
@@ -76,8 +76,38 @@ class snomM900MqttClient(mqtt.Client):
             self.publish("%s/nameState" % device_topic, name)
             self.publish("%s/proximity" % device_topic, proximity)
 
+
+    def publish_alarm(self, login_address, alarm_type, 
+                      beacon_type, beacon_broadcastdata, beacon_bdaddr, #beacon_rssi=b_list[0]['rssi'],
+                      rfpi_s, rfpi_m, rfpi_w,
+                      rssi_s, rssi_m, rssi_w,
+                      time_stamp):
+        if self.enable:
+            print(f'Publish: snomM900/{RFPI}/alarm')
+        
+            # publish a complete device sub-tree topic
+            #device_topic = "snomM900/{RFPI}/devices/%s" % login_address
+            device_topic = f"snomM900/{RFPI}/alarm/{login_address}"
+
+            self.publish("%s/alarmType" % device_topic, alarm_type)
+            # nearest beacon
+            self.publish("%s/beaconType" % device_topic, beacon_type)
+            self.publish("%s/beaconBroadcastdata" % device_topic, beacon_broadcastdata)
+            self.publish("%s/beaconBdaddr" % device_topic, beacon_bdaddr)
+            # nearest bases
+            self.publish("%s/rfpi_s" % device_topic, rfpi_s)
+            self.publish("%s/rfpi_m" % device_topic, rfpi_m)
+            self.publish("%s/rfpi_w" % device_topic, rfpi_w)
+            
+            self.publish("%s/rssi_s" % device_topic, rssi_s)
+            self.publish("%s/rssi_m" % device_topic, rssi_m)
+            self.publish("%s/rssi_w" % device_topic, rssi_w)
+            # control timestamp
+            self.publish("%s/timestamp" % device_topic, time_stamp)
+            
     def connect_and_subscribe(self, server='127.0.0.1', port=1883):
         if self.enable:
+            self.username_pw_set(username="snom", password="snom")
             self.connect(server, port, 60)
             # wait to connect
             time.sleep(2.0)

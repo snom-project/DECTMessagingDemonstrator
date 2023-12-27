@@ -711,6 +711,18 @@ class MSSeriesMessageHandler:
         """        
         mqttc.publish_beacon(bt_mac, beacon_type, uuid, d_type, proximity, rssi, name, beacon_gateway)
 
+    def mqttc_publish_alarm(self, account, name, externalid, alarm_type,
+                            beacon_type, beacon_broadcastdata, beacon_bdaddr, #beacon_rssi=b_list[0]['rssi'],
+                            rfpi_s, rfpi_m, rfpi_w,
+                            rssi_s, rssi_m, rssi_w,
+                            time_stamp):
+        """Publish received alarm and alarm location.
+        """   
+        mqttc.publish_alarm(account, alarm_type, 
+                            beacon_type, beacon_broadcastdata, beacon_bdaddr, #beacon_rssi=b_list[0]['rssi'],
+                            rfpi_s, rfpi_m, rfpi_w,
+                            rssi_s, rssi_m, rssi_w,
+                            time_stamp)
 
     def add_senderdata(self, xml_root):
         # contains all logged-in handsets
@@ -840,7 +852,7 @@ class MSSeriesMessageHandler:
                                               self.ALARMNUMBER("5"),
                                               # repeated alarms with same reference will show only last alarm
                                               self.REFERENCENUMBER('alarm_%s' % refnum),
-                                              self.CALLBACKNUMBER('592'),
+                                              self.CALLBACKNUMBER('200200200'),
                                               #self.PRIORITY(str(random.randint(1, 9))),
                                               self.PRIORITY(alarm_prio),
                                               self.FLASH("0"),
@@ -1577,8 +1589,9 @@ if __name__ == "__main__":
 
 
     # MQTT Interface / False to disable temporarily..
-    mqttc = snomM900MqttClient(True)
-    rc = mqttc.connect_and_subscribe()
+    mqttc = snomM900MqttClient(False)
+    rc = mqttc.connect_and_subscribe(server='10.110.10.112')
+    #rc = mqttc.connect_and_subscribe()
 
     ###################################
     # UDP protocol listen and process #
