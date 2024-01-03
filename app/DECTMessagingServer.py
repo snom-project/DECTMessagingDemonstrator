@@ -1609,7 +1609,7 @@ if __name__ == "__main__":
 
         try:
             # quick check if data is valid missing
-            xmldata = raw_data.decode('utf-8')
+            xmldata = raw_data.decode('utf-8').rstrip(chr(0))
             # process message
             #amsg.msg_process(xmldata)
             q.put(xmldata)
