@@ -1,4 +1,4 @@
-FROM python:3.7.7-slim
+FROM python:3.9-slim
 RUN apt-get update
 RUN apt-get install -y libxml2-dev libxslt1-dev python-dev
 RUN apt-get install -y protobuf-compiler
@@ -26,7 +26,7 @@ RUN python3 -m pip install pygame
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
-COPY start.sh ./start.sh 
+COPY start.sh ./start.sh
 RUN chmod +x ./start.sh
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install sqlite-web
