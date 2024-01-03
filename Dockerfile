@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 RUN apt-get update
-RUN apt-get install -y libxml2-dev libxslt1-dev python-dev
+RUN apt-get install -y libxml2-dev libxslt1-dev
 RUN apt-get install -y protobuf-compiler
 RUN apt-get install -y rsyslog
 RUN apt-get install -y bash
