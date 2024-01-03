@@ -7,7 +7,6 @@ RUN apt-get install -y bash
 RUN apt-get install -y unixodbc-dev
 
 RUN apt-get install gcc libpq-dev -y
-RUN apt-get install python-dev  python-pip -y
 RUN apt-get install python3-dev python3-pip python3-venv python3-wheel -y
 
 RUN apt-get install unixodbc-dev -y
