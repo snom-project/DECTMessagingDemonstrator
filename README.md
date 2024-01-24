@@ -2,7 +2,8 @@
 Simple message server for snom Multicell DECT M700, M900
 
 install with:
-git clone https://github.com/snom-project/DECTMessagingDemonstrator.git
+git clone https://github.com/snom-project/DECTMessagingDemonstrator.git --config core.autocrlf=input
+Note: --config core.autocrlf=input must be used on windows based docker versions to store the repository locally with Unix style line endings!
 
 run inside DECTMessagingDemonstrator folder:
 **git submodule update --init --recursive**
