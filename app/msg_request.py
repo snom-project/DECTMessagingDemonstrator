@@ -59,9 +59,15 @@ def msg_request(self, request_type, msg_profile_root):
             name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
             address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
             base_location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
-            # alarm DB table gets the server time 
-            current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
-
+            bt_mac = self.get_value(msg_profile_root, 'X_SENDERDATA_BDADDR_XPATH')
+            
+            # alarm 16 messages have bt_macs from keep-alive defined in Management Temrinal
+            if bt_mac == '': 
+                bt_mac = None
+            else:
+                #  beacon messages have btle mac address from 730.100
+                self.update_btmac(name, address, bt_mac)
+                        
             # update the location of the device
             self.update_login('handset', name, address, "1", base_location)
 
@@ -92,6 +98,7 @@ def msg_request(self, request_type, msg_profile_root):
                 # - 3: Pull Cord
                 # - 4: Red Key
                 # - 5-9 Reserved
+                # - 16 Keep-a-life defined on Management page Terminal 
                 self.logger.debug('Alarmtype:%s', alarm_type)
             else: # we set defaults for the DB
                 alarm_type = beacontype = broadcastdata = bdaddr = 'None'
@@ -113,6 +120,8 @@ def msg_request(self, request_type, msg_profile_root):
 
             self.response_alarm(self.externalid, status, statusinfo)
 
+            # alarm DB table gets the server time 
+            current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
             # add, update Alarm table
             self.update_alarm_table(account=address,
                                     name=name,
@@ -183,7 +192,7 @@ def msg_request(self, request_type, msg_profile_root):
             uuid = self.get_value(msg_profile_root, 'JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH')
 
             if '!BT' in uuid:
-                self.logger.debug('Beacon')
+                self.logger.debug('Beacon via job')
                 #self.logger.debug(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
                 self.logger.debug(f'{Fore.RED}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}')
 
@@ -258,6 +267,15 @@ def msg_request(self, request_type, msg_profile_root):
 
 
         if request_type == 'beacon':
+            '''
+            from 730.100
+            <senderdata>
+                <address>200200200</address>
+                <name>3x200</name>
+                <location>M900</location>
+                <bdaddr>000413632418</bdaddr>
+            </senderdata>
+            '''
 
             #self.logger.debug(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
             self.logger.debug(f'{Fore.RED}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}')
@@ -267,7 +285,13 @@ def msg_request(self, request_type, msg_profile_root):
             name = self.get_value(msg_profile_root, 'X_SENDERDATA_NAME_XPATH')
             address = self.get_value(msg_profile_root, 'X_SENDERDATA_ADDRESS_XPATH')
             base_location = self.get_value(msg_profile_root, 'X_SENDERDATA_LOCATION_XPATH')
-
+            bt_mac = self.get_value(msg_profile_root, 'X_SENDERDATA_BDADDR_XPATH')
+            if bt_mac == '': 
+                bt_mac = None
+            else:
+                #  beacon messages have btle mac address from 730.100
+                self.update_btmac(name, address, bt_mac)
+            
             # update the location of the device
             self.update_login('handset', name, address, "1", base_location)
 
@@ -282,7 +306,7 @@ def msg_request(self, request_type, msg_profile_root):
 
                 # The eventtype can be:
                 # 0: entering proximity of the beacon 1: leaving proximity of the beacon
-                self.update_last_beacon(name, address, bdaddr, base_location, eventtype)
+                #self.update_last_beacon(name, address, bdaddr, base_location, eventtype)
 
                 self.response_beacon(self.externalid, status, statusinfo)
 
@@ -325,6 +349,15 @@ def msg_request(self, request_type, msg_profile_root):
             else:
                 location = 'None'
 
+            bt_mac = self.get_value(msg_profile_root, 'X_SENDERDATA_BDADDR_XPATH')
+            
+            # from 730.100 we have the BTLE address of the phone
+            if bt_mac == '': 
+                bt_mac = None
+            else:
+                #  beacon messages have btle mac address from 730.100
+                self.update_btmac(name, address, bt_mac)
+               
             # login adds new devices as well..
             self.update_login(device_type, name, address, loggedin, location)
 
@@ -342,7 +375,6 @@ def msg_request(self, request_type, msg_profile_root):
 
             # send response to FP
             status = statusinfo = '' # not used
-            #def response_login(self, externalid, _status, _statusinfo):
 
             cm = CreateMessage()
             self.send_xml(cm.response_login(self.externalid, status, statusinfo))

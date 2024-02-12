@@ -22,6 +22,8 @@ init()
 from colorama import Fore
 from colorama import Style
 
+from typing import Optional
+
 # ASYNC processing
 import gevent
 #from gevent import monkey; monkey.patch_all()
@@ -160,6 +162,7 @@ class MSSeriesMessageHandler:
         'X_SENDERDATA_ADDRESS_IPEI_XPATH': "//senderdata/address[@type='IPEI']/text()",
 
         'X_SENDERDATA_LOCATION_XPATH': "//senderdata//location/text()",
+        'X_SENDERDATA_BDADDR_XPATH': "//senderdata//bdaddr/text()",
 
         'X_BEACONDATA_EVENTTYPE_XPATH':     "//beacondata//eventtype/text()",
         'X_BEACONDATA_BEACONTYPE_XPATH':    "//beacondata//beacontype/text()",
@@ -222,7 +225,7 @@ class MSSeriesMessageHandler:
 
         Returns:
             [boolean]: True, if TAG is detected
-        """
+        """        
         # only snom and RTX beacons have encoded uuids
         if btmac[0:6] == 'E4E112':
             logger.debug('Blukii TAG detected, type:{beacon_type} uui=%s', uui)
@@ -238,8 +241,11 @@ class MSSeriesMessageHandler:
                     logger.debug('Snom TAG detected, AltBeacon: uui=%s', uui)
                     return True
             if beacon_type == "i":
+                # 
                 # uuid='8b0ca750e7a74e14bd99095477cb3e772C1E1CA1'
-                # 8b0ca750e7a74e14bd99095477cb3e77 relevant production data 2 C1E1CA1
+                # constant snom part - can be used as M9B filter!
+                # 8b0ca750e7a74e14bd99095477cb3e77 
+                # relevant production data 2 C1E1CA1
                 # 2 is TAG
                 # last 8 characters 
                 if uui[len(uui)-8] == '2' and uui != '00112233445566778899AABBCCDDEEFF22334455':
@@ -641,14 +647,35 @@ class MSSeriesMessageHandler:
                 matched_address['proximity'] = 'alarm'
     '''
 
+    def update_btmac(self, login_name: str, login_address: str, bt_mac: Optional[str] = None):
+        # Update device data
+        matched_address = next((item for item in self.devices if item['account'] == login_address), False)
+        # update timstamp
+        current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+        # add new device address or update
+        if not matched_address:
+            logger.debug("update_btmac: device not found: %s", login_address)
+        else:
+            # get bt_mac - might be updated elsewhere
+            if bt_mac is None:
+                bt_mac = matched_address['bt_mac'] 
+            else:
+                logger.debug("update_btmac: bt_mac updated: address=%s, bt_mac=%s", login_address, bt_mac)
+            
+            # update potentially changed fields
+            matched_address['bt_mac'] = bt_mac
+            matched_address['time_stamp'] = current_datetime
+
+
     def update_login(self, device_type, login_name, login_address, login, base_location, ip_connection = None):
         #print('update_login:',device_type, login_name, login_address, login, base_location)
         # default is current connection
         if ip_connection is None:
             ip_connection = self.m900_connection
 
-        # new login messages do not give bt_mac info 
-        bt_mac = 'None'
+        # new login messages do not give bt_mac info -> bt_mac = 'None'
+        # new beacon messages give bt_mac info -> from Version 730.100
         
         # Update device data
         matched_address = next((item for item in self.devices if item['account'] == login_address), False)
@@ -670,15 +697,15 @@ class MSSeriesMessageHandler:
         else:
             # get bt_mac - might be updated elsewhere
             bt_mac = matched_address['bt_mac'] 
-
+           
             # update potentially changed fields
             matched_address['device_type'] = device_type
             matched_address['device_loggedin'] = login
+            matched_address['bt_mac']          = bt_mac
             matched_address['base_location']   = base_location
             matched_address['base_connection'] = ip_connection
             matched_address['name']            = login_name
             matched_address['time_stamp']      = current_datetime
-
 
         # add/update device on mqtt as well
         ip, port = ip_connection
@@ -1251,8 +1278,7 @@ class MSSeriesMessageHandler:
                 if matched_account:
                     matched_account['proximity'] = 'alarm'
                     self.request_alarm(element['account'], sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
-
-
+                    
     def send_to_location_viewer(self, account=None):
         """Synchronise data from:
         - Database Devices Table
@@ -1266,13 +1292,15 @@ class MSSeriesMessageHandler:
             # sync btmacs first
             record_list = msgDb.read_db(table='Devices', bt_mac=None, account=None)
             #print(record_list)
+            '''
+            # we have update_btmac now in alarm=16 and beacon messages 
             for elem in record_list:
                 try:
                     matched_account = next((localitem for localitem in self.devices if localitem['account'] == elem['account']), False)
                     matched_account['bt_mac'] = elem['bt_mac']
                 except:
                     logger.debug("account for updated bt_mac from db not existing: a:%s,%s", elem['account'], elem['bt_mac'])
-
+            '''
             # autonomous viewer does not need to sync data back or get triggered
             if not viewer_autonomous:
                 success = msgDb.update_devices_db(self.devices)
@@ -1625,3 +1653,4 @@ if __name__ == "__main__":
             #     rc = mqttc.connect_and_subscribe()
         except:
             logger.warning("main: Message could not be understoood or unexpected error %s" % raw_data)
+
