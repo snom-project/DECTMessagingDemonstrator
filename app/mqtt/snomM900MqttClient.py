@@ -8,7 +8,7 @@ reconnect_interval = 1
 class snomM900MqttClient(mqtt.Client):
     # site specific RFPI Address:
     def __init__(self, enable=True):
-        mqtt.Client.__init__(self)
+        mqtt.Client.__init__(self, mqtt.CallbackAPIVersion.VERSION2)
 
         self.enable = enable
     
