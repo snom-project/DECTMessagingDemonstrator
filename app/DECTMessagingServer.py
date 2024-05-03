@@ -1364,6 +1364,8 @@ class MSSeriesMessageHandler:
         logger.info('update_proximity: %s=%s' % (address, alarm_type))
         matched_address = next((localitem for localitem in self.devices if localitem['account'] == address), False)
         matched_address['proximity'] = alarm_type
+        # record the alarm response in device.proximity. This data will be overwritten at will 
+        success = msgDb.update_single_device_db(matched_address)
 
 
     def get_value(self, xml_root, xpath):
