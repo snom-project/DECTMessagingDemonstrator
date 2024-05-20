@@ -1,7 +1,18 @@
 from lxml import etree as ET
+import datetime
 
 from colorama import init, Fore, Style
 init()
+
+from enum import Enum
+
+class JobStatus(Enum):
+    RECEIVED = "1"
+    BUSY = "2"
+    CONFIRMED = "4"
+    REJECTED = "5"
+    CANCELED = "10"
+    NOT_DELIVERED = "11"
 
 def msg_response(self, response_type, msg_profile_root):
     """XML response message handler
@@ -32,7 +43,7 @@ def msg_response(self, response_type, msg_profile_root):
             alarm_status = msg_profile_root.xpath(self.msg_xpath_map['JOB_RESPONSE_STATUS_XPATH'])
             if alarm_status:
                 alarm_status = alarm_status[0]
-
+                '''
                 if alarm_status == "1":
                     self.logger.debug("message sent")
                 # status at a different place. try sms phone to phone
@@ -40,6 +51,13 @@ def msg_response(self, response_type, msg_profile_root):
                     self.logger.debug("base is busy!")
                 if alarm_status == "11":
                     self.logger.debug("base does not know recepient!")
+                '''
+                if alarm_status == JobStatus.RECEIVED.value:
+                    self.logger.debug(f"message {JobStatus.RECEIVED.name.lower()}")
+                if alarm_status == JobStatus.BUSY.value:
+                    self.logger.debug(f"message {JobStatus.BUSY.name.lower()}")
+                if alarm_status == JobStatus.NOT_DELIVERED.value:
+                    self.logger.debug(f"message {JobStatus.NOT_DELIVERED.name.lower()}")
 
             alarm_job_status = msg_profile_root.xpath(self.msg_xpath_map['X_REQUEST_JOBDATA_STATUS_XPATH'])
 
@@ -51,6 +69,7 @@ def msg_response(self, response_type, msg_profile_root):
 
             if alarm_job_status :
                 alarm_job_status = alarm_job_status[0]
+                '''
                 if alarm_job_status == "1":
                     self.logger.debug("message received")
                 if alarm_job_status == "4":
@@ -68,8 +87,48 @@ def msg_response(self, response_type, msg_profile_root):
                 if alarm_job_status == "11":
                     self.logger.debug("message user unavailable / not delivered")
                     self.update_proximity(alarm_job_address, "alarm_notdelivered")
+                '''
+                # alarm_job_address can be missing?!
+                if alarm_job_status == JobStatus.RECEIVED.value:
+                    if alarm_job_address:
+                        self.logger.debug(f"message {JobStatus.RECEIVED.name.lower()}")
+                if alarm_job_status == JobStatus.CONFIRMED.value:
+                    self.logger.debug(f"message {JobStatus.CONFIRMED.name.lower()} {externalid}")
+                    if alarm_job_address:
+                        self.update_proximity(alarm_job_address, "alarm_confirmed")
+                if alarm_job_status == JobStatus.REJECTED.value:
+                    self.logger.debug(f"message {JobStatus.REJECTED.name.lower()}")
+                    if alarm_job_address:
+                        self.update_proximity(alarm_job_address, "alarm_rejected")
+                if alarm_job_status == JobStatus.CANCELED.value:
+                    self.logger.debug(f"message {JobStatus.CANCELED.name.lower()}")
+                    if alarm_job_address:
+                        self.update_proximity(alarm_job_address, "alarm_canceled")
+                if alarm_job_status == JobStatus.BUSY.value:
+                    self.logger.debug(f"message {JobStatus.BUSY.name.lower()}")
+                    if alarm_job_address:
+                        self.update_proximity(alarm_job_address, "alarm_busy")
+                if alarm_job_status == JobStatus.NOT_DELIVERED.value:
+                    self.logger.debug(f"message {JobStatus.NOT_DELIVERED.name.lower()}")
+                    if alarm_job_address:
+                        self.update_proximity(alarm_job_address, "alarm_notdelivered")
 
-            if alarm_job_status == '1':
+            # if we get busy or rejected     
+            if not alarm_job_status:
+                alarm_status_tmp = alarm_status
+            else:
+                alarm_status_tmp = alarm_job_status
+
+            ### alarm_status not delivered is not covered!
+            current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
+            self.update_job_alarm_status(externalid=externalid,
+                                        alarm_status=alarm_status_tmp,
+                                        alarm_status_txt=JobStatus(alarm_status_tmp).name,
+                                        time_stamp=current_datetime
+                                        ) 
+            
+            
+            if alarm_job_status == JobStatus.RECEIVED.value:
                 self.response_forward_sms(msg_profile_root)
             else:
                 if alarm_job_status == []:

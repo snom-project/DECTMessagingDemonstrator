@@ -6,6 +6,21 @@ init()
 
 from create_message import *
 
+from enum import Enum
+class AlarmType(Enum):
+    MAN_DOWN = 0
+    NO_MOVEMENT = 1
+    RUNNING = 2
+    PULL_CORD = 3
+    RED_KEY = 4
+    RESERVED_5 = 5
+    RESERVED_6 = 6
+    RESERVED_7 = 7
+    RESERVED_8 = 8
+    RESERVED_9 = 9
+    KEEP_ALIVE = 16
+
+
 def msg_request(self, request_type, msg_profile_root):
     """XML request message handler
 
@@ -51,8 +66,7 @@ def msg_request(self, request_type, msg_profile_root):
                 self.send_xml(cm.response_systeminfo(self.externalid, status, statusinfo))
 
             return True
-
-
+        
         #### HANDSET alarming
         if request_type == 'alarm':
             # name/account and location of the device
@@ -100,6 +114,10 @@ def msg_request(self, request_type, msg_profile_root):
                 # - 5-9 Reserved
                 # - 16 Keep-a-life defined on Management page Terminal 
                 self.logger.debug('Alarmtype:%s', alarm_type)
+                
+                alarm_state = '0'
+                alarm_state_txt = f'handset:{AlarmType(int(alarm_type)).name}'
+            
             else: # we set defaults for the DB
                 alarm_type = beacontype = broadcastdata = bdaddr = 'None'
 
@@ -127,6 +145,8 @@ def msg_request(self, request_type, msg_profile_root):
                                     name=name,
                                     externalid=self.externalid,
                                     alarm_type=alarm_type,
+                                    alarm_state=alarm_state,
+                                    alarm_state_txt=alarm_state_txt,
                                     beacon_type=b_list[0]['beacontype'], 
                                     beacon_broadcastdata=b_list[0]['broadcastdata'],
                                     beacon_bdaddr=b_list[0]['bdaddr'],
@@ -219,11 +239,6 @@ def msg_request(self, request_type, msg_profile_root):
                 self.response_beacon_sms4(self.externalid, fromaddress, fromlocation, toaddress)
                 self.logger.debug('response_beacon_sms (6):id=%s from:%s, registered on %s, name:%s', self.externalid, fromaddress, fromlocation, toaddress)
                 self.response_beacon_sms6(self.externalid, toaddress, fromaddress, fromlocation)
-
-
-                # send to location viewer
-                # no need, we updated the beacon data and the affected device already.. ???
-                # self.send_to_location_viewer()
             else:
                 #                Job:  <?xml version="1.0" encoding="UTF-8"?>
                 #                <request version="19.8.6.1008" type="job">

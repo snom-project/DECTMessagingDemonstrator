@@ -310,6 +310,87 @@ class DECTMessagingDb:
         else:
             self.logger.error('record_alarm_db: Connection does not exist, do nothing')
 
+    '''
+        Job_Alarms send by the message server are stored in a queue - FILO, the queue is limited to
+        alarms_queue_size rows.
+    '''
+    def record_job_alarm_db(self, **kwargs):
+        # account is our alarm key, bt_mac is only exisintg when BTLE is enabled on the device
+        if kwargs.get("referencenumber"):
+            referencenumber_key = kwargs.get("referencenumber")
+        else:
+            return False
+        #print(kwargs)
+
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                '''
+                       1. insert new row
+                '''
+                self.update_db(table="Job_Alarms", **kwargs)
+                '''
+                       2. remove oldest rows
+                '''
+                sql = list()
+
+                if self.sqlite:
+                    sql.append("DELETE FROM Job_Alarms WHERE ROWID IN (SELECT ROWID FROM Job_Alarms WHERE referencenumber='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (referencenumber_key, self.alarm_queue_size))
+                    sql = "".join(sql)
+                    #print(sql)
+
+                    cur = conn.cursor()
+                    cur.execute(sql)
+                    conn.commit()
+                    cur.close()
+
+                # no SQL, see record_alarm_db for reference 
+                return True
+        else:
+            self.logger.error('record_job_alarm_db: Connection does not exist, do nothing')
+
+
+    def update_job_alarm_status_db(self, **kwargs):
+        # account is our alarm key, bt_mac is only exisintg when BTLE is enabled on the device
+        if kwargs.get("externalid"):
+            externalid_key = kwargs.get("externalid")
+        else:
+            return False
+        #print(kwargs)
+
+        #connection = sqlite3.connect(self.db_filename)
+        # reuse old connection
+        connection = self.connection
+        if connection:
+            with connection as conn:
+                '''
+                       1. update status of alarm with externalid
+                '''
+                # prepare the SQL statement
+                keys = ["%s" % k for k in kwargs]
+
+                values = ["'%s'" % v.replace("'","\"") for v in kwargs.values()]
+                sql = list()
+                sql.append("UPDATE Job_Alarms SET ")
+                set_list = ["%s = %s" % (a,b) for a, b in zip(keys, values)]
+                sql.append(", ".join(set_list))
+                sql.append(" WHERE ")
+                sql.append("externalid = '%s'" % externalid_key)
+                sql.append(";")
+                sql = "".join(sql)
+
+                cur = conn.cursor()
+                cur.execute(sql)
+                conn.commit()
+                cur.close()
+
+                # no SQL, see record_alarm_db for reference 
+                return True
+        else:
+            self.logger.error('update_job_alarm_status_db: Connection does not exist, do nothing')
+
 
     '''
         Beacons are stored in a queue - FILO, the queue is limited to

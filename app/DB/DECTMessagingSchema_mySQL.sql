@@ -49,6 +49,8 @@ create table Alarms (
     name		            VARCHAR(255) default "no name",
     externalid              VARCHAR(255) default "0000000000",
     alarm_type              VARCHAR(255) default "None",
+    alarm_state             VARCHAR(255) default "None",
+    alarm_state_txt         VARCHAR(255) default "None",
     beacon_type             VARCHAR(255) default "None",
     beacon_broadcastdata    VARCHAR(255) default "00000000000000000000000000000000000000000",
     beacon_bdaddr           VARCHAR(12) default "000000000000",
@@ -58,6 +60,22 @@ create table Alarms (
     rssi_m                  VARCHAR(255) default "-100",
     rfpi_w                  VARCHAR(10) default "FFFFFFFFFF",
     rssi_w                  VARCHAR(255) default "-100",
+    time_stamp              VARCHAR(255) default "2020-04-01 00:00:01.100000",
+    server_time_stamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+create table Job_Alarms (
+    referencenumber         VARCHAR(255) default "000000",
+    externalid              VARCHAR(255) default "0000000000",
+    callbacknumber          VARCHAR(255) default "None",
+    alarm_prio              VARCHAR(255) default "None",
+    alarm_conf_type         VARCHAR(255) default "None",
+    flash                   VARCHAR(255) default "0",
+    rings                   VARCHAR(255) default "1",
+    messageUUID             VARCHAR(255) default "default alarm text",
+    alarm_status            VARCHAR(255) default "None",
+    alarm_status_txt        VARCHAR(255) default "None",
+    account                 VARCHAR(255),
     time_stamp              VARCHAR(255) default "2020-04-01 00:00:01.100000",
     server_time_stamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -725,13 +725,30 @@ class MSSeriesMessageHandler:
 
 
     def update_alarm_table(self, *args, **kwargs):
-        """Insert a alarm record into the DB.
+        """Insert an alarm record into the DB.
         """    
         if msgDb:
             msgDb.record_alarm_db(**kwargs)
         else:
-            logger.warning("update_alarm_table: No DB, gateway %s not updated", kwargs)
+            logger.warning("update_alarm_table: No DB, %s not updated", kwargs)
 
+    def update_job_alarm_table(self, *args, **kwargs):
+        """Insert an job_alarm record into the DB.
+        """    
+        if msgDb:
+            msgDb.record_job_alarm_db(**kwargs)
+        else:
+            logger.warning("update_job_alarm_table: No DB, %s not updated", kwargs)
+
+
+    def update_job_alarm_status(self, *args, **kwargs):
+        """Update status of alarm with externalid 
+        """    
+        if msgDb:
+            msgDb.update_job_alarm_status_db(**kwargs)
+        else:
+            logger.warning("update_job_alarm_status_db: No DB, externalid %s not updated", kwargs)
+         
 
     def mqttc_publish_beacon(self, bt_mac, beacon_type, uuid, d_type, proximity, rssi, name, beacon_gateway):
         """Publish a received beacon with MQTT.
@@ -823,8 +840,6 @@ class MSSeriesMessageHandler:
                                                  self.STATUSINFO("System running")
                                                  ),
                                  self.JOBDATA(
-                                              #self.ALARMNUMBER("2"),
-                                              #self.REFERENCENUMBER("5"),
                                               self.PRIORITY(priority),
                                               self.FLASH("0"),
                                               self.RINGS(rings),
@@ -866,6 +881,21 @@ class MSSeriesMessageHandler:
             refnum = str(random.randint(100, 999))
             alarm_status = '0'
 
+        # alarm request parameters for DB entry
+        alarmnumber = '10'
+        referencenumber = f'alarm_{refnum}'
+        callbacknumber = '200200200'
+        #alarm_prio
+        #alarm_conf_type
+        flash = '0'
+        rings = '1'
+        messageUUID = f'{datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S")}:{alarm_txt}'
+        #alarm_status
+        alarm_status_txt = 'SENT_TO_BASE'
+        #account
+        externalid = f'extID_{str(random.randint(100, 999))}'
+        current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
+
         final_doc = self.REQUEST(
                                  self.SYSTEMDATA(
                                                  self.NAME("SnomProxy"),
@@ -876,14 +906,15 @@ class MSSeriesMessageHandler:
                                                  self.STATUSINFO("System running")
                                                  ),
                                  self.JOBDATA(
-                                              self.ALARMNUMBER("5"),
+                                              # not used 10..9999
+                                              self.ALARMNUMBER(alarmnumber),
                                               # repeated alarms with same reference will show only last alarm
-                                              self.REFERENCENUMBER('alarm_%s' % refnum),
-                                              self.CALLBACKNUMBER('200200200'),
+                                              self.REFERENCENUMBER(referencenumber),
+                                              self.CALLBACKNUMBER(callbacknumber),
                                               #self.PRIORITY(str(random.randint(1, 9))),
                                               self.PRIORITY(alarm_prio),
-                                              self.FLASH("0"),
-                                              self.RINGS("1"),
+                                              self.FLASH(flash),
+                                              self.RINGS(rings),
                                               self.CONFIRMATIONTYPE(alarm_conf_type), 
                                               #self.CONFIRMATIONTYPE("2"), # with DECT and user confirmation
                                               #self.CONFIRMATIONTYPE("1"), # with DECT confirmation
@@ -892,7 +923,7 @@ class MSSeriesMessageHandler:
                                                             self.MESSAGE1("msg1"),
                                                             self.MESSAGE2("msg2"),
                                                             # add date and time to the message to distinguish better.
-                                                            self.MESSAGEUUID('%s:%s' % (datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S"), alarm_txt))
+                                                            self.MESSAGEUUID(messageUUID)
                                                             ),
                                               self.STATUS(alarm_status), # delete 10
                                               self.STATUSINFO("")
@@ -902,9 +933,24 @@ class MSSeriesMessageHandler:
                                                  self.STATUS("0"),
                                                  self.STATUSINFO("")
                                                  ),
-                                 self.EXTERNALID('extID_%s' % str(random.randint(100, 999)))
+                                 self.EXTERNALID(externalid)
                                  , version="1.0", type="job")
 
+        if msgDb:
+            # create new job_alarm             
+            self.update_job_alarm_table(referencenumber=referencenumber,
+                                        externalid=externalid,
+                                        callbacknumber=callbacknumber,
+                                        alarm_prio=alarm_prio,
+                                        alarm_conf_type=alarm_conf_type,
+                                        flash=flash,
+                                        rings=rings,
+                                        messageUUID=messageUUID,
+                                        alarm_status=alarm_status,
+                                        alarm_status_txt=alarm_status_txt,
+                                        account=account,
+                                        time_stamp=current_datetime
+                                        ) 
         self.send_xml(final_doc)
 
     # beacon: MS confirm response to FP:
