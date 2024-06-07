@@ -58,8 +58,8 @@
     var dataArray1 = [                  
         {% for i in devices %}
         {
-            "name": "{{i['name']}}",
-            "value": "{{i['account']}}"
+            "name": "{{i['account']}}",
+            "value": "{{i['name']}}"
         }
         {% if not loop.last %}
         ,
@@ -94,8 +94,8 @@
             $.each(items, function(i, field) {
                 values.items[field.name] = field.value;
                 json_items.push( {
-                                  "name": field.name,
-                                  "account": field.value
+                                  "name": field.value,
+                                  "account": field.name
                                 });
             });
 
