@@ -58,8 +58,8 @@
     var dataArray1 = [                  
         {% for i in devices %}
         {
-            "name": "{{i['account']}}",
-            "value": "{{i['name']}}"
+            "name": {{i['account']|tojson|safe}},
+            "value": {{i['name']|tojson|safe}}
         }
         {% if not loop.last %}
         ,
