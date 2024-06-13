@@ -1318,12 +1318,12 @@ class MSSeriesMessageHandler:
         for element in data:
             if element['name'] not in ['MessageTextarea1', 'SelectPrio', 'SelectConfType', 'SelectMsgType', '']:
                 # request goes directly to any Mx00 base, we need to enquire for one..
-                self.m900_connection = self.get_base_connection(element['account'])
+                self.m900_connection = self.get_base_connection(element['name'])
                 # mark the handset and send
-                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account'] and localitem['device_type'] == 'handset'), False)
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['name'] and localitem['device_type'] == 'handset'), False)
                 if matched_account:
                     matched_account['proximity'] = 'alarm'
-                    self.request_alarm(element['account'], sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
+                    self.request_alarm(element['name'], sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
                     
     def send_to_location_viewer(self, account=None):
         """Synchronise data from:

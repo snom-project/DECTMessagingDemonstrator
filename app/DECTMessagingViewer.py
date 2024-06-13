@@ -577,7 +577,6 @@ if not MINIMUM_VIEWER:
             #print("init socket successfull")
 
             d = json.dumps(request.json).encode("ascii")
-            #print('data:', d)
 
             # prepare XML data request
             xml_message = "<?xml version='1.0' encoding='UTF-8'?> <request version='1.0' type='json-data'><json-data><![CDATA[ {0} ]]></json-data> <jobtype>alarm</jobtype> </request>".format(d.decode('ascii'))

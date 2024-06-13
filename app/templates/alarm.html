@@ -94,8 +94,8 @@
             $.each(items, function(i, field) {
                 values.items[field.name] = field.value;
                 json_items.push( {
-                                  "name": field.value,
-                                  "account": field.name
+                                  "name": field.name,
+                                  "account": field.value
                                 });
             });
 
