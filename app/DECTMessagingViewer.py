@@ -466,6 +466,9 @@ if not MINIMUM_VIEWER:
             web page : Post or Get request answer resulting from the sms template
         """
         global DEVICES
+        
+        # select only devices able to receive smss.
+        smsDevices = [d for d in DEVICES if d['device_type'] == "handset"]
 
         if request.method == 'POST':
             ip = '127.0.0.1'
@@ -497,7 +500,7 @@ if not MINIMUM_VIEWER:
         else:
             print('GET request of the page, do nothing')
 
-        return bottle.jinja2_template('sms', title=_("SMS View"), devices=DEVICES)
+        return bottle.jinja2_template('sms', title=_("SMS View"), devices=smsDevices)
 
 
     @bottle.route('/send_sms', no_i18n = True, method=['POST'], )

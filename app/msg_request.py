@@ -21,7 +21,7 @@ class AlarmType(Enum):
     KEEP_ALIVE = 16
 
 
-def msg_request(self, request_type, msg_profile_root):
+def msg_request(self, request_type, msg_profile_root, base_connection=None):
     """XML request message handler
 
     Args:
@@ -136,7 +136,8 @@ def msg_request(self, request_type, msg_profile_root):
 
             self.update_proximity(address, 'alarm_handset_%s' % alarm_type)
 
-            self.response_alarm(self.externalid, status, statusinfo)
+            m900_connection = self.get_base_connection(address)
+            self.response_alarm(self.externalid, status, statusinfo, base_connection)
 
             # alarm DB table gets the server time 
             current_datetime = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -211,7 +212,12 @@ def msg_request(self, request_type, msg_profile_root):
 
             uuid = self.get_value(msg_profile_root, 'JOB_REQUEST_JOBDATA_MESSAGEUUID_XPATH')
 
-            if '!BT' in uuid:
+            senderaddress_ipei = msg_profile_root.xpath(self.msg_xpath_map['X_SENDERDATA_ADDRESS_IPEI_XPATH'])
+            #print("We have a GW sending device proximity identified by its BT mac ", senderaddress_ipei, messageuui)
+            #if senderaddress_ipei:
+            #    print("personaddress could be empty, the GW IPEI is always there")
+            #print("senderaddress_ipei", senderaddress_ipei)
+            if '!BT' in uuid or senderaddress_ipei:
                 self.logger.debug('Beacon via job')
                 #self.logger.debug(f'{Fore.RED}data:{data}{Style.RESET_ALL}')
                 self.logger.debug(f'{Fore.RED}{ET.tostring(msg_profile_root, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}')

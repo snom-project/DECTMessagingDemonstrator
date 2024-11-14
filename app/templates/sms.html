@@ -1,51 +1,48 @@
 {% include 'header.tpl' %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>jQuery transfer</title>
-    <link rel="stylesheet" type="text/css" href="/css/icon_font.css" />
-    <link rel="stylesheet" type="text/css" href="css/jquery.transfer.css?v=0.0.2" />
-    <style>
-        .transfer-demo {
-            width: 640px;
-            height: 400px;
-            margin: 0 auto;
-        }
-    </style>
-</head>
+<style>
+    .alarm-select {
+        width: 640px;
+        height: 400px;
+        margin: 0 auto;
+    }
+    .select-input.form-control[readonly]:not([disabled]) {
+}
+</style>
 
-<body>
-    <div>
-        <div id="transfer1" class="transfer-demo"></div>
+<div class="container">
+    <div id="DeviceSelector" class="form-floating form-control">
+        <label class="h5" for="DeviceSelector">{{_('Choose Handset(s)')}}</label>
+        <div id="transfer1" class="sms-select"></div>
     </div>
-
+   
     <form id="myform" action="/sms" method="post">
       <div class="form-group">
         <label for="FormControlTextarea1">Example textarea</label>
         <textarea class="form-control" id="FormControlTextarea1" cols="70" rows="1" wrap="hard"></textarea>
       </div>
       <button id="submitbutton" type="submit" class="btn btn-primary mb-2">Send</button>
-    </form>
+    </form>    </div>
+
+</div>
 
 
-</body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript" src="css/jquery.transfer.js?v=0.0.2"></script>
 <script type="text/javascript">
     var dataArray1 = [
-                      
         {% for i in devices %}
         {
-            "name": "{{i['name']}}",
-            "value": "{{i['account']}}"
+            "name": {{i['account']|tojson|safe}},
+            "value": {{i['name']|tojson|safe}}
         }
         {% if not loop.last %}
         ,
         {% endif %}
 
         {% endfor %}
-       
     ];
+
     var settings1 = {
         "dataArray": dataArray1,
         "itemName": "name",
@@ -60,7 +57,7 @@
                     value = dom.val();
                    items.push({
                    "name": name,
-                    "value": value
+                   "value": value
                               })
             });
 
@@ -82,7 +79,6 @@
             var myJson = JSON.stringify(json_items);
             console.dir(myJson)
 
-        
             var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
             var theUrl = "/en_US/sms";
             xmlhttp.open("POST", theUrl);
@@ -97,6 +93,5 @@
     };
     $("#transfer1").transfer(settings1);
 </script>
-
 
 {% include 'footer.tpl' %}

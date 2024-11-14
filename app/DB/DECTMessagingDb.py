@@ -32,8 +32,12 @@ class DECTMessagingDb:
 
     def connectODBCDB(self):
         self.schema_filename = 'DB/DECTMessagingSchema_mySQL.sql'
+        
+        #connectionString = f'DSN=mysqlansi;SERVER=localhost;UID=root;PWD=root'
+        #cnxn = pyodbc.connect(connectionString)
 
         cnxn = pyodbc.connect('DSN=mysqlansi')
+        
         cnxn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
         cnxn.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
         cnxn.setencoding(encoding='utf-8')
@@ -42,7 +46,6 @@ class DECTMessagingDb:
         self.connection = cnxn
 
         self.logger.debug('Trying ODBC Connect')
-        #cnxn = pyodbc.connect("DRIVER={SQLite 3};Direct=True;Database=%s" % self.db_filename)
 
         # only connect or new DB
         if not self.initdb:
@@ -53,7 +56,7 @@ class DECTMessagingDb:
             return True
 
         directory = 'DB'
-
+        
         for _root, _dirs, files in os.walk(directory):
             #print(files)
             for file in files:
@@ -320,6 +323,10 @@ class DECTMessagingDb:
             referencenumber_key = kwargs.get("referencenumber")
         else:
             return False
+        if kwargs.get("account"):
+            account_key = kwargs.get("account")
+        else:
+            return False
         #print(kwargs)
 
         #connection = sqlite3.connect(self.db_filename)
@@ -337,7 +344,7 @@ class DECTMessagingDb:
                 sql = list()
 
                 if self.sqlite:
-                    sql.append("DELETE FROM Job_Alarms WHERE ROWID IN (SELECT ROWID FROM Job_Alarms WHERE referencenumber='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (referencenumber_key, self.alarm_queue_size))
+                    sql.append("DELETE FROM Job_Alarms WHERE ROWID IN (SELECT ROWID FROM Job_Alarms WHERE referencenumber='%s' and account='%s' ORDER BY ROWID DESC LIMIT -1 OFFSET %s)" % (referencenumber_key, account_key, self.alarm_queue_size))
                     sql = "".join(sql)
                     #print(sql)
 
@@ -1080,6 +1087,8 @@ class DECTMessagingDb:
 
 if __name__ == "__main__":
     #connect to ODBC datasource DNS
+    #msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=True, initdb=True)
+    # connect existing sqlite DB
     msgDb = DECTMessagingDb(beacon_queue_size=15, odbc=False, initdb=False)
     # update nullifies all other values not explicitly given!
     msgDb.update_db(table="Beacons", account="test_beacon", beacon_gateway="FFFFF00000")
