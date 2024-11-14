@@ -7,10 +7,6 @@ import time
 import socket
 import requests
 
-import socketserver
-
-
-
 import json
 import logging
 import random
@@ -33,6 +29,7 @@ from DB.DECTMessagingDb import DECTMessagingDb
 from DECTKNXGatewayConnector import DECT_KNX_gateway_connector
 
 from DECTMessagingConfig import *
+from parallel_alarm import request_alarm_parallel as pa_request_alarm_parallel
 
 # DB reuse and type
 ODBC=False
@@ -307,7 +304,12 @@ class MSSeriesMessageHandler:
             _, bt_mac, _, beacon_type, uuid, d_type, proximity, rssi= messageuui.split(';')
         else:
             logger.warning('not a BT message')
-            return False
+            uuid = messageuui
+            bt_mac = "000000000000"
+            proximity = 16
+            beacon_type = "x"
+
+            #return False
 
         # rssi worse than 100 we discard radically, proximity can be 1 (inside), 2 (rssi change)  or 3 (state report)
         if proximity != '0' and int(rssi) < -100:
@@ -740,7 +742,6 @@ class MSSeriesMessageHandler:
         else:
             logger.warning("update_job_alarm_table: No DB, %s not updated", kwargs)
 
-
     def update_job_alarm_status(self, *args, **kwargs):
         """Update status of alarm with externalid 
         """    
@@ -801,7 +802,6 @@ class MSSeriesMessageHandler:
 
             self.update_login('handset', name_txt, address_txt, "1", base_location, ip_connection)
 
-
     def send_xml(self, xml_data, base_connection=None, ):
         global s
 
@@ -809,14 +809,19 @@ class MSSeriesMessageHandler:
         # for critical requests we submit its connection via the optional parameter
         if not base_connection:
             base_connection = self.m900_connection
+            if '127.0.0.1' in base_connection: 
+                logger.warning("FAIL: potentially wrong send_xml: connection=%s", base_connection)
+
 
         xml_with_header = (bytes('<?xml version="1.0" encoding="UTF-8"?>\n', encoding='utf-8') + ET.tostring(xml_data, pretty_print=True))
 
         #print(self.m900_connection)
         logger.debug(f'send_xml: {Fore.BLUE}{ET.tostring(xml_data, pretty_print=True, encoding="unicode")}{Style.RESET_ALL}')
         logger.debug("send_xml: connection=%s", base_connection)
-        s.sendto(xml_with_header, base_connection)
-
+        try:
+            s.sendto(xml_with_header, base_connection)
+        except Exception as e: 
+            logger.debug("FAILED: send_xml: connection=%s, %s", base_connection, str(e))
 
     def request_sms(self, base_connection=None, account=None, message=None, externalid=None, _name=None,
         priority=None, confirmationtype=None, rings=None
@@ -861,7 +866,18 @@ class MSSeriesMessageHandler:
                                  , version="1.0", type="job")
 
         self.send_xml(final_doc, base_connection)
+        
+    
+    def request_alarm_parallel(self, devices, alarm_txt, alarm_prio='1', alarm_conf_type='2', alarm_status='0'):
+        result_generator_list = pa_request_alarm_parallel(self,
+                                  devices, 
+                                  alarm_txt, 
+                                  alarm_prio, 
+                                  alarm_conf_type,
+                                  alarm_status)
 
+        if not result_generator_list:
+            logger.debug('request_alarm_parallel: Failed')
 
     # test alarm
     def request_alarm(self, account, alarm_txt, alarm_prio='1', alarm_conf_type='2', alarm_status='0'):
@@ -951,7 +967,10 @@ class MSSeriesMessageHandler:
                                         account=account,
                                         time_stamp=current_datetime
                                         ) 
-        self.send_xml(final_doc)
+            
+        # make sure this is done for all potentially parallel requests
+        m900_connection = self.get_base_connection(account)
+        self.send_xml(final_doc, m900_connection)
 
     # beacon: MS confirm response to FP:
     def response_beacon(self, externalid, _status, _statusinfo):
@@ -1134,7 +1153,7 @@ class MSSeriesMessageHandler:
 
 
     # alarm: MS confirm response to FP:
-    def response_alarm(self, externalid, _status, _statusinfo):
+    def response_alarm(self, externalid, _status, _statusinfo, base_connection=None):
         final_doc = self.RESPONSE(
                                   self.EXTERNALID(externalid),
                                   self.STATUS("1"),
@@ -1149,7 +1168,7 @@ class MSSeriesMessageHandler:
                                                   )
                                   , version="1.0", type="alarm")
 
-        self.send_xml(final_doc)
+        self.send_xml(final_doc, base_connection=base_connection)
 
 
     # we request this with schedule approx. every 1 minute, given that there is activity from the FP
@@ -1211,6 +1230,14 @@ class MSSeriesMessageHandler:
 
 
     def get_base_connection(self, account):
+        """Returns the base connection for the given account .
+
+        Args:
+            account (string): account name, e.g. 100100100
+
+        Returns:
+            string: base IP
+        """        
         matched_device = next((item for item in self.devices if item['account'] == account), False)
         if matched_device:
             if type(matched_device['base_connection']) == tuple:
@@ -1234,14 +1261,12 @@ class MSSeriesMessageHandler:
         sms_message_item = next((item for item in data if item['name'] == 'FormControlTextarea1'), False)
 
         for element in data:
-            if element['name'] != 'FormControlTextarea1' and element['account'] != '' and sms_message_item['account'] != '':
-                # request goes directly to any Mx00 base, we need to enquire for one..
-                self.m900_connection = self.get_base_connection(element['account'])
+            if element['name'] != 'FormControlTextarea1' and sms_message_item['account'] != '':
                 # mark the handset and send
-                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['account']), False)
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['name'] and localitem['device_type'] == 'handset'), False)
                 if matched_account:
                     matched_account['proximity'] = 'sms'
-                    self.request_sms(self.get_base_connection(element['account']), element['account'], sms_message_item['account'])
+                    self.request_sms(self.get_base_connection(element['name']), element['name'], sms_message_item['account'])
 
 
     def send_sms_from_post(self, post_data):
@@ -1286,6 +1311,11 @@ class MSSeriesMessageHandler:
 
 
     def alarms_MS_send_FP(self, data):
+        """Send alarms received by viewer to devices.
+
+        Args:
+            data ([string]): JSON POST data from viewer
+        """        
         logger.info('alarms_MS_send_FP:')
         # get the message text
         # message is added to the name,account data
@@ -1314,7 +1344,19 @@ class MSSeriesMessageHandler:
         sms_status_item_t = next((item for item in data if item['name'] == 'SelectMsgType'), False)
         if sms_status_item_t:
             sms_status_item = sms_status_item_t
-      
+
+        # collect list of existing accounts to send to 
+        account_list = []    
+        for element in data:
+            if element['name'] not in ['MessageTextarea1', 'SelectPrio', 'SelectConfType', 'SelectMsgType', '']:
+                # mark the handset and send
+                matched_account = next((localitem for localitem in self.devices if localitem['account'] == element['name'] and localitem['device_type'] == 'handset'), False)
+                if matched_account:
+                    matched_account['proximity'] = 'alarm'
+                    account_list.append(matched_account) 
+        self.request_alarm_parallel(account_list, sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
+        #print('chnage to parallel if working properly')
+        '''
         for element in data:
             if element['name'] not in ['MessageTextarea1', 'SelectPrio', 'SelectConfType', 'SelectMsgType', '']:
                 # request goes directly to any Mx00 base, we need to enquire for one..
@@ -1324,6 +1366,8 @@ class MSSeriesMessageHandler:
                 if matched_account:
                     matched_account['proximity'] = 'alarm'
                     self.request_alarm(element['name'], sms_message_item['account'], sms_prio_item['account'], sms_conf_type_item['account'], sms_status_item['account'])
+
+        '''
                     
     def send_to_location_viewer(self, account=None):
         """Synchronise data from:
@@ -1415,6 +1459,15 @@ class MSSeriesMessageHandler:
 
 
     def get_value(self, xml_root, xpath):
+        """Get a value from XML root
+
+        Args:
+            xml_root ([type]): xml message
+            xpath ([type]): path to extract value
+
+        Returns:
+            [type]: extracted value
+        """
         # handles empty tags and returns first value in case a list is returned.
         valueList = xml_root.xpath(self.msg_xpath_map[xpath])
 
@@ -1492,6 +1545,8 @@ import timeit
 
 # gevent greenlet queue
 def worker():
+    """main worker thread that runs the XML message queue
+    """    
     while True:
         gevent.sleep(0.0)
         starttime = timeit.default_timer()
@@ -1503,8 +1558,6 @@ def worker():
             elapsed = 1000 * (timeit.default_timer() - starttime)
             q.task_done()
             logger.debug(f'#### Queue of size {q.qsize()}: current task took {elapsed:.2f}ms')
-        
-            #logger.debug('Worker took %s ns', elapsed)
             break
     #print(gevent.getcurrent())
     # kill greenlet - otherwise mem leak
@@ -1628,14 +1681,6 @@ if __name__ == "__main__":
     import sys, socket
 
     localPort = args.udp_port
-
-    ''' later?!
-    HOST, PORT = "0.0.0.0", localPort
-    with socketserver.UDPServer((HOST, PORT), MyUDPHandler) as server:
-        server.serve_forever()
-
-    print('server started')        
-    '''
 
     try:
         localPort = int(localPort)
